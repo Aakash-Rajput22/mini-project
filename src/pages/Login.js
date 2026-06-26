@@ -7,6 +7,7 @@ function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = () => {
     if (!email) {
@@ -14,8 +15,20 @@ function Login() {
       return;
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email)) {
+      alert("Please enter a valid email");
+      return;
+    }
+
     if (!password) {
       alert("Password is required");
+      return;
+    }
+
+    if (password.length < 8) {
+      alert("Password must be at least 8 characters");
       return;
     }
 
@@ -28,8 +41,10 @@ function Login() {
   return (
     <div className="login-container">
       <div className="login-box">
+
         <h2>Login</h2>
 
+        {/* Email */}
         <input
           type="email"
           placeholder="Enter Email"
@@ -37,21 +52,38 @@ function Login() {
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        <input
-          type="password"
-          placeholder="Enter Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        {/* Password */}
+        <div className="password-box">
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Enter Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-        <button onClick={handleLogin}>
+          <button
+            type="button"
+            className="eye-btn"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? "🙈" : "👁️"}
+          </button>
+        </div>
+
+        {/* Login Button */}
+        <button
+          type="button"
+          className="login-btn"
+          onClick={handleLogin}
+        >
           Login
         </button>
 
         <p>
-          Don't have an account?
-          <Link to="/signup"> Signup</Link>
+          Don't have an account?{" "}
+          <Link to="/signup">Signup</Link>
         </p>
+
       </div>
     </div>
   );

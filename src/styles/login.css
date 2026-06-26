@@ -1,53 +1,92 @@
-body{
-    margin:0;
-    font-family:Arial, Helvetica, sans-serif;
-    background:#f5f5f5;
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
-.login-container{
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
+.login-box {
+  width: 300px;
+  background: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
 }
 
-.login-box{
-    width:350px;
-    background:#fff;
-    padding:30px;
-    border-radius:10px;
-    box-shadow:0 0 10px rgba(0,0,0,.15);
+.login-box h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 42px;
 }
 
-.login-box h2{
-    text-align:center;
-    margin-bottom:20px;
+.login-box input {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 15px;
 }
 
-.login-box input{
-    width:100%;
-    padding:12px;
-    margin-bottom:15px;
-    border:1px solid #ccc;
-    border-radius:6px;
-    box-sizing:border-box;
+
+.password-box {
+  position: relative;
+  margin-bottom: 15px;
 }
 
-.login-box button{
-    width:100%;
-    padding:12px;
-    background:#007bff;
-    color:white;
-    border:none;
-    border-radius:6px;
-    cursor:pointer;
+.password-box input {
+  margin-bottom: 0;
+  padding-right: 45 px;
 }
 
-.login-box button:hover{
-    background:#0056b3;
+
+.eye-btn {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0;
+  width: auto;
+  color: #555;
 }
 
-.login-box p{
-    text-align:center;
-    margin-top:15px;
+.eye-btn:hover {
+  color: #1877f2;
+}
+
+
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  background: #1877f2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.login-btn:hover {
+  background: #0056d2;
+}
+
+.login-box p {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 16px;
+}
+
+.login-box a {
+  color: #1877f2;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.login-box a:hover {
+  text-decoration: underline;
 }

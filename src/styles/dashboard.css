@@ -1,0 +1,62 @@
+.navbar{
+    height:70px;
+    background:#1877f2;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:0 40px;
+}
+
+.logo{
+    color:white;
+    font-size:24px;
+    font-weight:bold;
+}
+
+.navbar ul{
+    display:flex;
+    list-style:none;
+    gap:30px;
+}
+
+.navbar a{
+    color:white;
+    text-decoration:none;
+}
+
+.logout-btn{
+    background:white;
+    color:#1877f2;
+    border:none;
+    padding:10px 20px;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+.dashboard{
+    padding:40px;
+}
+
+.card-container{
+    display:flex;
+    gap:30px;
+    margin-top:30px;
+}
+
+.card{
+    width:220px;
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 5px 15px rgba(0,0,0,.1);
+    text-align:center;
+}
+
+.card h3{
+    color:#555;
+    margin-bottom:15px;
+}
+
+.card h1{
+    color:#1877f2;
+}
