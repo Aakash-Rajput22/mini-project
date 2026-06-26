@@ -1,14 +1,28 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../styles/login.css";
 
 function Login() {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = () => {
+    if (!email) {
+      alert("Email is required");
+      return;
+    }
+
+    if (!password) {
+      alert("Password is required");
+      return;
+    }
+
     console.log("Email:", email);
     console.log("Password:", password);
+
+    navigate("/dashboard");
   };
 
   return (
