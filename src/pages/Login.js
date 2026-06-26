@@ -1,5 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  signInWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
+
+import { auth } from "../firebase";
 import "../styles/login.css";
 
 function Login() {
@@ -9,11 +15,36 @@ function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = () => {
-    if (!email) {
-      alert("Email is required");
+  const handleLogin = async () => {
+  if (!email || !password) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
+    const user = userCredential.user;
+
+    if (!user.emailVerified) {
+      alert("Please verify your email before login.");
+
+      await signOut(auth);
+
       return;
     }
+
+    alert("Login Successful");
+
+    navigate("/dashboard");
+  } catch (error) {
+    alert(error.message);
+  }
+};
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

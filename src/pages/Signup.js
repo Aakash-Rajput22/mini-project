@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  updateProfile,
+  sendEmailVerification
+} from "firebase/auth";
 
 import { auth } from "../firebase/firebase";
 import InputField from "../components/InputField";
@@ -26,16 +30,25 @@ function Signup() {
       return;
     }
 
-    try {
-      await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+    const userCredential = await createUserWithEmailAndPassword(
+  auth,
+  email,
+  password
+);
 
-      alert("Account Created Successfully");
+// Save user name
+await updateProfile(userCredential.user, {
+  displayName: name,
+});
 
-      navigate("/login");
+// Send verification email
+await sendEmailVerification(userCredential.user);
+
+alert(
+  "Account created successfully.\n\nPlease verify your email before logging in."
+);
+
+navigate("/login");
     } catch (error) {
       alert(error.message);
     }
