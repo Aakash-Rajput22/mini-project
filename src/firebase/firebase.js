@@ -1,5 +1,10 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  FacebookAuthProvider,
+} from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAwSH-CFzz6Ebfojo2GgCMDrWASNxCYXm4",
@@ -7,11 +12,16 @@ const firebaseConfig = {
   projectId: "mini-project-65ad7",
   storageBucket: "mini-project-65ad7.firebasestorage.app",
   messagingSenderId: "161246027919",
-  appId: "1:161246027919:web:4438fd6b06d0878f9910fa"
+  appId: "1:161246027919:web:4438fd6b06d0878f9910fa",
+  measurementId: "G-QLJKZTQM8N",
 };
 
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
+export const db = getFirestore(app);
+
+export const googleProvider = new GoogleAuthProvider();
+export const facebookProvider = new FacebookAuthProvider();
 
 export default app;

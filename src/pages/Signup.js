@@ -3,10 +3,16 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   createUserWithEmailAndPassword,
   updateProfile,
-  sendEmailVerification
+  sendEmailVerification,
+  signInWithPopup,
 } from "firebase/auth";
 
-import { auth } from "../firebase/firebase";
+import {
+  auth,
+  googleProvider,
+  facebookProvider,
+} from "../firebase/firebase";
+
 import InputField from "../components/InputField";
 import Button from "../components/Button";
 import "../styles/signup.css";
@@ -30,25 +36,45 @@ function Signup() {
       return;
     }
 
-    const userCredential = await createUserWithEmailAndPassword(
-  auth,
-  email,
-  password
-);
+    try {
+      const userCredential =
+        await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
 
-// Save user name
-await updateProfile(userCredential.user, {
-  displayName: name,
-});
+      await updateProfile(userCredential.user, {
+        displayName: name,
+      });
 
-// Send verification email
-await sendEmailVerification(userCredential.user);
+      await sendEmailVerification(userCredential.user);
 
-alert(
-  "Account created successfully.\n\nPlease verify your email before logging in."
-);
+      alert(
+        "Account created successfully.\nPlease verify your email before login."
+      );
 
-navigate("/login");
+      navigate("/login");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+      alert("Google Signup Successful");
+      navigate("/dashboard");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleFacebookSignup = async () => {
+    try {
+      await signInWithPopup(auth, facebookProvider);
+      alert("Facebook Signup Successful");
+      navigate("/dashboard");
     } catch (error) {
       alert(error.message);
     }
@@ -92,6 +118,20 @@ navigate("/login");
           text="Signup"
           onClick={handleSignup}
         />
+
+        <button
+          onClick={handleGoogleSignup}
+          className="login-btn"
+        >
+          Continue with Google
+        </button>
+
+        <button
+          onClick={handleFacebookSignup}
+          className="login-btn"
+        >
+          Continue with Facebook
+        </button>
 
         <p>
           Already have an account?

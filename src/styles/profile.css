@@ -1,0 +1,50 @@
+.profile-container{
+display:flex;
+justify-content:center;
+align-items:center;
+padding:40px;
+}
+
+.profile-box{
+width:500px;
+background:#fff;
+padding:30px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,.2);
+}
+
+.profile-box h2{
+text-align:center;
+margin-bottom:20px;
+}
+
+.profile-box label{
+display:block;
+margin-top:15px;
+font-weight:bold;
+}
+
+.profile-box input,
+.profile-box textarea{
+width:100%;
+padding:10px;
+margin-top:5px;
+border:1px solid #ccc;
+border-radius:5px;
+}
+
+.profile-box textarea{
+height:100px;
+resize:none;
+}
+
+.profile-box button{
+width:100%;
+padding:12px;
+margin-top:20px;
+background:#007bff;
+color:white;
+border:none;
+border-radius:5px;
+cursor:pointer;
+}

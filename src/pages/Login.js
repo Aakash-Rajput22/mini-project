@@ -2,10 +2,16 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
 } from "firebase/auth";
 
-import { auth } from "../firebase";
+import {
+  auth,
+  googleProvider,
+  facebookProvider,
+} from "../firebase/firebase";
+
 import "../styles/login.css";
 
 function Login() {
@@ -16,66 +22,58 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
-  if (!email || !password) {
-    alert("Please fill all fields");
-    return;
-  }
-
-  try {
-    const userCredential = await signInWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
-
-    const user = userCredential.user;
-
-    if (!user.emailVerified) {
-      alert("Please verify your email before login.");
-
-      await signOut(auth);
-
+    if (!email || !password) {
+      alert("Please fill all fields");
       return;
     }
 
-    alert("Login Successful");
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
 
-    navigate("/dashboard");
-  } catch (error) {
-    alert(error.message);
-  }
-};
+      const user = userCredential.user;
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!user.emailVerified) {
+        alert("Please verify your email before login.");
+        await signOut(auth);
+        return;
+      }
 
-    if (!emailRegex.test(email)) {
-      alert("Please enter a valid email");
-      return;
+      alert("Login Successful");
+      navigate("/dashboard");
+    } catch (error) {
+      alert(error.message);
     }
+  };
 
-    if (!password) {
-      alert("Password is required");
-      return;
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+      alert("Google Login Successful");
+      navigate("/dashboard");
+    } catch (error) {
+      alert(error.message);
     }
+  };
 
-    if (password.length < 8) {
-      alert("Password must be at least 8 characters");
-      return;
+  const handleFacebookLogin = async () => {
+    try {
+      await signInWithPopup(auth, facebookProvider);
+      alert("Facebook Login Successful");
+      navigate("/dashboard");
+    } catch (error) {
+      alert(error.message);
     }
-
-    console.log("Email:", email);
-    console.log("Password:", password);
-
-    navigate("/dashboard");
   };
 
   return (
     <div className="login-container">
       <div className="login-box">
-
         <h2>Login</h2>
 
-        {/* Email */}
         <input
           type="email"
           placeholder="Enter Email"
@@ -83,7 +81,6 @@ function Login() {
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        {/* Password */}
         <div className="password-box">
           <input
             type={showPassword ? "text" : "password"}
@@ -101,20 +98,22 @@ function Login() {
           </button>
         </div>
 
-        {/* Login Button */}
-        <button
-          type="button"
-          className="login-btn"
-          onClick={handleLogin}
-        >
+        <button className="login-btn" onClick={handleLogin}>
           Login
+        </button>
+
+        <button className="login-btn" onClick={handleGoogleLogin}>
+          Continue with Google
+        </button>
+
+        <button className="login-btn" onClick={handleFacebookLogin}>
+          Continue with Facebook
         </button>
 
         <p>
           Don't have an account?{" "}
           <Link to="/signup">Signup</Link>
         </p>
-
       </div>
     </div>
   );
