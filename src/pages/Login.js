@@ -4,6 +4,7 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 
 import {
@@ -11,6 +12,10 @@ import {
   googleProvider,
   facebookProvider,
 } from "../firebase/firebase";
+
+import { FcGoogle } from "react-icons/fc";
+import { FaFacebook } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 import "../styles/login.css";
 
@@ -20,12 +25,17 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // ================= EMAIL LOGIN =================
 
   const handleLogin = async () => {
     if (!email || !password) {
-      alert("Please fill all fields");
+      toast.error("Please fill all fields");
       return;
     }
+
+    setLoading(true);
 
     try {
       const userCredential = await signInWithEmailAndPassword(
@@ -37,41 +47,89 @@ function Login() {
       const user = userCredential.user;
 
       if (!user.emailVerified) {
-        alert("Please verify your email before login.");
+        toast.warning("Please verify your email before login.");
         await signOut(auth);
+        setLoading(false);
         return;
       }
 
-      alert("Login Successful");
-      navigate("/dashboard");
+      toast.success("Login Successful");
+
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
+
     } catch (error) {
-      alert(error.message);
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
     }
   };
+
+  // ================= GOOGLE LOGIN =================
 
   const handleGoogleLogin = async () => {
     try {
+      setLoading(true);
+
       await signInWithPopup(auth, googleProvider);
-      alert("Google Login Successful");
-      navigate("/dashboard");
+
+      toast.success("Google Login Successful");
+
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
+
     } catch (error) {
-      alert(error.message);
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
+  // ================= FACEBOOK LOGIN =================
+
   const handleFacebookLogin = async () => {
     try {
+      setLoading(true);
+
       await signInWithPopup(auth, facebookProvider);
-      alert("Facebook Login Successful");
-      navigate("/dashboard");
+
+      toast.success("Facebook Login Successful");
+
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
+
     } catch (error) {
-      alert(error.message);
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ================= FORGOT PASSWORD =================
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast.warning("Please enter your email first.");
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+
+      toast.success("Password reset email sent.");
+
+    } catch (error) {
+      toast.error(error.message);
     }
   };
 
   return (
     <div className="login-container">
       <div className="login-box">
+
         <h2>Login</h2>
 
         <input
@@ -82,6 +140,7 @@ function Login() {
         />
 
         <div className="password-box">
+
           <input
             type={showPassword ? "text" : "password"}
             placeholder="Enter Password"
@@ -96,24 +155,58 @@ function Login() {
           >
             {showPassword ? "🙈" : "👁️"}
           </button>
+
         </div>
 
-        <button className="login-btn" onClick={handleLogin}>
-          Login
+        <button
+          className="login-btn"
+          onClick={handleLogin}
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <div className="loader"></div>
+              Logging in...
+            </>
+          ) : (
+            "Login"
+          )}
         </button>
 
-        <button className="login-btn" onClick={handleGoogleLogin}>
+        <p
+          className="forgot-password"
+          onClick={handleForgotPassword}
+        >
+          Forgot Password?
+        </p>
+
+        <div className="divider">
+          <span>OR</span>
+        </div>
+
+        <button
+          className="google-btn"
+          onClick={handleGoogleLogin}
+          disabled={loading}
+        >
+          <FcGoogle size={24} />
           Continue with Google
         </button>
 
-        <button className="login-btn" onClick={handleFacebookLogin}>
+        <button
+          className="facebook-btn"
+          onClick={handleFacebookLogin}
+          disabled={loading}
+        >
+          <FaFacebook size={22} color="white" />
           Continue with Facebook
         </button>
 
-        <p>
+        <p className="signup-link">
           Don't have an account?{" "}
           <Link to="/signup">Signup</Link>
         </p>
+
       </div>
     </div>
   );

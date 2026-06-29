@@ -13,8 +13,10 @@ import {
   facebookProvider,
 } from "../firebase/firebase";
 
-import InputField from "../components/InputField";
-import Button from "../components/Button";
+import { FcGoogle } from "react-icons/fc";
+import { FaFacebook } from "react-icons/fa";
+import { toast } from "react-toastify";
+
 import "../styles/signup.css";
 
 function Signup() {
@@ -24,17 +26,20 @@ function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSignup = async () => {
     if (!name || !email || !password || !confirmPassword) {
-      alert("Please fill all fields");
+      toast.error("Please fill all fields");
       return;
     }
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
+
+    setLoading(true);
 
     try {
       const userCredential =
@@ -50,92 +55,135 @@ function Signup() {
 
       await sendEmailVerification(userCredential.user);
 
-      alert(
-        "Account created successfully.\nPlease verify your email before login."
+      toast.success(
+        "Account created successfully! Verify your email."
       );
 
-      navigate("/login");
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
+
     } catch (error) {
-      alert(error.message);
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleGoogleSignup = async () => {
     try {
+      setLoading(true);
+
       await signInWithPopup(auth, googleProvider);
-      alert("Google Signup Successful");
-      navigate("/dashboard");
+
+      toast.success("Google Signup Successful");
+
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
+
     } catch (error) {
-      alert(error.message);
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleFacebookSignup = async () => {
     try {
+      setLoading(true);
+
       await signInWithPopup(auth, facebookProvider);
-      alert("Facebook Signup Successful");
-      navigate("/dashboard");
+
+      toast.success("Facebook Signup Successful");
+
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
+
     } catch (error) {
-      alert(error.message);
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="signup-container">
-      <div className="signup-box">
+    <div className="login-container">
+      <div className="login-box">
 
         <h2>Create Account</h2>
 
-        <InputField
+        <input
           type="text"
           placeholder="Full Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
 
-        <InputField
+        <input
           type="email"
-          placeholder="Email"
+          placeholder="Email Address"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        <InputField
+        <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        <InputField
+        <input
           type="password"
           placeholder="Confirm Password"
           value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-        />
-
-        <Button
-          text="Signup"
-          onClick={handleSignup}
+          onChange={(e) =>
+            setConfirmPassword(e.target.value)
+          }
         />
 
         <button
-          onClick={handleGoogleSignup}
           className="login-btn"
+          onClick={handleSignup}
+          disabled={loading}
         >
+          {loading ? (
+            <>
+              <div className="loader"></div>
+              Creating Account...
+            </>
+          ) : (
+            "Signup"
+          )}
+        </button>
+
+        <div className="divider">
+          <span>OR</span>
+        </div>
+
+        <button
+          className="google-btn"
+          onClick={handleGoogleSignup}
+          disabled={loading}
+        >
+          <FcGoogle size={24} />
           Continue with Google
         </button>
 
         <button
+          className="facebook-btn"
           onClick={handleFacebookSignup}
-          className="login-btn"
+          disabled={loading}
         >
+          <FaFacebook size={22} color="white" />
           Continue with Facebook
         </button>
 
-        <p>
-          Already have an account?
-          <Link to="/login"> Login</Link>
+        <p className="signup-link">
+          Already have an account?{" "}
+          <Link to="/login">Login</Link>
         </p>
 
       </div>
