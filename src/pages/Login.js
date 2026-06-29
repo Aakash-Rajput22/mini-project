@@ -27,7 +27,6 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ================= EMAIL LOGIN =================
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -66,7 +65,6 @@ function Login() {
     }
   };
 
-  // ================= GOOGLE LOGIN =================
 
   const handleGoogleLogin = async () => {
     try {
@@ -87,7 +85,6 @@ function Login() {
     }
   };
 
-  // ================= FACEBOOK LOGIN =================
 
   const handleFacebookLogin = async () => {
     try {
@@ -108,7 +105,6 @@ function Login() {
     }
   };
 
-  // ================= FORGOT PASSWORD =================
 
   const handleForgotPassword = async () => {
     if (!email) {
@@ -153,7 +149,7 @@ function Login() {
             className="eye-btn"
             onClick={() => setShowPassword(!showPassword)}
           >
-            {showPassword ? "🙈" : "👁️"}
+            {showPassword ? "*" : "#"}
           </button>
 
         </div>

@@ -105,7 +105,6 @@ body {
   color: #777;
 }
 
-/* Google Button */
 
 .google-btn {
   width: 100%;
@@ -128,7 +127,6 @@ body {
   background: #f3f3f3;
 }
 
-/* Facebook Button */
 
 .facebook-btn {
   width: 100%;
@@ -151,14 +149,12 @@ body {
   background: #145fd1;
 }
 
-/* Icon Size */
 
 .google-btn svg,
 .facebook-btn svg {
   font-size: 24px;
 }
 
-/* Signup Link */
 
 .signup-link {
   text-align: center;
