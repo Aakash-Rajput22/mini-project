@@ -5,6 +5,8 @@ import { auth, db } from "../firebase/firebase";
 import { doc, setDoc, Timestamp } from "firebase/firestore";
 import "../styles/dashboard.css";
 
+const BACKEND_URL = "https://mini-project-backend-4kid.onrender.com";
+
 function Pricing() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(null);
@@ -43,7 +45,7 @@ function Pricing() {
         return;
       }
 
-      const res = await fetch("http://localhost:4000/create-order", {
+      const res = await fetch(BACKEND_URL + "/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan }),
@@ -64,7 +66,7 @@ function Pricing() {
         description: plan + " Plan Purchase",
         order_id: data.orderId,
         handler: async function (response) {
-          const verifyRes = await fetch("http://localhost:4000/verify-payment", {
+          const verifyRes = await fetch(BACKEND_URL + "/verify-payment", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
