@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
 import { doc, setDoc, Timestamp } from "firebase/firestore";
-import "../styles/dashboard.css";
+import "../styles/pricing.css";
 
 function Pricing() {
   const navigate = useNavigate();

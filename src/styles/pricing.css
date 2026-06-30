@@ -1,0 +1,141 @@
+/* Page Layout */
+
+.page-body {
+  padding: 30px;
+}
+
+/* Pricing Grid */
+
+.plans-grid {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  flex-wrap: wrap;
+}
+
+/* Card */
+
+.plan-card {
+  width: 300px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 30px 25px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  position: relative;
+  transition: 0.3s;
+}
+
+.plan-card:hover {
+  transform: translateY(-5px);
+}
+
+.plan-card-popular {
+  border: 2px solid #1877f2;
+}
+
+/* Popular Badge */
+
+.popular-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1877f2;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+/* Text */
+
+.plan-card-name {
+  font-size: 28px;
+  font-weight: bold;
+  color: #222;
+  margin-bottom: 10px;
+}
+
+.plan-card-price {
+  font-size: 36px;
+  color: #1877f2;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.plan-card-duration {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+/* Features */
+
+.plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 25px;
+}
+
+.plan-features li {
+  margin: 10px 0;
+  color: #444;
+}
+
+/* Buttons */
+
+.plan-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  color: white;
+  transition: 0.3s;
+}
+
+.plan-btn-free {
+  background: #28a745;
+}
+
+.plan-btn-free:hover {
+  background: #218838;
+}
+
+.plan-btn-silver {
+  background: #1877f2;
+}
+
+.plan-btn-silver:hover {
+  background: #0d65d9;
+}
+
+.plan-btn-gold {
+  background: #ff9800;
+}
+
+.plan-btn-gold:hover {
+  background: #e68900;
+}
+
+.plan-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+  .plans-grid {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .plan-card {
+    width: 90%;
+    max-width: 350px;
+  }
+}

@@ -10,14 +10,12 @@ body {
   color: #111827;
 }
 
-/* APP SHELL */
 .app {
   display: grid;
   grid-template-columns: 220px 1fr;
   min-height: 100vh;
 }
 
-/* SIDEBAR */
 .sidebar {
   background: #ffffff;
   border-right: 1px solid #e5e7eb;
@@ -86,13 +84,10 @@ body {
   background: #fee2e2;
 }
 
-/* MAIN */
 .main {
   display: flex;
   flex-direction: column;
 }
-
-/* TOPBAR */
 .topbar {
   background: #ffffff;
   border-bottom: 1px solid #e5e7eb;
@@ -117,7 +112,6 @@ body {
   margin-top: 2px;
 }
 
-/* PAGE BODY */
 .page-body {
   padding: 28px;
   display: flex;
@@ -125,7 +119,6 @@ body {
   gap: 24px;
 }
 
-/* STAT CARDS */
 .card-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -164,7 +157,6 @@ body {
 .up   { color: #16a34a; }
 .down { color: #dc2626; }
 
-/* SECTION CARD */
 .card {
   background: #ffffff;
   border: 1px solid #e5e7eb;
@@ -191,7 +183,6 @@ body {
   text-decoration: none;
 }
 
-/* PLAN STATUS CARD */
 .plan-status-card {
   background: #ffffff;
   border: 1px solid #e5e7eb;
@@ -231,7 +222,6 @@ body {
   background: #1e40af;
 }
 
-/* TOPBAR PLAN BADGES */
 .badge-free {
   background: #f3f4f6;
   color: #374151;
@@ -259,7 +249,6 @@ body {
   font-weight: 500;
 }
 
-/* PRICING PLANS */
 .plans-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -369,7 +358,6 @@ body {
   color: #ffffff;
 }
 
-/* ORDERS TABLE */
 .orders-table {
   width: 100%;
   border-collapse: collapse;
@@ -397,7 +385,6 @@ body {
   border-bottom: none;
 }
 
-/* BADGES */
 .badge {
   font-size: 11px;
   font-weight: 500;
@@ -410,7 +397,6 @@ body {
 .badge-pending { background: #fef9c3; color: #a16207; }
 .badge-shipped { background: #dbeafe; color: #1d4ed8; }
 
-/* RESPONSIVE */
 @media (max-width: 768px) {
   .app {
     grid-template-columns: 1fr;

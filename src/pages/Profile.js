@@ -4,6 +4,8 @@ import { signOut } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import "../styles/profile.css";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 function Profile() {
   const user = auth.currentUser;
@@ -18,6 +20,25 @@ function Profile() {
   const [photoFile, setPhotoFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const downloadProfile = () => {
+  const pdf = new jsPDF();
+
+  pdf.setFontSize(18);
+  pdf.text("User Profile", 20, 20);
+
+  autoTable(pdf, {
+    startY: 35,
+    head: [["Field", "Value"]],
+    body: [
+      ["Name", name || "-"],
+      ["Email", user?.email || "-"],
+      ["Phone", phone || "-"],
+      ["Address", address || "-"],
+    ],
+  });
+
+  pdf.save("Profile.pdf");
+};
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -64,6 +85,12 @@ function Profile() {
     setLoading(true);
     try {
       let uploadedPhotoURL = photoURL;
+      <button
+  className="download-btn"
+  onClick={downloadProfile}
+>
+  Download Profile
+</button>
 
       // Storj upload - apna Storj config yahan lagana
       if (photoFile) {
