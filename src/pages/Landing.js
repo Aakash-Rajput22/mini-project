@@ -1,111 +1,162 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import "../styles/landing.css";
 
 function Landing() {
+  const [seconds, setSeconds] = useState(3600);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSeconds((s) => (s <= 0 ? 3600 : s - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatTime = (total) => {
+    const h = Math.floor(total / 3600).toString().padStart(2, "0");
+    const m = Math.floor((total % 3600) / 60).toString().padStart(2, "0");
+    const s = Math.floor(total % 60).toString().padStart(2, "0");
+    return h + ":" + m + ":" + s;
+  };
+
   return (
     <div className="landing">
 
-      {/* Navbar */}
+      {/* NAVBAR */}
       <header className="navbar">
-        <div className="logo">Mini Project</div>
+        <div className="logo">
+          <span className="logo-mark">M</span>
+          Mini Project
+        </div>
 
         <nav>
           <a href="#features">Features</a>
           <a href="#pricing">Pricing</a>
-          <Link to="/login">Login</Link>
-          <Link to="/signup" className="signup-btn">
-            Sign Up
-          </Link>
+          <Link to="/login" className="nav-login">Log in</Link>
+          <Link to="/signup" className="signup-btn">Create account</Link>
         </nav>
       </header>
 
-      {/* Hero Section */}
+      {/* HERO */}
       <section className="hero">
-        <h1>Secure Authentication System</h1>
+        <div className="hero-copy">
+          <span className="hero-eyebrow">Access that runs on a clock</span>
+          <h1>
+            Authentication built<br />
+            for <span className="accent">timed access</span>
+          </h1>
+          <p>
+            Sign in with email or social login, manage your profile, and pick a
+            plan that fits the hour — Free, Silver, or Gold. Access starts the
+            moment you pay and ends the moment your time runs out.
+          </p>
 
-        <p>
-          Manage your account securely with Firebase Authentication,
-          Profile Management and Pricing Plans.
-        </p>
+          <div className="hero-buttons">
+            <Link to="/signup" className="primary-btn">Get started free</Link>
+            <Link to="/login" className="secondary-btn">Log in</Link>
+          </div>
+        </div>
 
-        <div className="hero-buttons">
-          <Link to="/signup" className="primary-btn">
-            Get Started
-          </Link>
-
-          <Link to="/login" className="secondary-btn">
-            Login
-          </Link>
+        <div className="hero-visual">
+          <div className="timer-card">
+            <span className="timer-label">Gold plan · active</span>
+            <div className="timer-display">{formatTime(seconds)}</div>
+            <span className="timer-sub">until access expires</span>
+            <div className="timer-bar">
+              <div
+                className="timer-bar-fill"
+                style={{ width: ((seconds / 3600) * 100) + "%" }}
+              />
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Features */}
+      {/* FEATURES */}
       <section id="features" className="features">
-        <h2>Features</h2>
+        <span className="section-eyebrow">What you get</span>
+        <h2>Three things, done properly</h2>
 
         <div className="feature-grid">
-
           <div className="feature-card">
-            <h3>🔐 Secure Login</h3>
+            <div className="feature-icon icon-lock" />
+            <h3>Secure sign-in</h3>
             <p>
-              Login and Signup with Email, Google and Facebook Authentication.
+              Email and password, or continue with Google and Facebook.
+              Accounts with the same email merge automatically — no
+              duplicates, no confusion.
             </p>
           </div>
 
           <div className="feature-card">
-            <h3>👤 Profile Management</h3>
+            <div className="feature-icon icon-user" />
+            <h3>A profile that's actually yours</h3>
             <p>
-              Update your profile, upload photo and manage your information.
+              Upload a photo, set your address with map auto-suggestions,
+              and download your data whenever you want it.
             </p>
           </div>
 
           <div className="feature-card">
-            <h3>💳 Pricing Plans</h3>
+            <div className="feature-icon icon-clock" />
+            <h3>Plans that respect your time</h3>
             <p>
-              Choose Free, Silver or Gold plan according to your needs.
+              Pay once, get access for exactly as long as you chose.
+              A background job revokes access the second the clock hits
+              zero — no manual cancellation needed.
             </p>
           </div>
-
         </div>
       </section>
 
-      {/* Pricing Preview */}
+      {/* PRICING PREVIEW */}
       <section id="pricing" className="pricing-preview">
-
-        <h2>Pricing Plans</h2>
+        <span className="section-eyebrow">Pricing</span>
+        <h2>Pick your window</h2>
 
         <div className="pricing-grid">
-
           <div className="price-card">
             <h3>Free</h3>
-            <h1>₹0</h1>
-            <p>1 Hour Access</p>
+            <div className="price-amount">₹0</div>
+            <p className="price-duration">1 hour access</p>
+            <ul className="price-features">
+              <li>Basic access</li>
+              <li>Profile management</li>
+            </ul>
           </div>
 
           <div className="price-card popular">
-            <span>Most Popular</span>
+            <span className="popular-tag">Most popular</span>
             <h3>Silver</h3>
-            <h1>₹199</h1>
-            <p>6 Hours Access</p>
+            <div className="price-amount">₹199</div>
+            <p className="price-duration">6 hours access</p>
+            <ul className="price-features">
+              <li>Everything in Free</li>
+              <li>Priority support</li>
+              <li>Extended access</li>
+            </ul>
           </div>
 
-          <div className="price-card">
+          <div className="price-card gold">
             <h3>Gold</h3>
-            <h1>₹499</h1>
-            <p>12 Hours Access</p>
+            <div className="price-amount">₹499</div>
+            <p className="price-duration">12 hours access</p>
+            <ul className="price-features">
+              <li>Everything in Silver</li>
+              <li>Premium support</li>
+              <li>Full access</li>
+            </ul>
           </div>
-
         </div>
 
-        <Link to="/pricing" className="view-btn">
-          View Full Pricing
-        </Link>
-
+        <Link to="/pricing" className="view-btn">See full pricing details</Link>
       </section>
 
-      {/* Footer */}
+      {/* FOOTER */}
       <footer className="footer">
-        © 2026 Mini Project | Built with React & Firebase
+        <span>© 2026 Mini Project</span>
+        <span className="footer-dot">·</span>
+        <span>Built with React &amp; Firebase</span>
       </footer>
 
     </div>

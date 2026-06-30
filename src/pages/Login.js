@@ -149,7 +149,7 @@ function Login() {
             className="eye-btn"
             onClick={() => setShowPassword(!showPassword)}
           >
-            {showPassword ? "*" : "#"}
+            {showPassword ? "" : ""}
           </button>
 
         </div>
