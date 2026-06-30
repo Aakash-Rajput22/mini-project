@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
 import { doc, setDoc, Timestamp } from "firebase/firestore";
-import "../styles/pricing.css";
+import "../styles/dashboard.css";
 
 function Pricing() {
   const navigate = useNavigate();
@@ -14,6 +14,22 @@ function Pricing() {
     navigate("/login");
   };
 
+  const activatePlan = async (plan) => {
+    const user = auth.currentUser;
+    const durations = { Free: 1, Silver: 6, Gold: 12 };
+    const hours = durations[plan];
+    const expiry = new Date();
+    expiry.setHours(expiry.getHours() + hours);
+
+    await setDoc(doc(db, "users", user.uid), {
+      plan: plan,
+      planExpiry: Timestamp.fromDate(expiry),
+    }, { merge: true });
+
+    alert(plan + " plan activated! Expires in " + hours + " hour(s).");
+    navigate("/dashboard");
+  };
+
   const handlePlanSelect = async (plan) => {
     const user = auth.currentUser;
     if (!user) { navigate("/login"); return; }
@@ -21,23 +37,71 @@ function Pricing() {
     setLoading(plan);
 
     try {
-      const durations = { Free: 1, Silver: 6, Gold: 12 };
-      const hours = durations[plan];
-      const expiry = new Date();
-      expiry.setHours(expiry.getHours() + hours);
+      if (plan === "Free") {
+        await activatePlan(plan);
+        setLoading(null);
+        return;
+      }
 
-      await setDoc(doc(db, "users", user.uid), {
-        plan: plan,
-        planExpiry: Timestamp.fromDate(expiry),
-      }, { merge: true });
+      const res = await fetch("http://localhost:4000/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      });
+      const data = await res.json();
 
-      alert(plan + " plan activated! Expires in " + hours + " hour(s).");
-      navigate("/dashboard");
+      if (data.error) {
+        alert(data.error);
+        setLoading(null);
+        return;
+      }
+
+      const options = {
+        key: data.keyId,
+        amount: data.amount,
+        currency: data.currency,
+        name: "Mini Project",
+        description: plan + " Plan Purchase",
+        order_id: data.orderId,
+        handler: async function (response) {
+          const verifyRes = await fetch("http://localhost:4000/verify-payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              order_id: response.razorpay_order_id,
+              payment_id: response.razorpay_payment_id,
+              signature: response.razorpay_signature,
+            }),
+          });
+          const verifyData = await verifyRes.json();
+
+          if (verifyData.verified) {
+            await activatePlan(plan);
+          } else {
+            alert("Payment verification failed");
+          }
+          setLoading(null);
+        },
+        modal: {
+          ondismiss: function () {
+            setLoading(null);
+          },
+        },
+        prefill: {
+          email: user.email,
+        },
+        theme: {
+          color: "#1d4ed8",
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+
     } catch (error) {
       alert(error.message);
+      setLoading(null);
     }
-
-    setLoading(null);
   };
 
   return (
@@ -99,7 +163,7 @@ function Pricing() {
                 onClick={() => handlePlanSelect("Silver")}
                 disabled={loading === "Silver"}
               >
-                {loading === "Silver" ? "Activating..." : "Get Silver"}
+                {loading === "Silver" ? "Processing..." : "Get Silver"}
               </button>
             </div>
 
@@ -117,7 +181,7 @@ function Pricing() {
                 onClick={() => handlePlanSelect("Gold")}
                 disabled={loading === "Gold"}
               >
-                {loading === "Gold" ? "Activating..." : "Get Gold"}
+                {loading === "Gold" ? "Processing..." : "Get Gold"}
               </button>
             </div>
 

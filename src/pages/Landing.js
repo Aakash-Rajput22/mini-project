@@ -1,24 +1,7 @@
 import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
 import "../styles/landing.css";
 
 function Landing() {
-  const [seconds, setSeconds] = useState(3600);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSeconds((s) => (s <= 0 ? 3600 : s - 1));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const formatTime = (total) => {
-    const h = Math.floor(total / 3600).toString().padStart(2, "0");
-    const m = Math.floor((total % 3600) / 60).toString().padStart(2, "0");
-    const s = Math.floor(total % 60).toString().padStart(2, "0");
-    return h + ":" + m + ":" + s;
-  };
-
   return (
     <div className="landing">
 
@@ -39,36 +22,20 @@ function Landing() {
 
       {/* HERO */}
       <section className="hero">
-        <div className="hero-copy">
-          <span className="hero-eyebrow">Access that runs on a clock</span>
-          <h1>
-            Authentication built<br />
-            for <span className="accent">timed access</span>
-          </h1>
-          <p>
-            Sign in with email or social login, manage your profile, and pick a
-            plan that fits the hour — Free, Silver, or Gold. Access starts the
-            moment you pay and ends the moment your time runs out.
-          </p>
+        <span className="hero-eyebrow">Access that runs on a clock</span>
+        <h1>
+          Authentication built<br />
+          for <span className="accent">timed access</span>
+        </h1>
+        <p>
+          Sign in with email or social login, manage your profile, and pick a
+          plan that fits the hour — Free, Silver, or Gold. Access starts the
+          moment you pay and ends the moment your time runs out.
+        </p>
 
-          <div className="hero-buttons">
-            <Link to="/signup" className="primary-btn">Get started free</Link>
-            <Link to="/login" className="secondary-btn">Log in</Link>
-          </div>
-        </div>
-
-        <div className="hero-visual">
-          <div className="timer-card">
-            <span className="timer-label">Gold plan · active</span>
-            <div className="timer-display">{formatTime(seconds)}</div>
-            <span className="timer-sub">until access expires</span>
-            <div className="timer-bar">
-              <div
-                className="timer-bar-fill"
-                style={{ width: ((seconds / 3600) * 100) + "%" }}
-              />
-            </div>
-          </div>
+        <div className="hero-buttons">
+          <Link to="/signup" className="primary-btn">Get started free</Link>
+          <Link to="/login" className="secondary-btn">Log in</Link>
         </div>
       </section>
 
