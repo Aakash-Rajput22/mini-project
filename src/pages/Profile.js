@@ -1,48 +1,35 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { signOut } from "firebase/auth";
+import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import "../styles/profile.css";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import "../styles/dashboard.css";
+import "../styles/profile.css";
 
 function Profile() {
-  const user = auth.currentUser;
   const navigate = useNavigate();
   const autocompleteRef = useRef(null);
   const inputRef = useRef(null);
 
+  const [currentUser, setCurrentUser] = useState(null);
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
-  const [name, setName] = useState(user?.displayName || "");
-  const [photoURL, setPhotoURL] = useState(user?.photoURL || "");
+  const [name, setName] = useState("");
+  const [photoURL, setPhotoURL] = useState("");
   const [photoFile, setPhotoFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
-  const downloadProfile = () => {
-  const pdf = new jsPDF();
-
-  pdf.setFontSize(18);
-  pdf.text("User Profile", 20, 20);
-
-  autoTable(pdf, {
-    startY: 35,
-    head: [["Field", "Value"]],
-    body: [
-      ["Name", name || "-"],
-      ["Email", user?.email || "-"],
-      ["Phone", phone || "-"],
-      ["Address", address || "-"],
-    ],
-  });
-
-  pdf.save("Profile.pdf");
-};
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (!user) return;
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) { navigate("/login"); return; }
+      setCurrentUser(user);
+      setName(user.displayName || "");
+      setPhotoURL(user.photoURL || "");
+
       const ref = doc(db, "users", user.uid);
       const snap = await getDoc(ref);
       if (snap.exists()) {
@@ -51,13 +38,14 @@ function Profile() {
         setAddress(data.address || "");
         setName(data.name || user.displayName || "");
         setPhotoURL(data.photoURL || user.photoURL || "");
+        if (data.role === "admin") setIsAdmin(true);
       }
-    };
-    fetchProfile();
-  }, [user]);
+    });
+    return () => unsub();
+  }, [navigate]);
 
   useEffect(() => {
-    if (!window.google) return;
+    if (!window.google || !inputRef.current) return;
     autocompleteRef.current = new window.google.maps.places.Autocomplete(
       inputRef.current,
       { types: ["geocode"] }
@@ -66,7 +54,7 @@ function Profile() {
       const place = autocompleteRef.current.getPlace();
       setAddress(place.formatted_address || "");
     });
-  }, []);
+  }, [currentUser]);
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
@@ -80,34 +68,38 @@ function Profile() {
     navigate("/login");
   };
 
+  const downloadProfile = () => {
+    const pdf = new jsPDF();
+    pdf.setFontSize(18);
+    pdf.text("User Profile", 20, 20);
+    autoTable(pdf, {
+      startY: 35,
+      head: [["Field", "Value"]],
+      body: [
+        ["Name", name || "-"],
+        ["Email", currentUser?.email || "-"],
+        ["Phone", phone || "-"],
+        ["Address", address || "-"],
+      ],
+    });
+    pdf.save("Profile.pdf");
+  };
+
   const saveProfile = async () => {
-    if (!user) { alert("Please login first"); return; }
+    if (!currentUser) { alert("Please login first"); return; }
     setLoading(true);
     try {
       let uploadedPhotoURL = photoURL;
-      <button
-  className="download-btn"
-  onClick={downloadProfile}
->
-  Download Profile
-</button>
-
-      // Storj upload - apna Storj config yahan lagana
       if (photoFile) {
-        const formData = new FormData();
-        formData.append("file", photoFile);
-        // Storj integration baad mein — abhi local URL use ho raha hai
         uploadedPhotoURL = URL.createObjectURL(photoFile);
       }
-
-      await setDoc(doc(db, "users", user.uid), {
-        name: name,
-        email: user.email,
-        phone: phone,
-        address: address,
+      await setDoc(doc(db, "users", currentUser.uid), {
+        name,
+        email: currentUser.email,
+        phone,
+        address,
         photoURL: uploadedPhotoURL,
       }, { merge: true });
-
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
@@ -117,47 +109,81 @@ function Profile() {
   };
 
   return (
-    <div className="app">
+    <div className="db-shell">
 
-      <aside className="sidebar">
-        <div className="sidebar-brand">Mini Project</div>
-        <nav>
-          <Link to="/dashboard" className="nav-item">Dashboard</Link>
-          <Link to="/profile" className="nav-item active">Profile</Link>
-          <Link to="/pricing" className="nav-item">Pricing plans</Link>
-        </nav>
-        <div className="sidebar-bottom">
-          <button className="logout-btn" onClick={handleLogout}>Logout</button>
+      {/* ── SIDEBAR ── */}
+      <aside className="db-sidebar">
+        <div className="db-sidebar-top">
+          <div className="db-brand">
+            <span className="db-brand-mark">M</span>
+            <span className="db-brand-name">Mini Project</span>
+          </div>
+          <nav className="db-nav">
+            <span className="db-nav-label">Main</span>
+            <Link to="/dashboard" className="db-nav-item">
+              <span className="db-nav-ico">📊</span> Dashboard
+            </Link>
+            <Link to="/profile" className="db-nav-item db-nav-item--active">
+              <span className="db-nav-ico">👤</span> Profile
+            </Link>
+            <Link to="/pricing" className="db-nav-item">
+              <span className="db-nav-ico">💳</span> Pricing plans
+            </Link>
+            {isAdmin && (
+              <>
+                <span className="db-nav-label" style={{marginTop:"16px"}}>Admin</span>
+                <Link to="/admin" className="db-nav-item">
+                  <span className="db-nav-ico">🛡️</span> Admin panel
+                </Link>
+              </>
+            )}
+          </nav>
+        </div>
+
+        <div className="db-sidebar-foot">
+          <div className="db-user-row">
+            <div className="db-user-avatar">
+              {name ? name.charAt(0).toUpperCase() : "U"}
+            </div>
+            <div className="db-user-info">
+              <div className="db-user-name">{name || "User"}</div>
+              <div className="db-user-email">{currentUser?.email || ""}</div>
+            </div>
+          </div>
+          <button className="db-logout" onClick={handleLogout}>Sign out</button>
         </div>
       </aside>
 
-      <div className="main">
-
-        <header className="topbar">
+      {/* ── MAIN ── */}
+      <div className="db-main">
+        <header className="db-topbar">
           <div>
-            <h1 className="page-title">Profile</h1>
-            <p className="page-sub">Manage your personal information</p>
+            <h1 className="db-page-title">Profile</h1>
+            <p className="db-page-sub">Manage your personal information</p>
           </div>
+          <button className="db-upgrade-btn" onClick={downloadProfile}>
+            Download PDF
+          </button>
         </header>
 
-        <div className="page-body">
-          <div className="profile-grid">
+        <div className="db-body">
+          <div className="pf-grid">
 
-            {/* LEFT — Photo card */}
-            <div className="card photo-card">
-              <div className="avatar-wrap">
+            {/* ── LEFT: PHOTO CARD ── */}
+            <div className="pf-photo-card">
+              <div className="pf-avatar-wrap">
                 {photoURL ? (
-                  <img src={photoURL} alt="Profile" className="avatar-img" />
+                  <img src={photoURL} alt="Profile" className="pf-avatar-img" />
                 ) : (
-                  <div className="avatar-placeholder">
+                  <div className="pf-avatar-placeholder">
                     {name ? name.charAt(0).toUpperCase() : "U"}
                   </div>
                 )}
               </div>
-              <p className="avatar-name">{name || user?.email}</p>
-              <p className="avatar-email">{user?.email}</p>
-              <label className="upload-btn">
-                Upload photo
+              <p className="pf-avatar-name">{name || currentUser?.email}</p>
+              <p className="pf-avatar-email">{currentUser?.email}</p>
+              <label className="pf-upload-btn">
+                📷 Upload photo
                 <input
                   type="file"
                   accept="image/*"
@@ -165,20 +191,33 @@ function Profile() {
                   style={{ display: "none" }}
                 />
               </label>
-              <p className="upload-hint">JPG, PNG — max 2MB</p>
+              <p className="pf-upload-hint">JPG, PNG — max 2MB</p>
+
+              <div className="pf-info-list">
+                <div className="pf-info-item">
+                  <span className="pf-info-label">Email verified</span>
+                  <span className={"pf-info-val " + (currentUser?.emailVerified ? "pf-val--green" : "pf-val--amber")}>
+                    {currentUser?.emailVerified ? "✓ Verified" : "✗ Not verified"}
+                  </span>
+                </div>
+                <div className="pf-info-item">
+                  <span className="pf-info-label">Account role</span>
+                  <span className="pf-info-val">{isAdmin ? "Admin" : "User"}</span>
+                </div>
+              </div>
             </div>
 
-            {/* RIGHT — Form card */}
-            <div className="card form-card">
-              <div className="card-header">
-                <span className="card-title">Personal information</span>
+            {/* ── RIGHT: FORM CARD ── */}
+            <div className="pf-form-card">
+              <div className="pf-form-header">
+                <h2 className="pf-form-title">Personal information</h2>
               </div>
 
-              <div className="form-grid">
-                <div className="form-group">
-                  <label className="form-label">Full name</label>
+              <div className="pf-form-grid">
+                <div className="pf-form-group">
+                  <label className="pf-label">Full name</label>
                   <input
-                    className="form-input"
+                    className="pf-input"
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -186,20 +225,20 @@ function Profile() {
                   />
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">Email</label>
+                <div className="pf-form-group">
+                  <label className="pf-label">Email</label>
                   <input
-                    className="form-input disabled"
+                    className="pf-input pf-input--disabled"
                     type="email"
-                    value={user?.email || ""}
+                    value={currentUser?.email || ""}
                     disabled
                   />
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">Phone number</label>
+                <div className="pf-form-group">
+                  <label className="pf-label">Phone number</label>
                   <input
-                    className="form-input"
+                    className="pf-input"
                     type="text"
                     placeholder="Enter phone number"
                     value={phone}
@@ -207,10 +246,10 @@ function Profile() {
                   />
                 </div>
 
-                <div className="form-group full-width">
-                  <label className="form-label">Address</label>
+                <div className="pf-form-group pf-full-width">
+                  <label className="pf-label">Address</label>
                   <input
-                    className="form-input"
+                    className="pf-input"
                     type="text"
                     placeholder="Start typing your address..."
                     value={address}
@@ -220,10 +259,10 @@ function Profile() {
                 </div>
 
                 {address && (
-                  <div className="form-group full-width">
-                    <label className="form-label">Location on map</label>
+                  <div className="pf-form-group pf-full-width">
+                    <label className="pf-label">Location on map</label>
                     <iframe
-                      className="map-frame"
+                      className="pf-map"
                       title="map"
                       src={"https://maps.google.com/maps?q=" + encodeURIComponent(address) + "&output=embed"}
                       allowFullScreen
@@ -232,13 +271,9 @@ function Profile() {
                 )}
               </div>
 
-              <div className="form-actions">
-                {saved && <span className="saved-msg">Profile saved!</span>}
-                <button
-                  className="save-btn"
-                  onClick={saveProfile}
-                  disabled={loading}
-                >
+              <div className="pf-form-actions">
+                {saved && <span className="pf-saved">✓ Profile saved!</span>}
+                <button className="pf-save-btn" onClick={saveProfile} disabled={loading}>
                   {loading ? "Saving..." : "Save profile"}
                 </button>
               </div>
