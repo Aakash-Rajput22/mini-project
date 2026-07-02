@@ -161,7 +161,7 @@ function Dashboard() {
       <aside className="db-sidebar">
         <div className="db-sidebar-top">
           <div className="db-brand">
-            <span className="db-brand-mark">M</span>
+            <span className="db-brand-mark">K</span>
             <span className="db-brand-name">Knowora</span>
           </div>
           <nav className="db-nav">
@@ -171,6 +171,9 @@ function Dashboard() {
             </Link>
             <Link to="/matches" className="db-nav-item">
               <i className="ti ti-ball-basketball db-nav-ico" aria-hidden="true"></i> Matches
+            </Link>
+            <Link to="/leaderboard" className="db-nav-item">
+              <i className="ti ti-trophy db-nav-ico" aria-hidden="true"></i> Leaderboard
             </Link>
             <Link to="/profile" className="db-nav-item">
               <i className="ti ti-user db-nav-ico" aria-hidden="true"></i> Profile
@@ -359,7 +362,7 @@ function Dashboard() {
                 {statsLoading ? (
                   <p className="db-plan-tile-dur">Loading...</p>
                 ) : upcomingMatches.length === 0 ? (
-                  <p className="db-plan-tile-dur">Koi upcoming match nahi hai. Pehla match banao!</p>
+                  <p className="db-plan-tile-dur">No upcoming matches found. Create one!</p>
                 ) : (
                   upcomingMatches.map((m, idx) => (
                     <Link
@@ -530,6 +533,12 @@ function Dashboard() {
                   <span className="db-plan-tile-price">₹0</span>
                 </div>
                 <p className="db-plan-tile-dur">1 hour · no card needed</p>
+                <ul className="pr-features">
+                  <li><span className="pr-check">✓</span> Post &amp; join matches</li>
+                  <li><span className="pr-check">✓</span> Basic player profile</li>
+                  <li><span className="pr-check">✓</span> 1× points per match</li>
+                  <li><span className="pr-check">✓</span> Community leaderboard access</li>
+                </ul>
                 <button className="db-plan-tile-btn" onClick={() => navigate("/pricing?plan=Free")}>
                   Select
                 </button>
@@ -542,6 +551,12 @@ function Dashboard() {
                   <span className="db-plan-tile-price">₹199</span>
                 </div>
                 <p className="db-plan-tile-dur">6 hours · Razorpay</p>
+                <ul className="pr-features">
+                  <li><span className="pr-check">✓</span> Everything in Free</li>
+                  <li><span className="pr-check">✓</span> Priority match visibility</li>
+                  <li><span className="pr-check">✓</span> 2× points per match</li>
+                  <li><span className="pr-check">✓</span> Silver badge on profile</li>
+                </ul>
                 <button className="db-plan-tile-btn db-plan-tile-btn--primary" onClick={() => navigate("/pricing?plan=Silver")}>
                   Select
                 </button>
@@ -553,6 +568,12 @@ function Dashboard() {
                   <span className="db-plan-tile-price">₹499</span>
                 </div>
                 <p className="db-plan-tile-dur">12 hours · Razorpay</p>
+                <ul className="pr-features">
+                  <li><span className="pr-check--gold">✓</span> Everything in Silver</li>
+                  <li><span className="pr-check--gold">✓</span> Pro player status</li>
+                  <li><span className="pr-check--gold">✓</span> 5× points per match</li>
+                  <li><span className="pr-check--gold">✓</span> Featured host on match listings</li>
+                </ul>
                 <button className="db-plan-tile-btn db-plan-tile-btn--gold" onClick={() => navigate("/pricing?plan=Gold")}>
                   Select
                 </button>

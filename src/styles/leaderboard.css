@@ -1,0 +1,125 @@
+/* ══════════════════════════════════════
+   LEADERBOARD LIST
+   ══════════════════════════════════════ */
+.lb-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lb-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.lb-row:hover {
+  border-color: rgba(59,130,246,0.25);
+  background: rgba(255,255,255,0.03);
+}
+
+.lb-row--me {
+  border-color: rgba(59,130,246,0.5);
+  background: rgba(59,130,246,0.08);
+}
+
+.lb-rank {
+  width: 40px;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.lb-rank--gold   { font-size: 22px; }
+.lb-rank--silver { font-size: 22px; }
+.lb-rank--bronze { font-size: 22px; }
+
+.lb-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #3b82f6;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.lb-player {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lb-player-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lb-you-tag {
+  font-size: 10px;
+  font-weight: 700;
+  color: #60a5fa;
+  background: rgba(59,130,246,0.14);
+  padding: 2px 8px;
+  border-radius: 100px;
+  flex-shrink: 0;
+}
+
+.lb-stat-col,
+.lb-points {
+  text-align: center;
+  min-width: 64px;
+  flex-shrink: 0;
+}
+
+.lb-stat-num {
+  font-size: 16px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.lb-points-num {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fbbf24;
+}
+
+.lb-stat-label {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.lb-empty {
+  text-align: center;
+  color: #94a3b8;
+  padding: 40px 0;
+  font-size: 14px;
+}
+
+@media (max-width: 640px) {
+  .lb-row { flex-wrap: wrap; gap: 10px; }
+  .lb-player { flex: 1 1 100%; order: 1; }
+  .lb-rank, .lb-avatar { order: 0; }
+  .lb-stat-col, .lb-points { flex: 1; order: 2; }
+}

@@ -6,9 +6,13 @@ import {
   updateDoc,
   arrayUnion,
   arrayRemove,
+  increment,
 } from "firebase/firestore";
 import { db, auth } from "../firebase/firebase";
 import "../styles/matches.css";
+
+const PLAN_MULTIPLIER = { Free: 1, Silver: 2, Gold: 5 };
+const BASE_POINTS = 10;
 
 function MatchDetail() {
   const { id } = useParams();
@@ -79,10 +83,12 @@ function MatchDetail() {
     setError("");
     try {
       let userName = auth.currentUser.displayName || "Anonymous";
+      let userPlan = "Free";
       try {
         const userDoc = await getDoc(doc(db, "users", currentUid));
-        if (userDoc.exists() && userDoc.data().name) {
-          userName = userDoc.data().name;
+        if (userDoc.exists()) {
+          if (userDoc.data().name) userName = userDoc.data().name;
+          if (userDoc.data().plan) userPlan = userDoc.data().plan;
         }
       } catch (e) {
         // fallback
@@ -96,6 +102,16 @@ function MatchDetail() {
         [`joinedPlayerNames.${currentUid}`]: userName,
         status: newJoinedCount >= match.maxPlayers ? "full" : "open",
       });
+
+      // Award points for joining a match, scaled by plan
+      try {
+        const multiplier = PLAN_MULTIPLIER[userPlan] || 1;
+        await updateDoc(doc(db, "users", currentUid), {
+          points: increment(BASE_POINTS * multiplier),
+        });
+      } catch (e) {
+        console.error("Error awarding points:", e);
+      }
 
       await fetchMatch();
     } catch (err) {
@@ -123,7 +139,7 @@ function MatchDetail() {
       await fetchMatch();
     } catch (err) {
       console.error("Error leaving match:", err);
-      setError("Leave nahi ho paya. Dobara try karo.");
+      setError("TRY AGAIN.");
     }
     setBusy(false);
   };
@@ -132,9 +148,9 @@ function MatchDetail() {
   if (!match)
     return (
       <div className="empty-text">
-        Yeh match nahi mila.{" "}
+        This match does not exist..{" "}
         <button className="link-btn" onClick={() => navigate("/matches")}>
-          Wapas jao
+          Go back
         </button>
       </div>
     );

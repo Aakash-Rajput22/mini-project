@@ -44,7 +44,7 @@ function Pricing() {
         key: data.keyId,
         amount: data.amount,
         currency: data.currency,
-        name: "Mini Project",
+        name: "Knowora",
         description: plan + " Plan",
         order_id: data.orderId,
         handler: async (response) => {
@@ -81,18 +81,32 @@ function Pricing() {
       <aside className="db-sidebar">
         <div className="db-sidebar-top">
           <div className="db-brand">
-            <span className="db-brand-mark">M</span>
-            <span className="db-brand-name">Mini Project</span>
+            <span className="db-brand-mark">K</span>
+            <span className="db-brand-name">Knowora</span>
           </div>
           <nav className="db-nav">
             <span className="db-nav-label">Main</span>
-            <Link to="/dashboard" className="db-nav-item"><span className="db-nav-ico">📊</span> Dashboard</Link>
-            <Link to="/profile"   className="db-nav-item"><span className="db-nav-ico">👤</span> Profile</Link>
-            <Link to="/pricing"   className="db-nav-item db-nav-item--active"><span className="db-nav-ico">💳</span> Pricing plans</Link>
+            <Link to="/dashboard" className="db-nav-item">
+              <i className="ti ti-layout-dashboard db-nav-ico" aria-hidden="true"></i> Dashboard
+            </Link>
+            <Link to="/matches" className="db-nav-item">
+              <i className="ti ti-ball-basketball db-nav-ico" aria-hidden="true"></i> Matches
+            </Link>
+            <Link to="/leaderboard" className="db-nav-item">
+              <i className="ti ti-trophy db-nav-ico" aria-hidden="true"></i> Leaderboard
+            </Link>
+            <Link to="/profile" className="db-nav-item">
+              <i className="ti ti-user db-nav-ico" aria-hidden="true"></i> Profile
+            </Link>
+            <Link to="/pricing" className="db-nav-item db-nav-item--active">
+              <i className="ti ti-credit-card db-nav-ico" aria-hidden="true"></i> Pricing plans
+            </Link>
           </nav>
         </div>
         <div className="db-sidebar-foot">
-          <button className="db-logout" onClick={handleLogout}>Sign out</button>
+          <button className="db-logout" onClick={handleLogout}>
+            <i className="ti ti-logout" aria-hidden="true"></i> Sign out
+          </button>
         </div>
       </aside>
 
@@ -101,7 +115,7 @@ function Pricing() {
         <header className="db-topbar">
           <div>
             <h1 className="db-page-title">Pricing plans</h1>
-            <p className="db-page-sub">Pay once, access for exactly as long as you need</p>
+            <p className="db-page-sub">Pay once, play for exactly as long as you need</p>
           </div>
         </header>
 
@@ -116,10 +130,10 @@ function Pricing() {
               <div className="pr-plan-price">₹0</div>
               <div className="pr-plan-dur">1 hour access · No card required</div>
               <ul className="pr-features">
-                <li><span className="pr-check">✓</span> Basic access</li>
-                <li><span className="pr-check">✓</span> Profile management</li>
-                <li><span className="pr-check">✓</span> Email login</li>
-                <li><span className="pr-check">✓</span> Auto-expires in 1h</li>
+                <li><span className="pr-check">✓</span> Post &amp; join matches</li>
+                <li><span className="pr-check">✓</span> Basic player profile</li>
+                <li><span className="pr-check">✓</span> 1× points per match</li>
+                <li><span className="pr-check">✓</span> Community leaderboard access</li>
               </ul>
               <button
                 className="pr-btn"
@@ -139,10 +153,9 @@ function Pricing() {
               <div className="pr-plan-dur">6 hours access · Razorpay payment</div>
               <ul className="pr-features">
                 <li><span className="pr-check">✓</span> Everything in Free</li>
-                <li><span className="pr-check">✓</span> 6× longer session</li>
-                <li><span className="pr-check">✓</span> Priority support</li>
-                
-                <li><span className="pr-check">✓</span> 24*7 support</li>
+                <li><span className="pr-check">✓</span> Priority match visibility</li>
+                <li><span className="pr-check">✓</span> 2× points per match</li>
+                <li><span className="pr-check">✓</span> Silver badge on profile</li>
               </ul>
               <button
                 className="pr-btn pr-btn--primary"
@@ -162,9 +175,9 @@ function Pricing() {
 
               <ul className="pr-features">
                 <li><span className="pr-check--gold">✓</span> Everything in Silver</li>
-                <li><span className="pr-check--gold">✓</span> 12× longer session</li>
-                <li><span className="pr-check--gold">✓</span> Premium support</li>
-                <li><span className="pr-check--gold">✓</span> Auto-expires in 12h</li>
+                <li><span className="pr-check--gold">✓</span> Pro player status</li>
+                <li><span className="pr-check--gold">✓</span> 5× points per match</li>
+                <li><span className="pr-check--gold">✓</span> Featured host on match listings</li>
               </ul>
               <button
                 className="pr-btn pr-btn--gold"

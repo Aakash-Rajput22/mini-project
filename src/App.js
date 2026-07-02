@@ -9,6 +9,7 @@ import Pricing from "./pages/Pricing";
 import Admin from "./pages/Admin";
 import Matches from "./pages/Matches";
 import MatchDetail from "./pages/MatchDetail";
+import Leaderboard from "./pages/Leaderboard";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
       {/* PlayXchange Pages */}
       <Route path="/matches" element={<Matches />} />
       <Route path="/matches/:id" element={<MatchDetail />} />
+      <Route path="/leaderboard" element={<Leaderboard />} />
 
       {/* Invalid Route */}
       <Route path="*" element={<Navigate to="/" />} />

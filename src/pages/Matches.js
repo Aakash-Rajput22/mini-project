@@ -8,6 +8,10 @@ import {
   orderBy,
   serverTimestamp,
   Timestamp,
+  doc,
+  getDoc,
+  updateDoc,
+  increment,
 } from "firebase/firestore";
 import { db, auth } from "../firebase/firebase";
 import "../styles/matches.css";
@@ -22,6 +26,9 @@ const SPORTS = [
   "Tennis",
   "Other",
 ];
+
+const PLAN_MULTIPLIER = { Free: 1, Silver: 2, Gold: 5 };
+const BASE_POINTS = 10;
 
 function Matches() {
   const navigate = useNavigate();
@@ -103,12 +110,14 @@ function Matches() {
 
     setPosting(true);
     try {
+      const uid = auth.currentUser.uid;
       let userName = auth.currentUser.displayName || "Anonymous";
+      let userPlan = "Free";
       try {
-        const { doc, getDoc } = await import("firebase/firestore");
-        const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
-        if (userDoc.exists() && userDoc.data().name) {
-          userName = userDoc.data().name;
+        const userDoc = await getDoc(doc(db, "users", uid));
+        if (userDoc.exists()) {
+          if (userDoc.data().name) userName = userDoc.data().name;
+          if (userDoc.data().plan) userPlan = userDoc.data().plan;
         }
       } catch (e) {
         // fallback
@@ -120,14 +129,24 @@ function Matches() {
         venue: venue.trim(),
         date: Timestamp.fromDate(dateTimeObj),
         maxPlayers: Number(maxPlayers),
-        joinedPlayers: [auth.currentUser.uid],
-        joinedPlayerNames: { [auth.currentUser.uid]: userName },
+        joinedPlayers: [uid],
+        joinedPlayerNames: { [uid]: userName },
         costPerPlayer: Number(costPerPlayer) || 0,
-        createdBy: auth.currentUser.uid,
+        createdBy: uid,
         createdByName: userName,
         status: "open",
         createdAt: serverTimestamp(),
       });
+
+      // Award points for hosting a match, scaled by plan
+      try {
+        const multiplier = PLAN_MULTIPLIER[userPlan] || 1;
+        await updateDoc(doc(db, "users", uid), {
+          points: increment(BASE_POINTS * multiplier),
+        });
+      } catch (e) {
+        console.error("Error awarding points:", e);
+      }
 
       setTitle("");
       setVenue("");
@@ -180,7 +199,7 @@ function Matches() {
   return (
     <div className="matches-page">
       <div className="matches-header">
-        <h1>PlayXchange Matches</h1>
+        <h1>Knowora Matches</h1>
         <button
           className="create-btn"
           onClick={() => setShowCreateForm(!showCreateForm)}
@@ -277,7 +296,13 @@ function Matches() {
         <div className="loading-text">Loading matches...</div>
       ) : filteredMatches.length === 0 ? (
         <div className="empty-text">
-          Koi match nahi mila. Pehla match tum create karo!
+          <p>Koi match nahi mila.</p>
+          <button
+            className="link-btn"
+            onClick={() => setShowCreateForm(true)}
+          >
+            Pehla match tum create karo →
+          </button>
         </div>
       ) : (
         <div className="matches-list">
