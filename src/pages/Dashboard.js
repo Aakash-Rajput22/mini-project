@@ -45,16 +45,13 @@ function Dashboard() {
         const m = Math.floor((diff % 3600000) / 60000);
         const s = Math.floor((diff % 60000) / 1000);
         setTimeLeft(h + "h " + m + "m " + s + "s");
-        setTimePercent(Math.min(100, (diff / total) * 100));
+        setTimePercent(Math.min(100, Math.round((diff / total) * 100)));
       }
     }, 1000);
     return () => clearInterval(interval);
   }, [userData]);
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/login");
-  };
+  const handleLogout = async () => { await signOut(auth); navigate("/login"); };
 
   const planColor = (plan) => {
     if (plan === "Gold") return "db-badge--gold";
@@ -68,33 +65,34 @@ function Dashboard() {
     return "🆓";
   };
 
+  const plan = userData?.plan || "Free";
+
   return (
     <div className="db-shell">
 
-      {/* ── SIDEBAR ── */}
+      {/* SIDEBAR */}
       <aside className="db-sidebar">
         <div className="db-sidebar-top">
           <div className="db-brand">
             <span className="db-brand-mark">M</span>
             <span className="db-brand-name">Mini Project</span>
           </div>
-
           <nav className="db-nav">
             <span className="db-nav-label">Main</span>
             <Link to="/dashboard" className="db-nav-item db-nav-item--active">
-              <span className="db-nav-ico">📊</span> Dashboard
+              <i className="ti ti-layout-dashboard db-nav-ico" aria-hidden="true"></i> Dashboard
             </Link>
             <Link to="/profile" className="db-nav-item">
-              <span className="db-nav-ico">👤</span> Profile
+              <i className="ti ti-user db-nav-ico" aria-hidden="true"></i> Profile
             </Link>
             <Link to="/pricing" className="db-nav-item">
-              <span className="db-nav-ico">💳</span> Pricing plans
+              <i className="ti ti-credit-card db-nav-ico" aria-hidden="true"></i> Pricing plans
             </Link>
             {isAdmin && (
               <>
-                <span className="db-nav-label" style={{marginTop: "16px"}}>Admin</span>
+                <span className="db-nav-label" style={{marginTop:"16px"}}>Admin</span>
                 <Link to="/admin" className="db-nav-item">
-                  <span className="db-nav-ico">🛡️</span> Admin panel
+                  <i className="ti ti-shield db-nav-ico" aria-hidden="true"></i> Admin panel
                 </Link>
               </>
             )}
@@ -104,20 +102,20 @@ function Dashboard() {
         <div className="db-sidebar-foot">
           <div className="db-user-row">
             <div className="db-user-avatar">
-              {userData && userData.name ? userData.name.charAt(0).toUpperCase() : "U"}
+              {userData?.name ? userData.name.charAt(0).toUpperCase() : "U"}
             </div>
             <div className="db-user-info">
-              <div className="db-user-name">{userData && userData.name ? userData.name : "User"}</div>
-              <div className="db-user-email">{currentUser ? currentUser.email : ""}</div>
+              <div className="db-user-name">{userData?.name || "User"}</div>
+              <div className="db-user-email">{currentUser?.email || ""}</div>
             </div>
           </div>
           <button className="db-logout" onClick={handleLogout}>
-            Sign out
+            <i className="ti ti-logout" aria-hidden="true"></i> Sign out
           </button>
         </div>
       </aside>
 
-      {/* ── MAIN ── */}
+      {/* MAIN */}
       <div className="db-main">
 
         {/* TOPBAR */}
@@ -125,177 +123,231 @@ function Dashboard() {
           <div>
             <h1 className="db-page-title">Dashboard</h1>
             <p className="db-page-sub">
-              {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+              {new Date().toLocaleDateString("en-IN", { weekday:"long", day:"numeric", month:"long", year:"numeric" })}
             </p>
           </div>
           <div className="db-topbar-right">
-            {userData && userData.plan && (
-              <span className={"db-badge " + planColor(userData.plan)}>
-                {planIcon(userData.plan)} {userData.plan} plan
+            {userData?.plan && (
+              <span className={"db-badge " + planColor(plan)}>
+                {planIcon(plan)} {plan} plan
               </span>
             )}
           </div>
         </header>
 
-        {/* BODY */}
         <div className="db-body">
 
-          {/* ── PLAN STATUS ── */}
-          <div className="db-plan-card">
-            <div className="db-plan-left">
-              <div className="db-plan-icon">{planIcon(userData && userData.plan ? userData.plan : "Free")}</div>
+          {/* PLAN HERO CARD */}
+          <div className="db-plan-hero">
+            <div className="db-plan-hero-left">
+              <div className="db-plan-hero-icon">{planIcon(plan)}</div>
               <div>
-                <p className="db-plan-label">Current plan</p>
-                <p className="db-plan-name">{userData && userData.plan ? userData.plan : "Free"}</p>
-                {userData && userData.planExpiry ? (
-                  <p className={"db-plan-timer " + (timeLeft === "Expired" ? "db-plan-timer--expired" : "")}>
-                    {timeLeft === "Expired" ? "⚠️ Access expired" : "⏱ Expires in " + timeLeft}
+                <p className="db-plan-hero-label">Current plan</p>
+                <p className="db-plan-hero-name">{plan}</p>
+                {userData?.planExpiry ? (
+                  <p className={"db-plan-hero-timer " + (timeLeft === "Expired" ? "db-timer--red" : "db-timer--green")}>
+                    <i className={"ti " + (timeLeft === "Expired" ? "ti-alert-triangle" : "ti-clock")} aria-hidden="true"></i>
+                    {timeLeft === "Expired" ? " Access expired" : " Expires in " + timeLeft}
                   </p>
                 ) : (
-                  <p className="db-plan-timer db-plan-timer--none">No active session</p>
+                  <p className="db-plan-hero-timer db-timer--muted">
+                    <i className="ti ti-clock" aria-hidden="true"></i> No active session
+                  </p>
                 )}
               </div>
             </div>
-            <div className="db-plan-right">
-              {userData && userData.planExpiry && timeLeft !== "Expired" && (
-                <div className="db-plan-progress-wrap">
-                  <div className="db-plan-progress-label">Session remaining</div>
-                  <div className="db-plan-progress-bar">
-                    <div className="db-plan-progress-fill" style={{width: timePercent + "%"}} />
+
+            <div className="db-plan-hero-right">
+              {userData?.planExpiry && timeLeft !== "Expired" && (
+                <div className="db-progress-block">
+                  <div className="db-progress-top">
+                    <span>Session remaining</span>
+                    <span>{timePercent}%</span>
                   </div>
-                  <div className="db-plan-progress-pct">{Math.round(timePercent)}%</div>
+                  <div className="db-progress-track">
+                    <div className="db-progress-fill" style={{width: timePercent + "%"}} />
+                  </div>
                 </div>
               )}
               <button className="db-upgrade-btn" onClick={() => navigate("/pricing")}>
-                {userData && userData.plan && userData.plan !== "Free" ? "Change plan" : "Upgrade plan"}
+                <i className="ti ti-bolt" aria-hidden="true"></i>
+                {plan !== "Free" ? " Change plan" : " Upgrade plan"}
               </button>
             </div>
           </div>
 
-          {/* ── STAT CARDS ── */}
+          {/* STAT CARDS */}
           <div className="db-stats-grid">
             <div className="db-stat-card">
-              <div className="db-stat-icon db-stat-icon--blue">💳</div>
-              <div>
-                <p className="db-stat-label">Active plan</p>
-                <p className="db-stat-value">{userData && userData.plan ? userData.plan : "Free"}</p>
-              </div>
-            </div>
-
-            <div className="db-stat-card">
-              <div className={"db-stat-icon " + (userData && userData.name ? "db-stat-icon--green" : "db-stat-icon--amber")}>
-                {userData && userData.name ? "✅" : "⚠️"}
-              </div>
-              <div>
-                <p className="db-stat-label">Profile status</p>
-                <p className="db-stat-value">{userData && userData.name ? "Complete" : "Incomplete"}</p>
-              </div>
-            </div>
-
-            <div className="db-stat-card">
-              <div className={"db-stat-icon " + (currentUser && currentUser.emailVerified ? "db-stat-icon--green" : "db-stat-icon--amber")}>
-                {currentUser && currentUser.emailVerified ? "✅" : "⚠️"}
-              </div>
-              <div>
-                <p className="db-stat-label">Email verified</p>
-                <p className="db-stat-value">{currentUser && currentUser.emailVerified ? "Verified" : "Not verified"}</p>
-              </div>
-            </div>
-
-            <div className="db-stat-card">
-              <div className="db-stat-icon db-stat-icon--purple">🔐</div>
-              <div>
-                <p className="db-stat-label">Account role</p>
-                <p className="db-stat-value">{isAdmin ? "Admin" : "User"}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* ── QUICK ACTIONS ── */}
-          <div className="db-section-title">Quick actions</div>
-          <div className="db-quick-grid">
-            <Link to="/profile" className="db-quick-card">
-              <div className="db-quick-icon">👤</div>
-              <div>
-                <div className="db-quick-name">Update profile</div>
-                <div className="db-quick-desc">Edit your name, photo and address</div>
-              </div>
-              <span className="db-quick-arrow">→</span>
-            </Link>
-
-            <Link to="/pricing" className="db-quick-card">
-              <div className="db-quick-icon">⚡</div>
-              <div>
-                <div className="db-quick-name">Get more time</div>
-                <div className="db-quick-desc">Upgrade to Silver or Gold plan</div>
-              </div>
-              <span className="db-quick-arrow">→</span>
-            </Link>
-
-            {isAdmin && (
-              <Link to="/admin" className="db-quick-card">
-                <div className="db-quick-icon">🛡️</div>
-                <div>
-                  <div className="db-quick-name">Admin panel</div>
-                  <div className="db-quick-desc">Manage users and view all accounts</div>
+              <div className="db-stat-top">
+                <span className="db-stat-label">Active plan</span>
+                <div className="db-stat-ico db-ico--blue">
+                  <i className="ti ti-credit-card" aria-hidden="true"></i>
                 </div>
-                <span className="db-quick-arrow">→</span>
-              </Link>
-            )}
+              </div>
+              <p className="db-stat-value">{plan}</p>
+            </div>
+
+            <div className="db-stat-card">
+              <div className="db-stat-top">
+                <span className="db-stat-label">Profile</span>
+                <div className={"db-stat-ico " + (userData?.name ? "db-ico--green" : "db-ico--amber")}>
+                  <i className={"ti " + (userData?.name ? "ti-circle-check" : "ti-alert-circle")} aria-hidden="true"></i>
+                </div>
+              </div>
+              <p className="db-stat-value">{userData?.name ? "Complete" : "Incomplete"}</p>
+            </div>
+
+            <div className="db-stat-card">
+              <div className="db-stat-top">
+                <span className="db-stat-label">Email verified</span>
+                <div className={"db-stat-ico " + (currentUser?.emailVerified ? "db-ico--green" : "db-ico--amber")}>
+                  <i className={"ti " + (currentUser?.emailVerified ? "ti-circle-check" : "ti-mail")} aria-hidden="true"></i>
+                </div>
+              </div>
+              <p className="db-stat-value">{currentUser?.emailVerified ? "Verified" : "Pending"}</p>
+            </div>
+
+            <div className="db-stat-card">
+              <div className="db-stat-top">
+                <span className="db-stat-label">Account role</span>
+                <div className={"db-stat-ico " + (isAdmin ? "db-ico--purple" : "db-ico--gray")}>
+                  <i className={"ti " + (isAdmin ? "ti-shield" : "ti-user")} aria-hidden="true"></i>
+                </div>
+              </div>
+              <p className="db-stat-value">{isAdmin ? "Admin" : "User"}</p>
+            </div>
           </div>
 
-          {/* ── PRICING PLANS ── */}
-          <div className="db-section-title">Pricing plans</div>
-          <div className="db-plans-grid">
+          {/* TWO COLUMN */}
+          <div className="db-two-col">
 
-            <div className="db-plan-option">
-              <div className="db-plan-option-header">
-                <span className="db-plan-option-name">Free</span>
-                <span className="db-plan-option-price">₹0</span>
+            {/* QUICK ACTIONS */}
+            <div className="db-section-card">
+              <div className="db-section-card-header">
+                <span className="db-section-card-title">Quick actions</span>
               </div>
-              <p className="db-plan-option-dur">1 hour access</p>
-              <ul className="db-plan-option-features">
-                <li>Basic access</li>
-                <li>Profile management</li>
-              </ul>
-              <button className="db-plan-option-btn" onClick={() => navigate("/pricing?plan=Free")}>
-                Get Free
-              </button>
+              <div className="db-actions-list">
+                <Link to="/profile" className="db-action-row">
+                  <div className="db-action-ico db-ico--blue">
+                    <i className="ti ti-user-edit" aria-hidden="true"></i>
+                  </div>
+                  <div className="db-action-body">
+                    <div className="db-action-name">Update profile</div>
+                    <div className="db-action-desc">Edit name, photo and address</div>
+                  </div>
+                  <i className="ti ti-chevron-right db-action-arrow" aria-hidden="true"></i>
+                </Link>
+
+                <Link to="/pricing" className="db-action-row">
+                  <div className="db-action-ico db-ico--amber">
+                    <i className="ti ti-bolt" aria-hidden="true"></i>
+                  </div>
+                  <div className="db-action-body">
+                    <div className="db-action-name">Get more time</div>
+                    <div className="db-action-desc">Upgrade to Silver or Gold</div>
+                  </div>
+                  <i className="ti ti-chevron-right db-action-arrow" aria-hidden="true"></i>
+                </Link>
+
+                {isAdmin && (
+                  <Link to="/admin" className="db-action-row">
+                    <div className="db-action-ico db-ico--purple">
+                      <i className="ti ti-shield" aria-hidden="true"></i>
+                    </div>
+                    <div className="db-action-body">
+                      <div className="db-action-name">Admin panel</div>
+                      <div className="db-action-desc">Manage users and accounts</div>
+                    </div>
+                    <i className="ti ti-chevron-right db-action-arrow" aria-hidden="true"></i>
+                  </Link>
+                )}
+              </div>
             </div>
 
-            <div className="db-plan-option db-plan-option--featured">
-              <div className="db-plan-option-badge">Most popular</div>
-              <div className="db-plan-option-header">
-                <span className="db-plan-option-name">Silver</span>
-                <span className="db-plan-option-price">₹199</span>
+            {/* PLAN SUMMARY */}
+            <div className="db-section-card">
+              <div className="db-section-card-header">
+                <span className="db-section-card-title">Plan details</span>
+                <Link to="/pricing" className="db-section-card-link">View all plans</Link>
               </div>
-              <p className="db-plan-option-dur">6 hours access</p>
-              <ul className="db-plan-option-features">
-                <li>All Free features</li>
-                <li>Priority support</li>
-                <li>Extended access</li>
-              </ul>
-              <button className="db-plan-option-btn db-plan-option-btn--primary" onClick={() => navigate("/pricing?plan=Silver")}>
-                Get Silver
-              </button>
+              <div className="db-plan-details">
+                <div className="db-plan-detail-row">
+                  <span className="db-pd-label">Current plan</span>
+                  <span className={"db-badge " + planColor(plan)}>{planIcon(plan)} {plan}</span>
+                </div>
+                <div className="db-plan-detail-row">
+                  <span className="db-pd-label">Duration</span>
+                  <span className="db-pd-val">
+                    {plan === "Gold" ? "12 hours" : plan === "Silver" ? "6 hours" : "1 hour"}
+                  </span>
+                </div>
+                <div className="db-plan-detail-row">
+                  <span className="db-pd-label">Price</span>
+                  <span className="db-pd-val">
+                    {plan === "Gold" ? "₹499" : plan === "Silver" ? "₹199" : "₹0"}
+                  </span>
+                </div>
+                <div className="db-plan-detail-row">
+                  <span className="db-pd-label">Status</span>
+                  <span className={"db-status-dot " + (timeLeft === "Expired" || !userData?.planExpiry ? "db-status-dot--off" : "db-status-dot--on")}>
+                    {timeLeft === "Expired" || !userData?.planExpiry ? "Inactive" : "Active"}
+                  </span>
+                </div>
+                <div className="db-plan-detail-row">
+                  <span className="db-pd-label">Expires in</span>
+                  <span className={"db-pd-val " + (timeLeft === "Expired" ? "db-pd-red" : "")}>
+                    {timeLeft || "—"}
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <div className="db-plan-option db-plan-option--gold">
-              <div className="db-plan-option-header">
-                <span className="db-plan-option-name">Gold</span>
-                <span className="db-plan-option-price">₹499</span>
-              </div>
-              <p className="db-plan-option-dur">12 hours access</p>
-              <ul className="db-plan-option-features">
-                <li>All Silver features</li>
-                <li>Premium support</li>
-                <li>Full access</li>
-              </ul>
-              <button className="db-plan-option-btn db-plan-option-btn--gold" onClick={() => navigate("/pricing?plan=Gold")}>
-                Get Gold
-              </button>
-            </div>
+          </div>
 
+          {/* PRICING PLANS */}
+          <div className="db-section-card">
+            <div className="db-section-card-header">
+              <span className="db-section-card-title">Available plans</span>
+              <Link to="/pricing" className="db-section-card-link">Manage plan</Link>
+            </div>
+            <div className="db-plans-row">
+
+              <div className="db-plan-tile">
+                <div className="db-plan-tile-top">
+                  <span className="db-plan-tile-name">Free</span>
+                  <span className="db-plan-tile-price">₹0</span>
+                </div>
+                <p className="db-plan-tile-dur">1 hour · no card needed</p>
+                <button className="db-plan-tile-btn" onClick={() => navigate("/pricing?plan=Free")}>
+                  Select
+                </button>
+              </div>
+
+              <div className="db-plan-tile db-plan-tile--featured">
+                <div className="db-plan-tile-badge">Popular</div>
+                <div className="db-plan-tile-top">
+                  <span className="db-plan-tile-name">Silver</span>
+                  <span className="db-plan-tile-price">₹199</span>
+                </div>
+                <p className="db-plan-tile-dur">6 hours · Razorpay</p>
+                <button className="db-plan-tile-btn db-plan-tile-btn--primary" onClick={() => navigate("/pricing?plan=Silver")}>
+                  Select
+                </button>
+              </div>
+
+              <div className="db-plan-tile db-plan-tile--gold">
+                <div className="db-plan-tile-top">
+                  <span className="db-plan-tile-name">Gold</span>
+                  <span className="db-plan-tile-price">₹499</span>
+                </div>
+                <p className="db-plan-tile-dur">12 hours · Razorpay</p>
+                <button className="db-plan-tile-btn db-plan-tile-btn--gold" onClick={() => navigate("/pricing?plan=Gold")}>
+                  Select
+                </button>
+              </div>
+
+            </div>
           </div>
 
         </div>
