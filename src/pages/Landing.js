@@ -5,12 +5,12 @@ function Landing() {
   return (
     <div className="lp">
 
-      {/* ── HEADER ── */}
+      {/* HEADER */}
       <header className="lp-header">
         <div className="lp-nav-inner">
           <Link to="/" className="lp-brand">
-            <span className="lp-brand-mark">M</span>
-            Mini Project
+            <span className="lp-brand-mark">K</span>
+            Knowora
           </Link>
 
           <nav className="lp-nav-links">
@@ -28,20 +28,20 @@ function Landing() {
         </div>
       </header>
 
-      {/* ── HERO ── */}
+      {/* HERO */}
       <section className="lp-hero">
         <div className="lp-wrap lp-hero-inner">
-          <div className="lp-pill">🔐 Powered by Firebase &amp; Razorpay</div>
+          <div className="lp-pill">🏆 Play · Match · Compete · Win</div>
 
           <h1 className="lp-hero-h1">
-            The auth system that<br />
-            <span className="lp-gradient-text">expires on purpose</span>
+            Find your next game,<br />
+            <span className="lp-gradient-text">meet your perfect match</span>
           </h1>
 
           <p className="lp-hero-sub">
-            Sign in with email or Google, set up your profile, choose a plan,
-            and get access for exactly as long as you need — then it stops.
-            No subscriptions. No forgotten charges.
+            Post a match, join a game near you, and get matched with players
+            at your skill level — across any sport. Knowora is your
+            community-powered sports matchmaking hub.
           </p>
 
           <div className="lp-hero-actions">
@@ -55,11 +55,11 @@ function Landing() {
 
           <div className="lp-hero-trust">
             <span className="lp-trust-item">
-              <span className="lp-check">✓</span> Free plan — 1 hour access
+              <span className="lp-check">✓</span> Free plan — instant access
             </span>
             <span className="lp-trust-sep">|</span>
             <span className="lp-trust-item">
-              <span className="lp-check">✓</span> Auto-expires, no manual cancel
+              <span className="lp-check">✓</span> Unlimited match requests
             </span>
             <span className="lp-trust-sep">|</span>
             <span className="lp-trust-item">
@@ -69,7 +69,7 @@ function Landing() {
         </div>
       </section>
 
-      {/* ── STATS STRIP ── */}
+      {/* STATS STRIP */}
       <section className="lp-stats">
         <div className="lp-wrap lp-stats-grid">
           <div className="lp-stat">
@@ -78,13 +78,13 @@ function Landing() {
           </div>
           <div className="lp-stat-div" />
           <div className="lp-stat">
-            <div className="lp-stat-num">1–12h</div>
-            <div className="lp-stat-label">Per session</div>
+            <div className="lp-stat-num">All Sports</div>
+            <div className="lp-stat-label">Community driven</div>
           </div>
           <div className="lp-stat-div" />
           <div className="lp-stat">
             <div className="lp-stat-num">100%</div>
-            <div className="lp-stat-label">Auto-expiry</div>
+            <div className="lp-stat-label">Secure &amp; private</div>
           </div>
           <div className="lp-stat-div" />
           <div className="lp-stat">
@@ -94,47 +94,47 @@ function Landing() {
         </div>
       </section>
 
-      {/* ── FEATURES ── */}
+      {/* FEATURES */}
       <section id="features" className="lp-section">
         <div className="lp-wrap">
           <div className="lp-section-header">
             <span className="lp-label">01 / Features</span>
-            <h2>Everything you need, nothing you don't</h2>
-            <p>Three core features built to work together — auth, profile, and timed access control.</p>
+            <h2>Everything a sports matchmaking platform needs</h2>
+            <p>Post games, join matches, earn points, and build your player rank — all in one place.</p>
           </div>
 
           <div className="lp-features-grid">
             <div className="lp-feature-card">
-              <div className="lp-feature-ico lp-ico-blue">🔐</div>
-              <h3>Secure authentication</h3>
-              <p>Email and password login, or sign in with Google in one click. Accounts with the same email merge automatically — zero duplicate accounts.</p>
+              <div className="lp-feature-ico lp-ico-blue">🏟️</div>
+              <h3>Post any match</h3>
+              <p>Host a game in any sport — Cricket, Football, Badminton, Tennis and more. Get matched with players fast.</p>
               <ul className="lp-feature-list">
-                <li>Email + password signup</li>
-                <li>Google OAuth login</li>
-                <li>Email verification</li>
-                <li>Auto account merge</li>
+                <li>Sport-wise categories</li>
+                <li>Set venue, date &amp; slot</li>
+                <li>Mark confirmed players</li>
+                <li>Get notified on requests</li>
               </ul>
             </div>
 
             <div className="lp-feature-card lp-feature-card--highlight">
-              <div className="lp-feature-ico lp-ico-purple">⏱</div>
-              <h3>Time-limited access plans</h3>
-              <p>Three plans — Free (1h), Silver (6h), Gold (12h). Pay once, access starts instantly, expires automatically. A background job handles revocation.</p>
+              <div className="lp-feature-ico lp-ico-purple">🤝</div>
+              <h3>Join and earn</h3>
+              <p>Join matches hosted by others. Earn points for every game you play, get upvoted by teammates, and build your reputation on the platform.</p>
               <ul className="lp-feature-list">
-                <li>Free, Silver, Gold tiers</li>
-                <li>Razorpay payment integration</li>
-                <li>Auto-expiry via cron job</li>
-                <li>Live countdown on dashboard</li>
+                <li>Points for every match played</li>
+                <li>Upvote / downvote teammates</li>
+                <li>Player leaderboard</li>
+                <li>Skill-level badges</li>
               </ul>
             </div>
 
             <div className="lp-feature-card">
-              <div className="lp-feature-ico lp-ico-green">👤</div>
-              <h3>Full profile management</h3>
-              <p>Upload a profile photo, update your address with live map suggestions, and download your data anytime.</p>
+              <div className="lp-feature-ico lp-ico-green">🥇</div>
+              <h3>Grow your profile</h3>
+              <p>Build a public player profile, showcase your sports and skill level, manage your account and download your data anytime.</p>
               <ul className="lp-feature-list">
-                <li>Photo upload (Storj storage)</li>
-                <li>Address with map suggestions</li>
+                <li>Profile photo upload</li>
+                <li>Points &amp; rank display</li>
                 <li>Profile data download</li>
                 <li>Admin panel (role-based)</li>
               </ul>
@@ -143,54 +143,50 @@ function Landing() {
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ── */}
+      {/* HOW IT WORKS */}
       <section id="how" className="lp-section lp-section--alt">
         <div className="lp-wrap">
           <div className="lp-section-header">
             <span className="lp-label">02 / How it works</span>
             <h2>Up and running in three steps</h2>
-            <p>From landing on this page to having active access takes under two minutes.</p>
+            <p>From signing up to playing your first match takes under two minutes.</p>
           </div>
 
           <div className="lp-steps">
             <div className="lp-step">
               <div className="lp-step-num">01</div>
               <div className="lp-step-body">
-                <h3>Create your account</h3>
-                <p>Sign up with email or Google. Verify your email and your profile is ready to set up — photo, address, and all.</p>
+                <h3>Create your player profile</h3>
+                <p>Sign up with email or Google. Set up your profile with your name, photo, sports and skill level.</p>
               </div>
             </div>
-
             <div className="lp-step-arrow">→</div>
-
             <div className="lp-step">
               <div className="lp-step-num">02</div>
               <div className="lp-step-body">
-                <h3>Choose your plan</h3>
-                <p>Pick the session length that fits — 1 hour free, 6 hours for ₹199, or 12 hours for ₹499. Pay once via Razorpay.</p>
+                <h3>Host or join a match</h3>
+                <p>Post a game in your sport, or browse open matches nearby and join players at your level.</p>
               </div>
             </div>
-
             <div className="lp-step-arrow">→</div>
-
             <div className="lp-step">
               <div className="lp-step-num">03</div>
               <div className="lp-step-body">
-                <h3>Access starts immediately</h3>
-                <p>Your plan activates the moment payment confirms. The dashboard shows a live countdown. When time's up, access stops — automatically.</p>
+                <h3>Play and rank up</h3>
+                <p>Get points for every match played. Upvotes boost your reputation. Confirm the game and close the loop.</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── PRICING ── */}
+      {/* PRICING */}
       <section id="pricing" className="lp-section">
         <div className="lp-wrap">
           <div className="lp-section-header">
             <span className="lp-label">03 / Pricing</span>
-            <h2>Pay once, access for as long as you need</h2>
-            <p>No subscriptions. No auto-renewal. You choose when to start.</p>
+            <h2>Choose your plan</h2>
+            <p>Start free. Upgrade when you need more access. No auto-renewal.</p>
           </div>
 
           <div className="lp-pricing-grid">
@@ -201,9 +197,9 @@ function Landing() {
                 <div className="lp-plan-dur">1 hour access</div>
               </div>
               <ul className="lp-plan-features">
-                <li><span className="lp-check">✓</span> Basic access</li>
+                <li><span className="lp-check">✓</span> Post matches</li>
+                <li><span className="lp-check">✓</span> Join matches</li>
                 <li><span className="lp-check">✓</span> Profile management</li>
-                <li><span className="lp-check">✓</span> Email login</li>
                 <li><span className="lp-check">✓</span> No card required</li>
               </ul>
               <Link to="/signup" className="lp-plan-btn">Get started free</Link>
@@ -218,9 +214,9 @@ function Landing() {
               </div>
               <ul className="lp-plan-features">
                 <li><span className="lp-check">✓</span> Everything in Free</li>
-                <li><span className="lp-check">✓</span> 6× longer session</li>
-                <li><span className="lp-check">✓</span> Priority support</li>
-                <li><span className="lp-check">✓</span> Razorpay payment</li>
+                <li><span className="lp-check">✓</span> Priority match requests</li>
+                <li><span className="lp-check">✓</span> 2× points earning</li>
+                <li><span className="lp-check">✓</span> Silver badge</li>
               </ul>
               <Link to="/signup" className="lp-plan-btn lp-plan-btn--primary">Choose Silver</Link>
             </div>
@@ -233,62 +229,62 @@ function Landing() {
               </div>
               <ul className="lp-plan-features">
                 <li><span className="lp-check lp-check--gold">✓</span> Everything in Silver</li>
-                <li><span className="lp-check lp-check--gold">✓</span> 12× longer session</li>
-                <li><span className="lp-check lp-check--gold">✓</span> Premium support</li>
-                <li><span className="lp-check lp-check--gold">✓</span> Full access</li>
+                <li><span className="lp-check lp-check--gold">✓</span> Pro player status</li>
+                <li><span className="lp-check lp-check--gold">✓</span> 5× points earning</li>
+                <li><span className="lp-check lp-check--gold">✓</span> Gold badge</li>
               </ul>
               <Link to="/signup" className="lp-plan-btn lp-plan-btn--gold">Choose Gold</Link>
             </div>
           </div>
 
           <p className="lp-pricing-note">
-            All plans activate immediately on payment. Access expires automatically — no manual cancellation needed.
+            All plans activate immediately. Access expires automatically — no manual cancellation needed.
           </p>
         </div>
       </section>
 
-      {/* ── REVIEWS ── */}
+      {/* REVIEWS */}
       <section id="reviews" className="lp-section lp-section--alt">
         <div className="lp-wrap">
           <div className="lp-section-header">
             <span className="lp-label">04 / Reviews</span>
-            <h2>What people say</h2>
-            <p>From students to freelancers who wanted access without a subscription.</p>
+            <h2>What players say</h2>
+            <p>Players and hosts who found their perfect match when they needed one most.</p>
           </div>
 
           <div className="lp-reviews-grid">
             <div className="lp-review">
               <div className="lp-stars">★★★★★</div>
-              <p className="lp-review-text">"Needed access for a few hours to finish a task. Paid for Silver, got exactly 6 hours, and it stopped on its own. No forgetting to cancel anything."</p>
+              <p className="lp-review-text">"Found a badminton doubles partner in under 5 minutes. The community is so active and matches fill up fast. Knowora is my go-to app for weekend games now."</p>
               <div className="lp-reviewer">
                 <div className="lp-avatar lp-avatar--blue">RS</div>
                 <div>
                   <div className="lp-reviewer-name">Riya Sharma</div>
-                  <div className="lp-reviewer-role">Freelance designer</div>
+                  <div className="lp-reviewer-role">Badminton player</div>
                 </div>
               </div>
             </div>
 
             <div className="lp-review">
               <div className="lp-stars">★★★★★</div>
-              <p className="lp-review-text">"The free hour was enough to test everything before I paid for anything. Sign-up with Google took under a minute. Clean and fast."</p>
+              <p className="lp-review-text">"I love hosting matches here — I earn points and actually get a full team together in minutes. It's like running a mini league every weekend."</p>
               <div className="lp-reviewer">
                 <div className="lp-avatar lp-avatar--green">AK</div>
                 <div>
                   <div className="lp-reviewer-name">Arjun Kapoor</div>
-                  <div className="lp-reviewer-role">CS student</div>
+                  <div className="lp-reviewer-role">Football host</div>
                 </div>
               </div>
             </div>
 
             <div className="lp-review">
               <div className="lp-stars">★★★★★</div>
-              <p className="lp-review-text">"Profile setup with map address suggestions was smoother than most full-size apps I've used. The dashboard timer is a great touch."</p>
+              <p className="lp-review-text">"Clean interface, fast matchmaking, and the points system keeps me motivated to play every week. Much better experience than other sports apps."</p>
               <div className="lp-reviewer">
                 <div className="lp-avatar lp-avatar--purple">PM</div>
                 <div>
                   <div className="lp-reviewer-name">Priya Mehta</div>
-                  <div className="lp-reviewer-role">Product intern</div>
+                  <div className="lp-reviewer-role">Tennis player</div>
                 </div>
               </div>
             </div>
@@ -296,7 +292,7 @@ function Landing() {
         </div>
       </section>
 
-      {/* ── FAQ ── */}
+      {/* FAQ */}
       <section id="faq" className="lp-section">
         <div className="lp-wrap">
           <div className="lp-section-header">
@@ -306,16 +302,16 @@ function Landing() {
 
           <div className="lp-faq-grid">
             <div className="lp-faq-item">
-              <h3>What happens when my plan expires?</h3>
-              <p>Access is revoked automatically the moment the session ends. No action needed from your side — a background job handles it.</p>
+              <h3>Who can join my match?</h3>
+              <p>Any registered player on Knowora can request to join. The host can confirm players, and the community can upvote the most reliable ones.</p>
             </div>
             <div className="lp-faq-item">
-              <h3>Can I buy another plan after mine expires?</h3>
-              <p>Yes — you can purchase a new plan anytime from the Pricing page. Each plan is a fresh session.</p>
+              <h3>How do I earn points?</h3>
+              <p>You earn points for every match you play. Upvotes give bonus points. Gold plan users earn 5× points per match.</p>
             </div>
             <div className="lp-faq-item">
               <h3>Do I need a card for the free plan?</h3>
-              <p>No. The Free plan gives one hour of access with zero payment required. Just sign up and go.</p>
+              <p>No. The Free plan gives you instant access with zero payment required. Just sign up and start playing.</p>
             </div>
             <div className="lp-faq-item">
               <h3>How is payment processed?</h3>
@@ -323,21 +319,21 @@ function Landing() {
             </div>
             <div className="lp-faq-item">
               <h3>Is my data safe?</h3>
-              <p>Auth runs on Firebase, profile photos on Storj, and payments on Razorpay. None of your data touches an unverified server.</p>
+              <p>Auth runs on Firebase, profile photos on Storj, and payments on Razorpay. Your data is always secure.</p>
             </div>
             <div className="lp-faq-item">
               <h3>Is there an admin panel?</h3>
-              <p>Yes — admin accounts can see a full user listing with search, filter by plan, and pagination. Access is role-restricted.</p>
+              <p>Yes — admin accounts can manage users, view all matches and requests, and moderate content with full role-based access.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── FINAL CTA ── */}
+      {/* FINAL CTA */}
       <section className="lp-cta-section">
         <div className="lp-wrap lp-cta-inner">
-          <h2>Start your first session today</h2>
-          <p>One hour free. No card required. Cancel isn't even a button — time does it for you.</p>
+          <h2>Ready to play your next match?</h2>
+          <p>Join Knowora today — post or join your first match for free, no card needed.</p>
           <div className="lp-cta-actions">
             <Link to="/signup" className="lp-btn-primary lp-btn-lg">Create a free account</Link>
             <Link to="/login" className="lp-btn-outline lp-btn-lg lp-btn-light">Already have an account?</Link>
@@ -345,14 +341,13 @@ function Landing() {
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
+      {/* FOOTER */}
       <footer className="lp-footer">
         <div className="lp-wrap lp-footer-inner">
           <div className="lp-footer-brand">
-            <span className="lp-brand-mark">M</span>
-            Mini Project
+            <span className="lp-brand-mark">K</span>
+            Knowora
           </div>
-
           <div className="lp-footer-cols">
             <div className="lp-footer-col">
               <div className="lp-footer-col-title">Product</div>
@@ -372,9 +367,8 @@ function Landing() {
             </div>
           </div>
         </div>
-
         <div className="lp-wrap lp-footer-bottom">
-          <span>© 2026 Mini Project. Built with React, Firebase &amp; Razorpay.</span>
+          <span>© 2026 Knowora. Built with React, Firebase &amp; Razorpay.</span>
         </div>
       </footer>
 
@@ -382,4 +376,4 @@ function Landing() {
   );
 }
 
-export default Landing; 
+export default Landing;

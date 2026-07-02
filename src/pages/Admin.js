@@ -86,7 +86,7 @@ function Admin() {
         <div className="db-sidebar-top">
           <div className="db-brand">
             <span className="db-brand-mark">M</span>
-            <span className="db-brand-name">Mini Project</span>
+            <span className="db-brand-name">Knowora</span>
           </div>
           <nav className="db-nav">
             <span className="db-nav-label">Main</span>

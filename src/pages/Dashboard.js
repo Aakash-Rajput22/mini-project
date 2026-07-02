@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
 import { useState, useEffect } from "react";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
 import "../styles/dashboard.css";
 
 function Dashboard() {
@@ -12,6 +12,80 @@ function Dashboard() {
   const [timeLeft, setTimeLeft] = useState("");
   const [timePercent, setTimePercent] = useState(100);
   const [isAdmin, setIsAdmin] = useState(false);
+
+  const [myMatchStats, setMyMatchStats] = useState({
+    joinedCount: 0,
+    createdCount: 0,
+    upcomingCount: 0,
+  });
+  const [upcomingMatches, setUpcomingMatches] = useState([]);
+  const [sportStats, setSportStats] = useState([]);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  const SPORTS = ["Cricket", "Football", "Badminton", "Basketball", "Volleyball", "Tennis", "Other"];
+
+  const sportIcon = (s) => {
+    const icons = {
+      Cricket: "🏏",
+      Football: "⚽",
+      Badminton: "🏸",
+      Basketball: "🏀",
+      Volleyball: "🏐",
+      Tennis: "🎾",
+      Other: "🎮",
+    };
+    return icons[s] || "🎮";
+  };
+
+  const fetchMatchStats = async (uid) => {
+    setStatsLoading(true);
+    try {
+      const createdSnap = await getDocs(
+        query(collection(db, "matches"), where("createdBy", "==", uid))
+      );
+
+      const allSnap = await getDocs(collection(db, "matches"));
+      const allMatches = allSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const now = new Date();
+
+      const joinedMatches = allMatches.filter((m) => m.joinedPlayers?.includes(uid));
+      const upcomingJoined = joinedMatches.filter((m) => {
+        const d = m.date?.toDate ? m.date.toDate() : new Date(m.date);
+        return d >= now;
+      });
+
+      const upcomingAll = allMatches
+        .filter((m) => {
+          const d = m.date?.toDate ? m.date.toDate() : new Date(m.date);
+          return d >= now;
+        })
+        .sort((a, b) => {
+          const da = a.date?.toDate ? a.date.toDate() : new Date(a.date);
+          const dbb = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+          return da - dbb;
+        })
+        .slice(0, 5);
+
+      const sportCounts = SPORTS.map((s) => ({
+        sport: s,
+        count: allMatches.filter((m) => m.sport === s && (() => {
+          const d = m.date?.toDate ? m.date.toDate() : new Date(m.date);
+          return d >= now;
+        })()).length,
+      }));
+
+      setMyMatchStats({
+        joinedCount: joinedMatches.length,
+        createdCount: createdSnap.size,
+        upcomingCount: upcomingJoined.length,
+      });
+      setUpcomingMatches(upcomingAll);
+      setSportStats(sportCounts);
+    } catch (err) {
+      console.error("Error fetching match stats:", err);
+    }
+    setStatsLoading(false);
+  };
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -24,8 +98,10 @@ function Dashboard() {
         setUserData(data);
         if (data.role === "admin") setIsAdmin(true);
       }
+      fetchMatchStats(user.uid);
     });
     return () => unsub();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   useEffect(() => {
@@ -67,6 +143,17 @@ function Dashboard() {
 
   const plan = userData?.plan || "Free";
 
+  const formatMatchDate = (timestamp) => {
+    if (!timestamp) return "";
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleString("en-IN", {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <div className="db-shell">
 
@@ -75,12 +162,15 @@ function Dashboard() {
         <div className="db-sidebar-top">
           <div className="db-brand">
             <span className="db-brand-mark">M</span>
-            <span className="db-brand-name">Mini Project</span>
+            <span className="db-brand-name">Knowora</span>
           </div>
           <nav className="db-nav">
             <span className="db-nav-label">Main</span>
             <Link to="/dashboard" className="db-nav-item db-nav-item--active">
               <i className="ti ti-layout-dashboard db-nav-ico" aria-hidden="true"></i> Dashboard
+            </Link>
+            <Link to="/matches" className="db-nav-item">
+              <i className="ti ti-ball-basketball db-nav-ico" aria-hidden="true"></i> Matches
             </Link>
             <Link to="/profile" className="db-nav-item">
               <i className="ti ti-user db-nav-ico" aria-hidden="true"></i> Profile
@@ -219,6 +309,116 @@ function Dashboard() {
             </div>
           </div>
 
+          {/* MY MATCH STATS */}
+          <div className="db-section-card">
+            <div className="db-section-card-header">
+              <span className="db-section-card-title">My Matches</span>
+              <Link to="/matches" className="db-section-card-link">Go to Matches</Link>
+            </div>
+            <div className="db-stats-grid">
+              <div className="db-stat-card">
+                <div className="db-stat-top">
+                  <span className="db-stat-label">Matches joined</span>
+                  <div className="db-stat-ico db-ico--blue">
+                    <i className="ti ti-users" aria-hidden="true"></i>
+                  </div>
+                </div>
+                <p className="db-stat-value">{statsLoading ? "—" : myMatchStats.joinedCount}</p>
+              </div>
+
+              <div className="db-stat-card">
+                <div className="db-stat-top">
+                  <span className="db-stat-label">Matches created</span>
+                  <div className="db-stat-ico db-ico--amber">
+                    <i className="ti ti-flag" aria-hidden="true"></i>
+                  </div>
+                </div>
+                <p className="db-stat-value">{statsLoading ? "—" : myMatchStats.createdCount}</p>
+              </div>
+
+              <div className="db-stat-card">
+                <div className="db-stat-top">
+                  <span className="db-stat-label">Upcoming for me</span>
+                  <div className="db-stat-ico db-ico--green">
+                    <i className="ti ti-calendar-event" aria-hidden="true"></i>
+                  </div>
+                </div>
+                <p className="db-stat-value">{statsLoading ? "—" : myMatchStats.upcomingCount}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* UPCOMING MATCHES + BROWSE BY SPORT */}
+          <div className="db-two-col">
+            <div className="db-section-card">
+              <div className="db-section-card-header">
+                <span className="db-section-card-title">Upcoming Matches</span>
+                <Link to="/matches" className="db-section-card-link">View all</Link>
+              </div>
+              <div className="db-actions-list">
+                {statsLoading ? (
+                  <p className="db-plan-tile-dur">Loading...</p>
+                ) : upcomingMatches.length === 0 ? (
+                  <p className="db-plan-tile-dur">Koi upcoming match nahi hai. Pehla match banao!</p>
+                ) : (
+                  upcomingMatches.map((m, idx) => (
+                    <Link
+                      to={`/matches/${m.id}`}
+                      className="db-action-row"
+                      key={m.id}
+                    >
+                      <div
+                        className={
+                          "db-action-ico " +
+                          ["db-ico--blue", "db-ico--green", "db-ico--amber", "db-ico--purple", "db-ico--gray"][idx % 5]
+                        }
+                      >
+                        <i className="ti ti-ball-basketball" aria-hidden="true"></i>
+                      </div>
+                      <div className="db-action-body">
+                        <div className="db-action-name">{sportIcon(m.sport)} {m.title}</div>
+                        <div className="db-action-desc">
+                          {m.venue} · {formatMatchDate(m.date)} · {m.joinedPlayers?.length || 0}/{m.maxPlayers} players
+                        </div>
+                      </div>
+                      <i className="ti ti-chevron-right db-action-arrow" aria-hidden="true"></i>
+                    </Link>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="db-section-card">
+              <div className="db-section-card-header">
+                <span className="db-section-card-title">Browse by Sport</span>
+              </div>
+              <div className="db-actions-list">
+                {sportStats.map((s, idx) => (
+                  <div
+                    className="db-action-row"
+                    key={s.sport}
+                    onClick={() => navigate(`/matches?sport=${encodeURIComponent(s.sport)}`)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <div
+                      className={
+                        "db-action-ico " +
+                        ["db-ico--blue", "db-ico--green", "db-ico--amber", "db-ico--purple", "db-ico--gray"][idx % 5]
+                      }
+                    >
+                      {sportIcon(s.sport)}
+                    </div>
+                    <div className="db-action-body">
+                      <div className="db-action-name">{s.sport}</div>
+                      <div className="db-action-desc">{s.count} upcoming matches</div>
+                    </div>
+                    <i className="ti ti-chevron-right db-action-arrow" aria-hidden="true"></i>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
           {/* TWO COLUMN */}
           <div className="db-two-col">
 
@@ -228,6 +428,17 @@ function Dashboard() {
                 <span className="db-section-card-title">Quick actions</span>
               </div>
               <div className="db-actions-list">
+                <Link to="/matches" className="db-action-row">
+                  <div className="db-action-ico db-ico--blue">
+                    <i className="ti ti-ball-basketball" aria-hidden="true"></i>
+                  </div>
+                  <div className="db-action-body">
+                    <div className="db-action-name">Find or create a match</div>
+                    <div className="db-action-desc">Browse matches or organize your own</div>
+                  </div>
+                  <i className="ti ti-chevron-right db-action-arrow" aria-hidden="true"></i>
+                </Link>
+
                 <Link to="/profile" className="db-action-row">
                   <div className="db-action-ico db-ico--blue">
                     <i className="ti ti-user-edit" aria-hidden="true"></i>

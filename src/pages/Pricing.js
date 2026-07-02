@@ -141,7 +141,8 @@ function Pricing() {
                 <li><span className="pr-check">✓</span> Everything in Free</li>
                 <li><span className="pr-check">✓</span> 6× longer session</li>
                 <li><span className="pr-check">✓</span> Priority support</li>
-                <li><span className="pr-check">✓</span> Auto-expires in 6h</li>
+                
+                <li><span className="pr-check">✓</span> 24*7 support</li>
               </ul>
               <button
                 className="pr-btn pr-btn--primary"
@@ -158,6 +159,7 @@ function Pricing() {
               <div className="pr-plan-name">Gold</div>
               <div className="pr-plan-price">₹499</div>
               <div className="pr-plan-dur">12 hours access · Razorpay payment</div>
+
               <ul className="pr-features">
                 <li><span className="pr-check--gold">✓</span> Everything in Silver</li>
                 <li><span className="pr-check--gold">✓</span> 12× longer session</li>
