@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
 import { useState, useEffect } from "react";
-import { doc, getDoc, collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import "../styles/dashboard.css";
 
 function Dashboard() {
