@@ -11,10 +11,7 @@ function Pricing() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(null);
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/login");
-  };
+  const handleLogout = async () => { await signOut(auth); navigate("/login"); };
 
   const activatePlan = async (plan) => {
     const user = auth.currentUser;
@@ -22,12 +19,10 @@ function Pricing() {
     const hours = durations[plan];
     const expiry = new Date();
     expiry.setHours(expiry.getHours() + hours);
-
     await setDoc(doc(db, "users", user.uid), {
-      plan: plan,
+      plan,
       planExpiry: Timestamp.fromDate(expiry),
     }, { merge: true });
-
     alert(plan + " plan activated! Expires in " + hours + " hour(s).");
     navigate("/dashboard");
   };
@@ -35,38 +30,25 @@ function Pricing() {
   const handlePlanSelect = async (plan) => {
     const user = auth.currentUser;
     if (!user) { navigate("/login"); return; }
-
     setLoading(plan);
-
     try {
-      if (plan === "Free") {
-        await activatePlan(plan);
-        setLoading(null);
-        return;
-      }
-
+      if (plan === "Free") { await activatePlan(plan); setLoading(null); return; }
       const res = await fetch(BACKEND_URL + "/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan }),
       });
       const data = await res.json();
-
-      if (data.error) {
-        alert(data.error);
-        setLoading(null);
-        return;
-      }
-
+      if (data.error) { alert(data.error); setLoading(null); return; }
       const options = {
         key: data.keyId,
         amount: data.amount,
         currency: data.currency,
         name: "Mini Project",
-        description: plan + " Plan Purchase",
+        description: plan + " Plan",
         order_id: data.orderId,
-        handler: async function (response) {
-          const verifyRes = await fetch(BACKEND_URL + "/verify-payment", {
+        handler: async (response) => {
+          const vRes = await fetch(BACKEND_URL + "/verify-payment", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -75,31 +57,17 @@ function Pricing() {
               signature: response.razorpay_signature,
             }),
           });
-          const verifyData = await verifyRes.json();
-
-          if (verifyData.verified) {
-            await activatePlan(plan);
-          } else {
-            alert("Payment verification failed");
-          }
+          const vData = await vRes.json();
+          if (vData.verified) await activatePlan(plan);
+          else alert("Payment verification failed");
           setLoading(null);
         },
-        modal: {
-          ondismiss: function () {
-            setLoading(null);
-          },
-        },
-        prefill: {
-          email: user.email,
-        },
-        theme: {
-          color: "#1d4ed8",
-        },
+        modal: { ondismiss: () => setLoading(null) },
+        prefill: { email: user.email },
+        theme: { color: "#3b82f6" },
       };
-
       const rzp = new window.Razorpay(options);
       rzp.open();
-
     } catch (error) {
       alert(error.message);
       setLoading(null);
@@ -107,87 +75,110 @@ function Pricing() {
   };
 
   return (
-    <div className="app">
+    <div className="db-shell">
 
-      <aside className="sidebar">
-        <div className="sidebar-brand">Mini Project</div>
-        <nav>
-          <Link to="/dashboard" className="nav-item">Dashboard</Link>
-          <Link to="/profile" className="nav-item">Profile</Link>
-          <Link to="/pricing" className="nav-item active">Pricing plans</Link>
-        </nav>
-        <div className="sidebar-bottom">
-          <button className="logout-btn" onClick={handleLogout}>Logout</button>
+      {/* SIDEBAR */}
+      <aside className="db-sidebar">
+        <div className="db-sidebar-top">
+          <div className="db-brand">
+            <span className="db-brand-mark">M</span>
+            <span className="db-brand-name">Mini Project</span>
+          </div>
+          <nav className="db-nav">
+            <span className="db-nav-label">Main</span>
+            <Link to="/dashboard" className="db-nav-item"><span className="db-nav-ico">📊</span> Dashboard</Link>
+            <Link to="/profile"   className="db-nav-item"><span className="db-nav-ico">👤</span> Profile</Link>
+            <Link to="/pricing"   className="db-nav-item db-nav-item--active"><span className="db-nav-ico">💳</span> Pricing plans</Link>
+          </nav>
+        </div>
+        <div className="db-sidebar-foot">
+          <button className="db-logout" onClick={handleLogout}>Sign out</button>
         </div>
       </aside>
 
-      <div className="main">
-
-        <header className="topbar">
+      {/* MAIN */}
+      <div className="db-main">
+        <header className="db-topbar">
           <div>
-            <h1 className="page-title">Pricing plans</h1>
-            <p className="page-sub">Choose a plan that works for you</p>
+            <h1 className="db-page-title">Pricing plans</h1>
+            <p className="db-page-sub">Pay once, access for exactly as long as you need</p>
           </div>
         </header>
 
-        <div className="page-body">
-          <div className="plans-grid">
+        <div className="db-body">
 
-            <div className="plan-card">
-              <p className="plan-card-name">Free</p>
-              <p className="plan-card-price">Rs. 0</p>
-              <p className="plan-card-duration">1 hour access</p>
-              <ul className="plan-features">
-                <li>Basic access</li>
-                <li>Profile management</li>
+          <div className="pr-grid">
+
+            {/* FREE */}
+            <div className="pr-card">
+              <div className="pr-plan-icon">🆓</div>
+              <div className="pr-plan-name">Free</div>
+              <div className="pr-plan-price">₹0</div>
+              <div className="pr-plan-dur">1 hour access · No card required</div>
+              <ul className="pr-features">
+                <li><span className="pr-check">✓</span> Basic access</li>
+                <li><span className="pr-check">✓</span> Profile management</li>
+                <li><span className="pr-check">✓</span> Email login</li>
+                <li><span className="pr-check">✓</span> Auto-expires in 1h</li>
               </ul>
               <button
-                className="plan-btn plan-btn-free"
+                className="pr-btn"
                 onClick={() => handlePlanSelect("Free")}
                 disabled={loading === "Free"}
               >
-                {loading === "Free" ? "Activating..." : "Get Free"}
+                {loading === "Free" ? "Activating..." : "Get started free"}
               </button>
             </div>
 
-            <div className="plan-card plan-card-popular">
-              <span className="popular-badge">Most popular</span>
-              <p className="plan-card-name">Silver</p>
-              <p className="plan-card-price">Rs. 199</p>
-              <p className="plan-card-duration">6 hours access</p>
-              <ul className="plan-features">
-                <li>All Free features</li>
-                <li>Priority support</li>
-                <li>Extended access</li>
+            {/* SILVER */}
+            <div className="pr-card pr-card--featured">
+              <div className="pr-badge">Most popular</div>
+              <div className="pr-plan-icon">🥈</div>
+              <div className="pr-plan-name">Silver</div>
+              <div className="pr-plan-price">₹199</div>
+              <div className="pr-plan-dur">6 hours access · Razorpay payment</div>
+              <ul className="pr-features">
+                <li><span className="pr-check">✓</span> Everything in Free</li>
+                <li><span className="pr-check">✓</span> 6× longer session</li>
+                <li><span className="pr-check">✓</span> Priority support</li>
+                <li><span className="pr-check">✓</span> Auto-expires in 6h</li>
               </ul>
               <button
-                className="plan-btn plan-btn-silver"
+                className="pr-btn pr-btn--primary"
                 onClick={() => handlePlanSelect("Silver")}
                 disabled={loading === "Silver"}
               >
-                {loading === "Silver" ? "Processing..." : "Get Silver"}
+                {loading === "Silver" ? "Processing..." : "Choose Silver"}
               </button>
             </div>
 
-            <div className="plan-card">
-              <p className="plan-card-name">Gold</p>
-              <p className="plan-card-price">Rs. 499</p>
-              <p className="plan-card-duration">12 hours access</p>
-              <ul className="plan-features">
-                <li>All Silver features</li>
-                <li>Premium support</li>
-                <li>Full access</li>
+            {/* GOLD */}
+            <div className="pr-card pr-card--gold">
+              <div className="pr-plan-icon">🥇</div>
+              <div className="pr-plan-name">Gold</div>
+              <div className="pr-plan-price">₹499</div>
+              <div className="pr-plan-dur">12 hours access · Razorpay payment</div>
+              <ul className="pr-features">
+                <li><span className="pr-check--gold">✓</span> Everything in Silver</li>
+                <li><span className="pr-check--gold">✓</span> 12× longer session</li>
+                <li><span className="pr-check--gold">✓</span> Premium support</li>
+                <li><span className="pr-check--gold">✓</span> Auto-expires in 12h</li>
               </ul>
               <button
-                className="plan-btn plan-btn-gold"
+                className="pr-btn pr-btn--gold"
                 onClick={() => handlePlanSelect("Gold")}
                 disabled={loading === "Gold"}
               >
-                {loading === "Gold" ? "Processing..." : "Get Gold"}
+                {loading === "Gold" ? "Processing..." : "Choose Gold"}
               </button>
             </div>
 
           </div>
+
+          <p className="pr-note">
+            All plans activate immediately on payment. Access expires automatically — no manual cancellation needed.
+          </p>
+
         </div>
       </div>
     </div>
