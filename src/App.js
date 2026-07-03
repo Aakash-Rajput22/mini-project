@@ -1,4 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebase/firebase";
 
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -11,12 +14,30 @@ import Matches from "./pages/Matches";
 import MatchDetail from "./pages/MatchDetail";
 import Leaderboard from "./pages/Leaderboard";
 
+// Root route: logged-in visitors go straight to the Dashboard.
+// Logged-out visitors see the Landing page (not a forced login screen).
+function RootRoute() {
+  const [checking, setChecking] = useState(true);
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setLoggedIn(!!user);
+      setChecking(false);
+    });
+    return () => unsub();
+  }, []);
+
+  if (checking) return null;
+  return loggedIn ? <Navigate to="/dashboard" /> : <Landing />;
+}
+
 function App() {
   return (
     <Routes>
 
-      {/* Landing Page */}
-      <Route path="/" element={<Landing />} />
+      {/* Root: dashboard if logged in, landing otherwise */}
+      <Route path="/" element={<RootRoute />} />
 
       {/* Authentication */}
       <Route path="/login" element={<Login />} />

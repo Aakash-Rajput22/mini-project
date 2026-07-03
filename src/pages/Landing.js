@@ -23,7 +23,7 @@ function Landing() {
 
           <div className="lp-nav-cta">
             <Link to="/login" className="lp-btn-ghost">Log in</Link>
-            <Link to="/signup" className="lp-btn-primary">Get started</Link>
+            <Link to="/dashboard" className="lp-btn-primary">Get started</Link>
           </div>
         </div>
       </header>
@@ -45,7 +45,7 @@ function Landing() {
           </p>
 
           <div className="lp-hero-actions">
-            <Link to="/signup" className="lp-btn-primary lp-btn-lg">
+            <Link to="/dashboard" className="lp-btn-primary lp-btn-lg">
               Start for free — no card needed
             </Link>
             <Link to="/login" className="lp-btn-outline lp-btn-lg">
@@ -202,7 +202,7 @@ function Landing() {
                 <li><span className="lp-check">✓</span> Profile management</li>
                 <li><span className="lp-check">✓</span> No card required</li>
               </ul>
-              <Link to="/signup" className="lp-plan-btn">Get started free</Link>
+              <Link to="/dashboard" className="lp-plan-btn">Get started free</Link>
             </div>
 
             <div className="lp-plan lp-plan--featured">
@@ -218,7 +218,7 @@ function Landing() {
                 <li><span className="lp-check">✓</span> 2× points earning</li>
                 <li><span className="lp-check">✓</span> Silver badge</li>
               </ul>
-              <Link to="/signup" className="lp-plan-btn lp-plan-btn--primary">Choose Silver</Link>
+              <Link to="/dashboard" className="lp-plan-btn lp-plan-btn--primary">Choose Silver</Link>
             </div>
 
             <div className="lp-plan lp-plan--gold">
@@ -233,7 +233,7 @@ function Landing() {
                 <li><span className="lp-check lp-check--gold">✓</span> 5× points earning</li>
                 <li><span className="lp-check lp-check--gold">✓</span> Gold badge</li>
               </ul>
-              <Link to="/signup" className="lp-plan-btn lp-plan-btn--gold">Choose Gold</Link>
+              <Link to="/dashboard" className="lp-plan-btn lp-plan-btn--gold">Choose Gold</Link>
             </div>
           </div>
 
@@ -335,7 +335,7 @@ function Landing() {
           <h2>Ready to play your next match?</h2>
           <p>Join Knowora today — post or join your first match for free, no card needed.</p>
           <div className="lp-cta-actions">
-            <Link to="/signup" className="lp-btn-primary lp-btn-lg">Create a free account</Link>
+            <Link to="/dashboard" className="lp-btn-primary lp-btn-lg">Create a free account</Link>
             <Link to="/login" className="lp-btn-outline lp-btn-lg lp-btn-light">Already have an account?</Link>
           </div>
         </div>

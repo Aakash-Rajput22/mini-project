@@ -10,6 +10,7 @@ import {
   Timestamp,
   doc,
   getDoc,
+  setDoc,
   updateDoc,
   increment,
 } from "firebase/firestore";
@@ -29,6 +30,12 @@ const SPORTS = [
 
 const PLAN_MULTIPLIER = { Free: 1, Silver: 2, Gold: 5 };
 const BASE_POINTS = 10;
+const ORGANIZE_LIMITS = { Free: 1, Silver: 2, Gold: 10 };
+
+const getCurrentMonthKey = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+};
 
 function Matches() {
   const navigate = useNavigate();
@@ -41,6 +48,7 @@ function Matches() {
     initialSport && SPORTS.includes(initialSport) ? initialSport : "All"
   );
   const [searchTerm, setSearchTerm] = useState("");
+  const [needPlayersOnly, setNeedPlayersOnly] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
   // Create form state
@@ -65,7 +73,6 @@ function Matches() {
       const q = query(collection(db, "matches"), orderBy("date", "asc"));
       const snap = await getDocs(q);
       const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      // Only show matches that haven't passed yet, most recent created first among past filtered out
       const now = new Date();
       const upcoming = list.filter((m) => {
         const d = m.date?.toDate ? m.date.toDate() : new Date(m.date);
@@ -78,12 +85,20 @@ function Matches() {
     setLoading(false);
   };
 
+  const openCreateForm = () => {
+    if (!auth.currentUser) {
+      navigate("/login");
+      return;
+    }
+    setShowCreateForm(!showCreateForm);
+  };
+
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
     if (!auth.currentUser) {
-      setError("Match banane ke liye login karo.");
+      navigate("/login");
       return;
     }
     if (title.trim().length < 5) {
@@ -113,14 +128,28 @@ function Matches() {
       const uid = auth.currentUser.uid;
       let userName = auth.currentUser.displayName || "Anonymous";
       let userPlan = "Free";
+      let usage = null;
       try {
         const userDoc = await getDoc(doc(db, "users", uid));
         if (userDoc.exists()) {
-          if (userDoc.data().name) userName = userDoc.data().name;
-          if (userDoc.data().plan) userPlan = userDoc.data().plan;
+          const data = userDoc.data();
+          if (data.name) userName = data.name;
+          if (data.plan) userPlan = data.plan;
+          usage = data.usage || null;
         }
       } catch (e) {
         // fallback
+      }
+
+      const monthKey = getCurrentMonthKey();
+      const organizesThisMonth = usage?.month === monthKey ? (usage.organizesThisMonth || 0) : 0;
+      const joinsThisMonth = usage?.month === monthKey ? (usage.joinsThisMonth || 0) : 0;
+      const organizeLimit = ORGANIZE_LIMITS[userPlan] ?? ORGANIZE_LIMITS.Free;
+
+      if (organizesThisMonth >= organizeLimit) {
+        setError(`Is mahine ka match-organize limit (${organizeLimit}) khatam ho gaya. Plan upgrade karo ya agle mahine try karo.`);
+        setPosting(false);
+        return;
       }
 
       await addDoc(collection(db, "matches"), {
@@ -148,6 +177,19 @@ function Matches() {
         console.error("Error awarding points:", e);
       }
 
+      // Update monthly usage
+      try {
+        await setDoc(doc(db, "users", uid), {
+          usage: {
+            month: monthKey,
+            organizesThisMonth: organizesThisMonth + 1,
+            joinsThisMonth,
+          },
+        }, { merge: true });
+      } catch (e) {
+        console.error("Error updating usage:", e);
+      }
+
       setTitle("");
       setVenue("");
       setMatchDate("");
@@ -169,7 +211,9 @@ function Matches() {
     const matchesSearch =
       m.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       m.venue?.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSport && matchesSearch;
+    const spotsLeft = m.maxPlayers - (m.joinedPlayers?.length || 0);
+    const matchesNeedPlayers = !needPlayersOnly || spotsLeft > 0;
+    return matchesSport && matchesSearch && matchesNeedPlayers;
   });
 
   const formatDate = (timestamp) => {
@@ -200,10 +244,7 @@ function Matches() {
     <div className="matches-page">
       <div className="matches-header">
         <h1>Knowora Matches</h1>
-        <button
-          className="create-btn"
-          onClick={() => setShowCreateForm(!showCreateForm)}
-        >
+        <button className="create-btn" onClick={openCreateForm}>
           {showCreateForm ? "Cancel" : "+ Create Match"}
         </button>
       </div>
@@ -289,6 +330,12 @@ function Matches() {
               {s !== "All" && sportIcon(s)} {s}
             </button>
           ))}
+          <button
+            className={`sport-chip ${needPlayersOnly ? "active" : ""}`}
+            onClick={() => setNeedPlayersOnly(!needPlayersOnly)}
+          >
+            🙋 Need Players
+          </button>
         </div>
       </div>
 
@@ -297,10 +344,7 @@ function Matches() {
       ) : filteredMatches.length === 0 ? (
         <div className="empty-text">
           <p>Koi match nahi mila.</p>
-          <button
-            className="link-btn"
-            onClick={() => setShowCreateForm(true)}
-          >
+          <button className="link-btn" onClick={openCreateForm}>
             Pehla match tum create karo →
           </button>
         </div>
@@ -342,7 +386,7 @@ function Matches() {
                       spotsLeft <= 0 ? "status-full" : "status-open"
                     }`}
                   >
-                    {spotsLeft <= 0 ? "Full" : `${spotsLeft} spots left`}
+                    {spotsLeft <= 0 ? "Full" : `Need ${spotsLeft} more`}
                   </span>
                 </div>
               </div>

@@ -1,9 +1,11 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   doc,
   getDoc,
+  setDoc,
   updateDoc,
+  onSnapshot,
   arrayUnion,
   arrayRemove,
   increment,
@@ -13,8 +15,11 @@ import {
 import { db, auth } from "../firebase/firebase";
 import "../styles/matches.css";
 
+const BACKEND_URL = "https://mini-project-backend-4kid.onrender.com";
+
 const PLAN_MULTIPLIER = { Free: 1, Silver: 2, Gold: 5 };
 const BASE_POINTS = 10;
+const JOIN_LIMITS = { Free: 5, Silver: 10, Gold: Infinity };
 
 const ROLES_BY_SPORT = {
   Cricket: ["Batsman", "Bowler", "All-rounder", "Wicketkeeper"],
@@ -34,6 +39,11 @@ const STAT_LABEL_BY_SPORT = {
   Volleyball: "Points",
   Tennis: "Points",
   Other: "Score",
+};
+
+const getCurrentMonthKey = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 };
 
 function MatchDetail() {
@@ -59,23 +69,27 @@ function MatchDetail() {
 
   const currentUid = auth.currentUser?.uid;
 
-  const fetchMatch = useCallback(async () => {
-    const snap = await getDoc(doc(db, "matches", id));
-    if (snap.exists()) {
-      setMatch({ id: snap.id, ...snap.data() });
-    } else {
-      setMatch(null);
-    }
-  }, [id]);
-
+  // Live listener — the match page (players, requests, scoreboard) updates
+  // for everyone in real time without needing a manual refresh.
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      await fetchMatch();
-      setLoading(false);
-    };
-    load();
-  }, [fetchMatch]);
+    setLoading(true);
+    const unsub = onSnapshot(
+      doc(db, "matches", id),
+      (snap) => {
+        if (snap.exists()) {
+          setMatch({ id: snap.id, ...snap.data() });
+        } else {
+          setMatch(null);
+        }
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Error listening to match:", err);
+        setLoading(false);
+      }
+    );
+    return () => unsub();
+  }, [id]);
 
   useEffect(() => {
     const loadPlan = async () => {
@@ -117,9 +131,33 @@ function MatchDetail() {
 
   /* ─────────────── JOIN REQUEST FLOW ─────────────── */
 
+  const finalizeJoinRequest = async (userName, userPlan, usage) => {
+    const monthKey = getCurrentMonthKey();
+    const joinsThisMonth = usage?.month === monthKey ? (usage.joinsThisMonth || 0) : 0;
+    const organizesThisMonth = usage?.month === monthKey ? (usage.organizesThisMonth || 0) : 0;
+
+    await updateDoc(doc(db, "matches", id), {
+      [`pendingRequests.${currentUid}`]: {
+        name: userName,
+        role: selectedRole,
+        plan: userPlan,
+        requestedAt: serverTimestamp(),
+      },
+      [`requestHistory.${currentUid}`]: deleteField(),
+    });
+
+    await setDoc(doc(db, "users", currentUid), {
+      usage: {
+        month: monthKey,
+        joinsThisMonth: joinsThisMonth + 1,
+        organizesThisMonth,
+      },
+    }, { merge: true });
+  };
+
   const handleRequestJoin = async () => {
     if (!currentUid) {
-      setError("Match join karne ke liye login karo.");
+      navigate("/login");
       return;
     }
     if (!selectedRole) {
@@ -137,28 +175,83 @@ function MatchDetail() {
     try {
       let userName = auth.currentUser.displayName || "Anonymous";
       let userPlan = "Free";
+      let usage = null;
       try {
         const userDoc = await getDoc(doc(db, "users", currentUid));
         if (userDoc.exists()) {
-          if (userDoc.data().name) userName = userDoc.data().name;
-          if (userDoc.data().plan) userPlan = userDoc.data().plan;
+          const data = userDoc.data();
+          if (data.name) userName = data.name;
+          if (data.plan) userPlan = data.plan;
+          usage = data.usage || null;
         }
       } catch (e) {
         // fallback
       }
 
-      await updateDoc(doc(db, "matches", id), {
-        [`pendingRequests.${currentUid}`]: {
-          name: userName,
-          role: selectedRole,
-          plan: userPlan,
-          requestedAt: serverTimestamp(),
-        },
-      });
+      const monthKey = getCurrentMonthKey();
+      const joinsThisMonth = usage?.month === monthKey ? (usage.joinsThisMonth || 0) : 0;
+      const joinLimit = JOIN_LIMITS[userPlan] ?? JOIN_LIMITS.Free;
+      if (joinsThisMonth >= joinLimit) {
+        setError(`Is mahine ka join limit (${joinLimit}) khatam ho gaya. Plan upgrade karo ya agle mahine try karo.`);
+        setBusy(false);
+        return;
+      }
 
+      if (match.costPerPlayer > 0) {
+        // Paid match: charge before the join request is created.
+        const res = await fetch(BACKEND_URL + "/create-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "match_join", matchId: id, amount: match.costPerPlayer }),
+        });
+        const data = await res.json();
+        if (data.error) { setError(data.error); setBusy(false); return; }
+
+        const options = {
+          key: data.keyId,
+          amount: data.amount,
+          currency: data.currency,
+          name: "Knowora",
+          description: "Join fee — " + match.title,
+          order_id: data.orderId,
+          handler: async (response) => {
+            try {
+              const vRes = await fetch(BACKEND_URL + "/verify-payment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  order_id: response.razorpay_order_id,
+                  payment_id: response.razorpay_payment_id,
+                  signature: response.razorpay_signature,
+                }),
+              });
+              const vData = await vRes.json();
+              if (vData.verified) {
+                await finalizeJoinRequest(userName, userPlan, usage);
+                setShowRoleSelect(false);
+                setSelectedRole("");
+              } else {
+                setError("Payment verification failed. Request nahi bheji gayi.");
+              }
+            } catch (e) {
+              console.error("Error finalizing paid join request:", e);
+              setError("Kuch gadbad hui. Dobara try karo.");
+            }
+            setBusy(false);
+          },
+          modal: { ondismiss: () => setBusy(false) },
+          prefill: { email: auth.currentUser.email },
+          theme: { color: "#3b82f6" },
+        };
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+        return;
+      }
+
+      // Free match: no payment needed
+      await finalizeJoinRequest(userName, userPlan, usage);
       setShowRoleSelect(false);
       setSelectedRole("");
-      await fetchMatch();
     } catch (err) {
       console.error("Error sending join request:", err);
       setError("Request nahi bheji ja saki. Dobara try karo.");
@@ -173,7 +266,6 @@ function MatchDetail() {
       await updateDoc(doc(db, "matches", id), {
         [`pendingRequests.${currentUid}`]: deleteField(),
       });
-      await fetchMatch();
     } catch (err) {
       console.error("Error cancelling request:", err);
     }
@@ -194,6 +286,7 @@ function MatchDetail() {
         [`joinedPlayerNames.${uid}`]: request.name,
         [`joinedPlayerRoles.${uid}`]: request.role,
         [`pendingRequests.${uid}`]: deleteField(),
+        [`requestHistory.${uid}`]: deleteField(),
         status: newJoinedCount >= match.maxPlayers ? "full" : "open",
       });
 
@@ -205,8 +298,6 @@ function MatchDetail() {
       } catch (e) {
         console.error("Error awarding points:", e);
       }
-
-      await fetchMatch();
     } catch (err) {
       console.error("Error approving request:", err);
       setError("Approve nahi ho paya. Dobara try karo.");
@@ -215,13 +306,18 @@ function MatchDetail() {
   };
 
   const handleReject = async (uid) => {
+    const request = match.pendingRequests?.[uid];
     setBusy(true);
     setError("");
     try {
       await updateDoc(doc(db, "matches", id), {
         [`pendingRequests.${uid}`]: deleteField(),
+        [`requestHistory.${uid}`]: {
+          status: "rejected",
+          role: request?.role || "",
+          respondedAt: serverTimestamp(),
+        },
       });
-      await fetchMatch();
     } catch (err) {
       console.error("Error rejecting request:", err);
     }
@@ -244,7 +340,6 @@ function MatchDetail() {
         [`joinedPlayerRoles.${currentUid}`]: deleteField(),
         status: "open",
       });
-      await fetchMatch();
     } catch (err) {
       console.error("Error leaving match:", err);
       setError("TRY AGAIN.");
@@ -252,7 +347,7 @@ function MatchDetail() {
     setBusy(false);
   };
 
-  /* ─────────────── SCORECARD (Gold feature) ─────────────── */
+  /* ─────────────── SCORECARD (Gold feature, live) ─────────────── */
 
   const openScorecardForm = () => {
     const sc = match.scorecard;
@@ -285,7 +380,6 @@ function MatchDetail() {
       };
       await updateDoc(doc(db, "matches", id), { scorecard });
       setShowScorecardForm(false);
-      await fetchMatch();
     } catch (err) {
       console.error("Error saving scorecard:", err);
       setError("Scorecard save nahi hua. Dobara try karo.");
@@ -308,11 +402,13 @@ function MatchDetail() {
   const isFull = (match.joinedPlayers?.length || 0) >= match.maxPlayers;
   const isCreator = currentUid === match.createdBy;
   const hasPendingRequest = !!match.pendingRequests?.[currentUid];
+  const wasRejected = match.requestHistory?.[currentUid]?.status === "rejected";
   const isGoldOrganizer = isCreator && currentUserPlan === "Gold";
   const totalCost = (match.costPerPlayer || 0) * (match.joinedPlayers?.length || 0);
   const pendingList = Object.entries(match.pendingRequests || {});
   const roleOptions = ROLES_BY_SPORT[match.sport] || ROLES_BY_SPORT.Other;
   const statLabel = STAT_LABEL_BY_SPORT[match.sport] || "Score";
+  const spotsLeft = match.maxPlayers - (match.joinedPlayers?.length || 0);
 
   return (
     <div className="match-detail-page">
@@ -338,6 +434,7 @@ function MatchDetail() {
             <span className="info-label">👥 Players</span>
             <span className="info-val">
               {match.joinedPlayers?.length || 0} / {match.maxPlayers}
+              {!isFull && spotsLeft > 0 && ` — need ${spotsLeft} more`}
             </span>
           </div>
           {match.costPerPlayer > 0 && (
@@ -350,6 +447,12 @@ function MatchDetail() {
         <p className="match-organizer">Organized by {match.createdByName}</p>
 
         {error && <div className="form-error">{error}</div>}
+
+        {wasRejected && !hasJoined && !hasPendingRequest && !showRoleSelect && (
+          <div className="form-error">
+            Your last join request ({match.requestHistory[currentUid].role}) was rejected by the organizer. You can send a new request below.
+          </div>
+        )}
 
         <div className="match-actions">
           {!hasJoined && !hasPendingRequest && !isFull && !showRoleSelect && (
@@ -371,7 +474,7 @@ function MatchDetail() {
                 onClick={handleRequestJoin}
                 disabled={busy || !selectedRole}
               >
-                {busy ? "Sending..." : "Send Request"}
+                {busy ? "Processing..." : match.costPerPlayer > 0 ? `Pay ₹${match.costPerPlayer} & Request` : "Send Request"}
               </button>
               <button className="link-btn" onClick={() => setShowRoleSelect(false)}>
                 Cancel
@@ -451,13 +554,13 @@ function MatchDetail() {
         ))}
       </div>
 
-      {/* SCORECARD (Gold feature) */}
+      {/* LIVE SCOREBOARD (Gold feature) */}
       <div className="scorecard-section">
         <div className="scorecard-header">
-          <h2>Scorecard</h2>
+          <h2>Live Scoreboard</h2>
           {isGoldOrganizer && !showScorecardForm && (
             <button className="link-btn" onClick={openScorecardForm}>
-              {match.scorecard ? "Edit Scorecard" : "+ Add Scorecard"}
+              {match.scorecard ? "Update Score" : "+ Add Scorecard"}
             </button>
           )}
         </div>
@@ -466,9 +569,9 @@ function MatchDetail() {
           <p className="empty-text-small">
             {isCreator
               ? isGoldOrganizer
-                ? "No scorecard yet. Add one once the match is played."
-                : "Scorecards are a Gold plan feature. Upgrade to add a scorecard for this match."
-              : "Organizer hasn't posted a scorecard for this match yet."}
+                ? "No scorecard yet. Add one and it updates live for everyone watching."
+                : "Scorecards are a Gold plan feature. Upgrade to add a live scorecard for this match."
+              : "Organizer hasn't started a scoreboard for this match yet."}
           </p>
         )}
 
@@ -527,7 +630,7 @@ function MatchDetail() {
 
             <div className="form-row">
               <button className="join-btn" onClick={handleSaveScorecard} disabled={busy}>
-                {busy ? "Saving..." : "Save Scorecard"}
+                {busy ? "Saving..." : "Save & Update Live"}
               </button>
               <button className="link-btn" onClick={() => setShowScorecardForm(false)}>
                 Cancel

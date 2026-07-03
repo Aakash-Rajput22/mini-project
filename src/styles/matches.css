@@ -25,9 +25,6 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans-serif;
 }
 
-/* ══════════════════════════════════════
-   HEADER
-   ══════════════════════════════════════ */
 .matches-header {
   display: flex;
   justify-content: space-between;
@@ -59,9 +56,6 @@
   transform: translateY(-1px);
 }
 
-/* ══════════════════════════════════════
-   CREATE FORM / SHARED FORM STYLES
-   ══════════════════════════════════════ */
 .create-form,
 .scorecard-form {
   display: flex;
@@ -152,9 +146,6 @@
   font-size: 13px;
 }
 
-/* ══════════════════════════════════════
-   TOOLBAR (search + filters)
-   ══════════════════════════════════════ */
 .matches-toolbar {
   display: flex;
   flex-direction: column;
@@ -200,9 +191,6 @@
   color: #fff;
 }
 
-/* ══════════════════════════════════════
-   MATCH LIST / CARDS
-   ══════════════════════════════════════ */
 .matches-list {
   display: flex;
   flex-direction: column;
@@ -323,9 +311,6 @@
   font-size: inherit;
 }
 
-/* ══════════════════════════════════════
-   MATCH DETAIL PAGE
-   ══════════════════════════════════════ */
 .back-btn {
   background: none;
   border: none;
@@ -473,10 +458,6 @@
   padding: 3px 10px;
   border-radius: 100px;
 }
-
-/* ══════════════════════════════════════
-   ROLE SELECT (join request)
-   ══════════════════════════════════════ */
 .role-select-box {
   display: flex;
   align-items: center;
@@ -499,9 +480,6 @@
   border-color: var(--blue);
 }
 
-/* ══════════════════════════════════════
-   JOIN REQUESTS PANEL (organizer)
-   ══════════════════════════════════════ */
 .requests-panel {
   background: var(--navy-3);
   border: 1px solid rgba(245,158,11,0.25);
@@ -579,9 +557,6 @@
 .approve-btn:disabled,
 .reject-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* ══════════════════════════════════════
-   SCORECARD (Gold feature)
-   ══════════════════════════════════════ */
 .scorecard-section {
   background: var(--navy-3);
   border: 1px solid rgba(255,255,255,0.08);
@@ -694,9 +669,6 @@
   border-top: none;
 }
 
-/* ══════════════════════════════════════
-   RESPONSIVE
-   ══════════════════════════════════════ */
 @media (max-width: 640px) {
   .matches-page,
   .match-detail-page { padding: 24px 16px 60px; }
