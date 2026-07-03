@@ -572,6 +572,7 @@ function Dashboard() {
                   <li><span className="pr-check--gold">✓</span> Everything in Silver</li>
                   <li><span className="pr-check--gold">✓</span> Pro player status</li>
                   <li><span className="pr-check--gold">✓</span> 5× points per match</li>
+                  <li><span className="pr-check--gold">✓</span> Create match scorecards</li>
                   <li><span className="pr-check--gold">✓</span> Featured host on match listings</li>
                 </ul>
                 <button className="db-plan-tile-btn db-plan-tile-btn--gold" onClick={() => navigate("/pricing?plan=Gold")}>

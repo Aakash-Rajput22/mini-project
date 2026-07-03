@@ -60,9 +60,10 @@
 }
 
 /* ══════════════════════════════════════
-   CREATE FORM
+   CREATE FORM / SHARED FORM STYLES
    ══════════════════════════════════════ */
-.create-form {
+.create-form,
+.scorecard-form {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -74,7 +75,9 @@
 }
 
 .create-form input,
-.create-form select {
+.create-form select,
+.scorecard-form input,
+.scorecard-form select {
   background: var(--navy-2);
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 9px;
@@ -87,12 +90,15 @@
   transition: border-color 0.15s;
 }
 
-.create-form input::placeholder {
+.create-form input::placeholder,
+.scorecard-form input::placeholder {
   color: var(--slate-4);
 }
 
 .create-form input:focus,
-.create-form select:focus {
+.create-form select:focus,
+.scorecard-form input:focus,
+.scorecard-form select:focus {
   outline: none;
   border-color: var(--blue);
 }
@@ -288,12 +294,23 @@
   color: var(--red);
 }
 
+.status-pending {
+  background: rgba(245,158,11,0.14);
+  color: var(--amber-h);
+}
+
 .loading-text,
 .empty-text {
   text-align: center;
   color: var(--slate-3);
   padding: 60px 0;
   font-size: 15px;
+}
+
+.empty-text-small {
+  color: var(--slate-3);
+  font-size: 13px;
+  padding: 8px 0 4px;
 }
 
 .link-btn {
@@ -410,6 +427,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  margin-bottom: 28px;
 }
 
 .player-chip {
@@ -447,6 +465,235 @@
   border-radius: 100px;
 }
 
+.role-badge {
+  background: rgba(139,92,246,0.15);
+  color: #c4b5fd;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 100px;
+}
+
+/* ══════════════════════════════════════
+   ROLE SELECT (join request)
+   ══════════════════════════════════════ */
+.role-select-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.role-select-box select {
+  background: var(--navy-2);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--slate-1);
+  padding: 10px 14px;
+  border-radius: 9px;
+  font-size: 14px;
+  min-width: 180px;
+}
+
+.role-select-box select:focus {
+  outline: none;
+  border-color: var(--blue);
+}
+
+/* ══════════════════════════════════════
+   JOIN REQUESTS PANEL (organizer)
+   ══════════════════════════════════════ */
+.requests-panel {
+  background: var(--navy-3);
+  border: 1px solid rgba(245,158,11,0.25);
+  border-radius: 14px;
+  padding: 22px;
+  margin-bottom: 28px;
+}
+
+.requests-panel h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 14px;
+}
+
+.request-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.request-row:first-of-type {
+  border-top: none;
+}
+
+.request-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.request-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--slate-1);
+}
+
+.request-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.approve-btn {
+  background: rgba(16,185,129,0.14);
+  color: var(--green);
+  border: 1px solid rgba(16,185,129,0.3);
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.approve-btn:hover:not(:disabled) { background: rgba(16,185,129,0.22); }
+
+.reject-btn {
+  background: rgba(239,68,68,0.1);
+  color: var(--red);
+  border: 1px solid rgba(239,68,68,0.3);
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.reject-btn:hover:not(:disabled) { background: rgba(239,68,68,0.18); }
+
+.approve-btn:disabled,
+.reject-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ══════════════════════════════════════
+   SCORECARD (Gold feature)
+   ══════════════════════════════════════ */
+.scorecard-section {
+  background: var(--navy-3);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 22px;
+  margin-top: 12px;
+}
+
+.scorecard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.scorecard-header h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.scorecard-stats-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--slate-3);
+  margin-top: 6px;
+}
+
+.stat-input-row {
+  align-items: center;
+}
+
+.stat-input-name {
+  font-size: 13px;
+  color: var(--slate-2);
+  flex: 2;
+}
+
+.scorecard-display {
+  margin-top: 12px;
+}
+
+.scorecard-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  background: var(--navy-2);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.scorecard-team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 100px;
+}
+
+.scorecard-team-name {
+  font-size: 13px;
+  color: var(--slate-3);
+  font-weight: 600;
+}
+
+.scorecard-team-score {
+  font-size: 28px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.scorecard-vs {
+  font-size: 13px;
+  color: var(--slate-4);
+  font-weight: 700;
+}
+
+.scorecard-winner {
+  width: 100%;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--amber-h);
+  margin-top: 4px;
+}
+
+.scorecard-players {
+  display: flex;
+  flex-direction: column;
+}
+
+.scorecard-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 4px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-size: 13px;
+  color: var(--slate-2);
+}
+
+.scorecard-row--head {
+  color: var(--slate-4);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-top: none;
+}
+
 /* ══════════════════════════════════════
    RESPONSIVE
    ══════════════════════════════════════ */
@@ -459,4 +706,9 @@
 
   .match-card { flex-direction: column; }
   .match-stats { flex-direction: row; align-items: center; justify-content: space-between; width: 100%; }
+
+  .request-row { flex-wrap: wrap; }
+  .request-actions { width: 100%; justify-content: flex-end; }
+
+  .scorecard-summary { flex-direction: column; }
 }
