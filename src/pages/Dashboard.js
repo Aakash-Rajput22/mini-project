@@ -309,7 +309,7 @@ function Dashboard() {
 
           {/* PLAN HERO CARD */}
           {!isGuest && (
-            <div className="db-plan-hero">
+            <div className={"db-plan-hero db-plan-hero--" + plan.toLowerCase()}>
               <div className="db-plan-hero-left">
                 <div className="db-plan-hero-icon">{planIcon(plan)}</div>
                 <div>

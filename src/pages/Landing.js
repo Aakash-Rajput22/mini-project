@@ -1,7 +1,56 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
 import "../styles/landing.css";
 
+const TICKER_MATCHES = [
+  { icon: "🏏", title: "Sunday Morning Cricket", venue: "Church Street Ground", time: "6:00 AM", spots: 3 },
+  { icon: "⚽", title: "5-a-side Football", venue: "Turf Arena, Koramangala", time: "7:30 PM", spots: 1 },
+  { icon: "🏸", title: "Doubles Badminton Night", venue: "Smash Court", time: "8:00 PM", spots: 2 },
+  { icon: "🏀", title: "Weekend 3v3", venue: "City Sports Complex", time: "5:00 PM", spots: 4 },
+  { icon: "🎾", title: "Singles Tennis Match", venue: "Green Court Club", time: "6:30 AM", spots: 1 },
+  { icon: "🏐", title: "Beach Volleyball", venue: "Sunset Sands", time: "4:00 PM", spots: 5 },
+  { icon: "🏏", title: "Corporate T20", venue: "Riverside Ground", time: "9:00 AM", spots: 2 },
+  { icon: "⚽", title: "Under-18 Friendly", venue: "Municipal Stadium", time: "3:00 PM", spots: 6 },
+];
+
+function useCountUp(target, durationMs = 1400) {
+  const [value, setValue] = useState(0);
+  const startedRef = useRef(false);
+
+  useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+    const start = performance.now();
+    const step = (now) => {
+      const progress = Math.min(1, (now - start) / durationMs);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(eased * target));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [target, durationMs]);
+
+  return value;
+}
+
+function ScoreDigits({ value, suffix = "" }) {
+  const str = value.toLocaleString("en-IN") + suffix;
+  return (
+    <span className="lp-digits">
+      {str.split("").map((ch, i) => (
+        <span key={i} className={ch >= "0" && ch <= "9" ? "lp-digit" : "lp-digit lp-digit--sym"}>
+          {ch}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 function Landing() {
+  const matchesCount = useCountUp(1240);
+  const playersCount = useCountUp(8500);
+  const citiesCount = useCountUp(42);
+
   return (
     <div className="lp">
 
@@ -31,7 +80,9 @@ function Landing() {
       {/* HERO */}
       <section className="lp-hero">
         <div className="lp-wrap lp-hero-inner">
-          <div className="lp-pill">🏆 Play · Match · Compete · Win</div>
+          <div className="lp-pill">
+            <span className="lp-live-dot" /> LIVE — matches being posted right now
+          </div>
 
           <h1 className="lp-hero-h1">
             Find your next game,<br />
@@ -52,44 +103,51 @@ function Landing() {
               Log in to your account
             </Link>
           </div>
+        </div>
+      </section>
 
-          <div className="lp-hero-trust">
-            <span className="lp-trust-item">
-              <span className="lp-check">✓</span> Free plan — instant access
-            </span>
-            <span className="lp-trust-sep">|</span>
-            <span className="lp-trust-item">
-              <span className="lp-check">✓</span> Unlimited match requests
-            </span>
-            <span className="lp-trust-sep">|</span>
-            <span className="lp-trust-item">
-              <span className="lp-check">✓</span> Secure Firebase auth
-            </span>
+      {/* LIVE SCOREBOARD TICKER — signature element */}
+      <section className="lp-ticker-section" aria-label="Live match board">
+        <div className="lp-ticker-frame">
+          <div className="lp-ticker-label">
+            <span className="lp-live-dot" /> ON THE BOARD
+          </div>
+          <div className="lp-ticker-track">
+            <div className="lp-ticker-row">
+              {TICKER_MATCHES.concat(TICKER_MATCHES).map((m, i) => (
+                <div className="lp-ticker-item" key={i}>
+                  <span className="lp-ticker-icon">{m.icon}</span>
+                  <span className="lp-ticker-title">{m.title}</span>
+                  <span className="lp-ticker-sep">·</span>
+                  <span className="lp-ticker-venue">{m.venue}</span>
+                  <span className="lp-ticker-sep">·</span>
+                  <span className="lp-ticker-time">{m.time}</span>
+                  <span className={"lp-ticker-spots " + (m.spots <= 1 ? "lp-ticker-spots--low" : "")}>
+                    {m.spots} spot{m.spots !== 1 ? "s" : ""} left
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* STATS STRIP */}
+      {/* SCOREBOARD STATS */}
       <section className="lp-stats">
         <div className="lp-wrap lp-stats-grid">
           <div className="lp-stat">
-            <div className="lp-stat-num">3</div>
-            <div className="lp-stat-label">Plan tiers</div>
+            <div className="lp-stat-num"><ScoreDigits value={matchesCount} suffix="+" /></div>
+            <div className="lp-stat-label">Matches hosted</div>
           </div>
           <div className="lp-stat-div" />
           <div className="lp-stat">
-            <div className="lp-stat-num">All Sports</div>
-            <div className="lp-stat-label">Community driven</div>
+            <div className="lp-stat-num"><ScoreDigits value={playersCount} suffix="+" /></div>
+            <div className="lp-stat-label">Players on Knowora</div>
           </div>
           <div className="lp-stat-div" />
           <div className="lp-stat">
-            <div className="lp-stat-num">100%</div>
-            <div className="lp-stat-label">Secure &amp; private</div>
-          </div>
-          <div className="lp-stat-div" />
-          <div className="lp-stat">
-            <div className="lp-stat-num">₹0</div>
-            <div className="lp-stat-label">To get started</div>
+            <div className="lp-stat-num"><ScoreDigits value={citiesCount} /></div>
+            <div className="lp-stat-label">Cities and counting</div>
           </div>
         </div>
       </section>
@@ -98,7 +156,7 @@ function Landing() {
       <section id="features" className="lp-section">
         <div className="lp-wrap">
           <div className="lp-section-header">
-            <span className="lp-label">01 / Features</span>
+            <span className="lp-label">[ 01 ] Features</span>
             <h2>Everything a sports matchmaking platform needs</h2>
             <p>Post games, join matches, earn points, and build your player rank — all in one place.</p>
           </div>
@@ -111,18 +169,18 @@ function Landing() {
               <ul className="lp-feature-list">
                 <li>Sport-wise categories</li>
                 <li>Set venue, date &amp; slot</li>
-                <li>Mark confirmed players</li>
-                <li>Get notified on requests</li>
+                <li>Role-based join requests</li>
+                <li>Approve players yourself</li>
               </ul>
             </div>
 
             <div className="lp-feature-card lp-feature-card--highlight">
               <div className="lp-feature-ico lp-ico-purple">🤝</div>
               <h3>Join and earn</h3>
-              <p>Join matches hosted by others. Earn points for every game you play, get upvoted by teammates, and build your reputation on the platform.</p>
+              <p>Join matches hosted by others. Earn points for every game you play, and build your reputation on the platform.</p>
               <ul className="lp-feature-list">
                 <li>Points for every match played</li>
-                <li>Upvote / downvote teammates</li>
+                <li>Sport-specific role selection</li>
                 <li>Player leaderboard</li>
                 <li>Skill-level badges</li>
               </ul>
@@ -130,13 +188,13 @@ function Landing() {
 
             <div className="lp-feature-card">
               <div className="lp-feature-ico lp-ico-green">🥇</div>
-              <h3>Grow your profile</h3>
-              <p>Build a public player profile, showcase your sports and skill level, manage your account and download your data anytime.</p>
+              <h3>Live scoreboards</h3>
+              <p>Gold members can run a live scoreboard for their match — team scores, winner, and per-player stats, visible to everyone.</p>
               <ul className="lp-feature-list">
-                <li>Profile photo upload</li>
-                <li>Points &amp; rank display</li>
+                <li>Real-time score updates</li>
+                <li>Per-player stat tracking</li>
+                <li>Shareable match summary</li>
                 <li>Profile data download</li>
-                <li>Admin panel (role-based)</li>
               </ul>
             </div>
           </div>
@@ -147,7 +205,7 @@ function Landing() {
       <section id="how" className="lp-section lp-section--alt">
         <div className="lp-wrap">
           <div className="lp-section-header">
-            <span className="lp-label">02 / How it works</span>
+            <span className="lp-label">[ 02 ] How it works</span>
             <h2>Up and running in three steps</h2>
             <p>From signing up to playing your first match takes under two minutes.</p>
           </div>
@@ -165,7 +223,7 @@ function Landing() {
               <div className="lp-step-num">02</div>
               <div className="lp-step-body">
                 <h3>Host or join a match</h3>
-                <p>Post a game in your sport, or browse open matches nearby and join players at your level.</p>
+                <p>Post a game in your sport, or browse open matches nearby and request to join at your role.</p>
               </div>
             </div>
             <div className="lp-step-arrow">→</div>
@@ -173,7 +231,7 @@ function Landing() {
               <div className="lp-step-num">03</div>
               <div className="lp-step-body">
                 <h3>Play and rank up</h3>
-                <p>Get points for every match played. Upvotes boost your reputation. Confirm the game and close the loop.</p>
+                <p>Get points for every match played. Track live scores, climb the leaderboard, and build your reputation.</p>
               </div>
             </div>
           </div>
@@ -184,7 +242,7 @@ function Landing() {
       <section id="pricing" className="lp-section">
         <div className="lp-wrap">
           <div className="lp-section-header">
-            <span className="lp-label">03 / Pricing</span>
+            <span className="lp-label">[ 03 ] Pricing</span>
             <h2>Choose your plan</h2>
             <p>Start free. Upgrade when you need more access. No auto-renewal.</p>
           </div>
@@ -197,8 +255,8 @@ function Landing() {
                 <div className="lp-plan-dur">1 hour access</div>
               </div>
               <ul className="lp-plan-features">
-                <li><span className="lp-check">✓</span> Post matches</li>
-                <li><span className="lp-check">✓</span> Join matches</li>
+                <li><span className="lp-check">✓</span> Post &amp; join matches</li>
+                <li><span className="lp-check">✓</span> 5 joins / 1 organize per month</li>
                 <li><span className="lp-check">✓</span> Profile management</li>
                 <li><span className="lp-check">✓</span> No card required</li>
               </ul>
@@ -210,11 +268,11 @@ function Landing() {
               <div className="lp-plan-header">
                 <span className="lp-plan-name">Silver</span>
                 <div className="lp-plan-price">₹199</div>
-                <div className="lp-plan-dur">6 hours access</div>
+                <div className="lp-plan-dur">1 month access</div>
               </div>
               <ul className="lp-plan-features">
                 <li><span className="lp-check">✓</span> Everything in Free</li>
-                <li><span className="lp-check">✓</span> Priority match requests</li>
+                <li><span className="lp-check">✓</span> 10 joins / 2 organizes per month</li>
                 <li><span className="lp-check">✓</span> 2× points earning</li>
                 <li><span className="lp-check">✓</span> Silver badge</li>
               </ul>
@@ -225,13 +283,13 @@ function Landing() {
               <div className="lp-plan-header">
                 <span className="lp-plan-name">Gold</span>
                 <div className="lp-plan-price">₹499</div>
-                <div className="lp-plan-dur">12 hours access</div>
+                <div className="lp-plan-dur">2 months access</div>
               </div>
               <ul className="lp-plan-features">
                 <li><span className="lp-check lp-check--gold">✓</span> Everything in Silver</li>
-                <li><span className="lp-check lp-check--gold">✓</span> Pro player status</li>
-                <li><span className="lp-check lp-check--gold">✓</span> 5× points earning</li>
-                <li><span className="lp-check lp-check--gold">✓</span> Gold badge</li>
+                <li><span className="lp-check lp-check--gold">✓</span> Unlimited joins, 10 organizes</li>
+                <li><span className="lp-check lp-check--gold">✓</span> Live scoreboards + 5× points</li>
+                <li><span className="lp-check lp-check--gold">✓</span> 25% off sports equipment</li>
               </ul>
               <Link to="/dashboard" className="lp-plan-btn lp-plan-btn--gold">Choose Gold</Link>
             </div>
@@ -247,7 +305,7 @@ function Landing() {
       <section id="reviews" className="lp-section lp-section--alt">
         <div className="lp-wrap">
           <div className="lp-section-header">
-            <span className="lp-label">04 / Reviews</span>
+            <span className="lp-label">[ 04 ] Reviews</span>
             <h2>What players say</h2>
             <p>Players and hosts who found their perfect match when they needed one most.</p>
           </div>
@@ -267,7 +325,7 @@ function Landing() {
 
             <div className="lp-review">
               <div className="lp-stars">★★★★★</div>
-              <p className="lp-review-text">"I love hosting matches here — I earn points and actually get a full team together in minutes. It's like running a mini league every weekend."</p>
+              <p className="lp-review-text">"I love hosting matches here — I earn points and actually get a full team together in minutes. The live scoreboard makes it feel official."</p>
               <div className="lp-reviewer">
                 <div className="lp-avatar lp-avatar--green">AK</div>
                 <div>
@@ -296,18 +354,18 @@ function Landing() {
       <section id="faq" className="lp-section">
         <div className="lp-wrap">
           <div className="lp-section-header">
-            <span className="lp-label">05 / FAQ</span>
+            <span className="lp-label">[ 05 ] FAQ</span>
             <h2>Good to know</h2>
           </div>
 
           <div className="lp-faq-grid">
             <div className="lp-faq-item">
               <h3>Who can join my match?</h3>
-              <p>Any registered player on Knowora can request to join. The host can confirm players, and the community can upvote the most reliable ones.</p>
+              <p>Any registered player on Knowora can request to join with their role. You confirm players, and points are awarded once approved.</p>
             </div>
             <div className="lp-faq-item">
               <h3>How do I earn points?</h3>
-              <p>You earn points for every match you play. Upvotes give bonus points. Gold plan users earn 5× points per match.</p>
+              <p>You earn points for every match you play or host. Gold plan users earn 5× points per match.</p>
             </div>
             <div className="lp-faq-item">
               <h3>Do I need a card for the free plan?</h3>
@@ -322,8 +380,8 @@ function Landing() {
               <p>Auth runs on Firebase, profile photos on Storj, and payments on Razorpay. Your data is always secure.</p>
             </div>
             <div className="lp-faq-item">
-              <h3>Is there an admin panel?</h3>
-              <p>Yes — admin accounts can manage users, view all matches and requests, and moderate content with full role-based access.</p>
+              <h3>What's a live scoreboard?</h3>
+              <p>Gold organizers can post team scores and per-player stats during a match — everyone watching sees it update instantly.</p>
             </div>
           </div>
         </div>
