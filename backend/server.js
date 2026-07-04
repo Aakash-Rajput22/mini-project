@@ -12,31 +12,34 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-const prices = {
-  Free: 0,
-  Silver: 199,
-  Gold: 499,
-};
-
 app.post("/create-order", async (req, res) => {
-  const { plan } = req.body;
-  const amount = prices[plan];
+  const { plan, type, amount } = req.body;
 
-  if (amount === undefined) {
-    return res.status(400).json({ error: "Invalid plan" });
-  }
+  let orderAmount;
 
-  if (amount === 0) {
-    return res.json({ free: true });
+  if (type === "match_join") {
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: "Invalid amount" });
+    }
+    orderAmount = Math.round(amount * 100);
+  } else {
+    const prices = { Free: 0, Silver: 199, Gold: 499 };
+    orderAmount = prices[plan];
+    if (orderAmount === undefined) {
+      return res.status(400).json({ error: "Invalid plan" });
+    }
+    if (orderAmount === 0) {
+      return res.json({ free: true });
+    }
+    orderAmount = orderAmount * 100;
   }
 
   try {
     const order = await razorpay.orders.create({
-      amount: amount * 100,
+      amount: orderAmount,
       currency: "INR",
       receipt: "receipt_" + Date.now(),
     });
-
     res.json({
       orderId: order.id,
       amount: order.amount,
@@ -51,12 +54,10 @@ app.post("/create-order", async (req, res) => {
 app.post("/verify-payment", (req, res) => {
   const crypto = require("crypto");
   const { order_id, payment_id, signature } = req.body;
-
   const generatedSignature = crypto
     .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
     .update(order_id + "|" + payment_id)
     .digest("hex");
-
   if (generatedSignature === signature) {
     res.json({ verified: true });
   } else {
