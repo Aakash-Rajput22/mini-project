@@ -1,11 +1,6 @@
-.equip-section {
-  margin-top: 28px;
-}
+.equip-section { margin-top: 24px; }
 
-.equip-upsell {
-  font-size: 12px;
-  color: #94a3b8;
-}
+.equip-upsell { font-size: 12px; color: #9ca3af; }
 
 .equip-grid {
   display: grid;
@@ -15,8 +10,8 @@
 }
 
 .equip-card {
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.07);
+  background: #fff;
+  border: 1px solid #e5e7eb;
   border-radius: 14px;
   padding: 18px 16px;
   display: flex;
@@ -24,44 +19,24 @@
   align-items: center;
   text-align: center;
   gap: 8px;
-  transition: border-color 0.15s, transform 0.15s;
+  transition: box-shadow 0.15s, transform 0.15s;
 }
+.equip-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.06); transform: translateY(-2px); }
 
-.equip-card:hover {
-  border-color: rgba(245,158,11,0.35);
-  transform: translateY(-2px);
-}
-
-.equip-icon {
-  font-size: 32px;
-}
+.equip-icon { font-size: 32px; }
 
 .equip-name {
   font-size: 13px;
   font-weight: 600;
-  color: #e2e8f0;
+  color: #1f2937;
   min-height: 34px;
   display: flex;
   align-items: center;
 }
 
-.equip-price {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.equip-price-old {
-  font-size: 12px;
-  color: #64748b;
-  text-decoration: line-through;
-}
-
-.equip-price-final {
-  font-size: 17px;
-  font-weight: 800;
-  color: #fff;
-}
+.equip-price { display: flex; align-items: baseline; gap: 8px; }
+.equip-price-old { font-size: 12px; color: #9ca3af; text-decoration: line-through; }
+.equip-price-final { font-size: 17px; font-weight: 800; color: #0f172a; }
 
 .equip-buy-btn {
   width: 100%;
@@ -71,7 +46,5 @@
 }
 
 @media (max-width: 640px) {
-  .equip-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .equip-grid { grid-template-columns: repeat(2, 1fr); }
 }

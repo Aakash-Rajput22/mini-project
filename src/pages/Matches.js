@@ -32,6 +32,33 @@ const PLAN_MULTIPLIER = { Free: 1, Silver: 2, Gold: 5 };
 const BASE_POINTS = 10;
 const ORGANIZE_LIMITS = { Free: 1, Silver: 2, Gold: 10 };
 
+// Verified venues — picking from this list avoids typos and keeps
+// listings trustworthy. "Other" lets a host add a venue not yet verified
+// (it won't have coordinates, so it's excluded from "near me" search).
+const VERIFIED_VENUES = [
+  { name: "Church Street Ground, MG Road", lat: 12.9750, lng: 77.6050 },
+  { name: "Turf Arena, Koramangala", lat: 12.9352, lng: 77.6245 },
+  { name: "Smash Court, Indiranagar", lat: 12.9719, lng: 77.6412 },
+  { name: "City Sports Complex, HSR Layout", lat: 12.9121, lng: 77.6446 },
+  { name: "Green Court Club, Whitefield", lat: 12.9698, lng: 77.7500 },
+  { name: "Lakeside Sports Arena, Hebbal", lat: 13.0358, lng: 77.5970 },
+  { name: "Riverside Ground, Jayanagar", lat: 12.9250, lng: 77.5938 },
+  { name: "Municipal Stadium, Yelahanka", lat: 13.1005, lng: 77.5963 },
+  { name: "Other (not listed)", lat: null, lng: null },
+];
+
+// Great-circle distance between two lat/lng points, in kilometers.
+const distanceKm = (lat1, lng1, lat2, lng2) => {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+
 const getCurrentMonthKey = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -50,22 +77,41 @@ function Matches() {
   const [searchTerm, setSearchTerm] = useState("");
   const [needPlayersOnly, setNeedPlayersOnly] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+  const [nearMeOnly, setNearMeOnly] = useState(false);
+  const [locationError, setLocationError] = useState("");
+  const [locatingUser, setLocatingUser] = useState(false);
 
   // Create form state
   const [title, setTitle] = useState("");
   const [sport, setSport] = useState("Cricket");
-  const [venue, setVenue] = useState("");
+  const [venue, setVenue] = useState(VERIFIED_VENUES[0].name);
+  const [customVenue, setCustomVenue] = useState("");
   const [matchDate, setMatchDate] = useState("");
   const [matchTime, setMatchTime] = useState("");
   const [maxPlayers, setMaxPlayers] = useState(10);
   const [costPerPlayer, setCostPerPlayer] = useState(0);
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState("");
+  const [blockedUsers, setBlockedUsers] = useState([]);
 
   useEffect(() => {
     fetchMatches();
+    loadBlockedUsers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const loadBlockedUsers = async () => {
+    if (!auth.currentUser) return;
+    try {
+      const snap = await getDoc(doc(db, "users", auth.currentUser.uid));
+      if (snap.exists() && Array.isArray(snap.data().blockedUsers)) {
+        setBlockedUsers(snap.data().blockedUsers);
+      }
+    } catch (e) {
+      console.error("Error loading blocked users:", e);
+    }
+  };
 
   const fetchMatches = async () => {
     setLoading(true);
@@ -85,6 +131,28 @@ function Matches() {
     setLoading(false);
   };
 
+  const handleUseMyLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError("Location not detected in this browser.");
+      return;
+    }
+    setLocationError("");
+    setLocatingUser(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setNearMeOnly(true);
+        setLocatingUser(false);
+      },
+      (err) => {
+        console.error("Geolocation error:", err);
+        setLocationError("Location access is not allowed.check browser settings.");
+        setLocatingUser(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
   const openCreateForm = () => {
     if (!auth.currentUser) {
       navigate("/login");
@@ -102,24 +170,24 @@ function Matches() {
       return;
     }
     if (title.trim().length < 5) {
-      setError("Match ka title thoda detail mein likho.");
+      setError("write match tittle in detail.");
       return;
     }
-    if (!venue.trim()) {
-      setError("Ground/venue ka naam daalo.");
+    if (venue === "Other (not listed)" && !customVenue.trim()) {
+      setError("write a name for the venue.");
       return;
     }
     if (!matchDate || !matchTime) {
-      setError("Date aur time dono select karo.");
+      setError("Date aur time must be selected.");
       return;
     }
     const dateTimeObj = new Date(`${matchDate}T${matchTime}`);
     if (dateTimeObj <= new Date()) {
-      setError("Match ka time future mein hona chahiye.");
+      setError("Match time must be in future.");
       return;
     }
     if (maxPlayers < 2) {
-      setError("Kam se kam 2 players chahiye.");
+      setError("minimum 2 players required.");
       return;
     }
 
@@ -147,15 +215,20 @@ function Matches() {
       const organizeLimit = ORGANIZE_LIMITS[userPlan] ?? ORGANIZE_LIMITS.Free;
 
       if (organizesThisMonth >= organizeLimit) {
-        setError(`Is mahine ka match-organize limit (${organizeLimit}) khatam ho gaya. Plan upgrade karo ya agle mahine try karo.`);
+        setError(`this month match organize limit reached (${organizeLimit})  upgrade plan and try again.`);
         setPosting(false);
         return;
       }
 
+      const selectedVenue = VERIFIED_VENUES.find((v) => v.name === venue);
+
       await addDoc(collection(db, "matches"), {
         title: title.trim(),
         sport,
-        venue: venue.trim(),
+        venue: venue === "Other (not listed)" ? customVenue.trim() : venue,
+        venueVerified: venue !== "Other (not listed)",
+        venueLat: selectedVenue?.lat ?? null,
+        venueLng: selectedVenue?.lng ?? null,
         date: Timestamp.fromDate(dateTimeObj),
         maxPlayers: Number(maxPlayers),
         joinedPlayers: [uid],
@@ -191,7 +264,8 @@ function Matches() {
       }
 
       setTitle("");
-      setVenue("");
+      setVenue(VERIFIED_VENUES[0].name);
+      setCustomVenue("");
       setMatchDate("");
       setMatchTime("");
       setMaxPlayers(10);
@@ -201,7 +275,7 @@ function Matches() {
       fetchMatches();
     } catch (err) {
       console.error("Error creating match:", err);
-      setError("Match create nahi ho paya. Dobara try karo.");
+      setError("Match not created .try again");
     }
     setPosting(false);
   };
@@ -213,7 +287,14 @@ function Matches() {
       m.venue?.toLowerCase().includes(searchTerm.toLowerCase());
     const spotsLeft = m.maxPlayers - (m.joinedPlayers?.length || 0);
     const matchesNeedPlayers = !needPlayersOnly || spotsLeft > 0;
-    return matchesSport && matchesSearch && matchesNeedPlayers;
+    const hostNotBlocked = !blockedUsers.includes(m.createdBy);
+    const matchesNearMe =
+      !nearMeOnly ||
+      !userLocation ||
+      (m.venueLat != null &&
+        m.venueLng != null &&
+        distanceKm(userLocation.lat, userLocation.lng, m.venueLat, m.venueLng) <= 5);
+    return matchesSport && matchesSearch && matchesNeedPlayers && hostNotBlocked && matchesNearMe;
   });
 
   const formatDate = (timestamp) => {
@@ -254,7 +335,7 @@ function Matches() {
           {error && <div className="form-error">{error}</div>}
           <input
             type="text"
-            placeholder="Match ka title (e.g. Sunday Morning Cricket)"
+            placeholder="Match title(e.g. Sunday Morning Cricket)"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={100}
@@ -267,13 +348,22 @@ function Matches() {
                 </option>
               ))}
             </select>
+            <select value={venue} onChange={(e) => setVenue(e.target.value)}>
+              {VERIFIED_VENUES.map((v) => (
+                <option key={v.name} value={v.name}>
+                  {v.name === "Other (not listed)" ? v.name : "✅ " + v.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          {venue === "Other (not listed)" && (
             <input
               type="text"
-              placeholder="Ground / Venue"
-              value={venue}
-              onChange={(e) => setVenue(e.target.value)}
+              placeholder="Type the venue name (not yet verified)"
+              value={customVenue}
+              onChange={(e) => setCustomVenue(e.target.value)}
             />
-          </div>
+          )}
           <div className="form-row">
             <input
               type="date"
@@ -312,6 +402,21 @@ function Matches() {
         </form>
       )}
 
+      <div className="location-bar">
+        <button className="location-btn" onClick={handleUseMyLocation} disabled={locatingUser}>
+          📍 {locatingUser ? "Locating..." : userLocation ? "Location set" : "Use my location"}
+        </button>
+        {userLocation && (
+          <button
+            className={`sport-chip ${nearMeOnly ? "active" : ""}`}
+            onClick={() => setNearMeOnly(!nearMeOnly)}
+          >
+            Within 5 km
+          </button>
+        )}
+        {locationError && <span className="location-error">{locationError}</span>}
+      </div>
+
       <div className="matches-toolbar">
         <input
           type="text"
@@ -343,9 +448,9 @@ function Matches() {
         <div className="loading-text">Loading matches...</div>
       ) : filteredMatches.length === 0 ? (
         <div className="empty-text">
-          <p>Koi match nahi mila.</p>
+          <p>NO matches found.</p>
           <button className="link-btn" onClick={openCreateForm}>
-            Pehla match tum create karo →
+            create match→
           </button>
         </div>
       ) : (
@@ -364,8 +469,13 @@ function Matches() {
                   </h3>
                   <div className="match-meta">
                     <span className="sport-tag">{m.sport}</span>
-                    <span>📍 {m.venue}</span>
+                    <span>📍 {m.venue} {m.venueVerified && <span title="Verified venue">✅</span>}</span>
                     <span>🕒 {formatDate(m.date)}</span>
+                    {userLocation && m.venueLat != null && (
+                      <span className="distance-tag">
+                        {distanceKm(userLocation.lat, userLocation.lng, m.venueLat, m.venueLng).toFixed(1)} km away
+                      </span>
+                    )}
                   </div>
                   <div className="match-meta">
                     <span>Organized by {m.createdByName}</span>

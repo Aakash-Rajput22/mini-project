@@ -205,9 +205,9 @@ function Leaderboard() {
                       <div className={"lb-rank " + badge.cls}>{badge.label}</div>
                       <div className="lb-avatar">{p.name.charAt(0).toUpperCase()}</div>
                       <div className="lb-player">
-                        <div className="lb-player-name">
+                        <Link to={`/players/${p.uid}`} className="lb-player-name">
                           {p.name} {isMe && <span className="lb-you-tag">You</span>}
-                        </div>
+                        </Link>
                         <span className={"db-badge " + planBadgeClass(p.plan)}>
                           {planIcon(p.plan)} {p.plan}
                         </span>

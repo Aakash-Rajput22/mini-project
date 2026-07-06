@@ -13,6 +13,7 @@ import Admin from "./pages/Admin";
 import Matches from "./pages/Matches";
 import MatchDetail from "./pages/MatchDetail";
 import Leaderboard from "./pages/Leaderboard";
+import PlayerProfile from "./pages/PlayerProfile";
 
 // Root route: logged-in visitors go straight to the Dashboard.
 // Logged-out visitors see the Landing page (not a forced login screen).
@@ -53,6 +54,7 @@ function App() {
       <Route path="/matches" element={<Matches />} />
       <Route path="/matches/:id" element={<MatchDetail />} />
       <Route path="/leaderboard" element={<Leaderboard />} />
+      <Route path="/players/:uid" element={<PlayerProfile />} />
 
       {/* Invalid Route */}
       <Route path="*" element={<Navigate to="/" />} />

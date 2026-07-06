@@ -2,18 +2,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import "../styles/landing.css";
 
-const TICKER_MATCHES = [
-  { icon: "🏏", title: "Sunday Morning Cricket", venue: "Church Street Ground", time: "6:00 AM", spots: 3 },
-  { icon: "⚽", title: "5-a-side Football", venue: "Turf Arena, Koramangala", time: "7:30 PM", spots: 1 },
-  { icon: "🏸", title: "Doubles Badminton Night", venue: "Smash Court", time: "8:00 PM", spots: 2 },
-  { icon: "🏀", title: "Weekend 3v3", venue: "City Sports Complex", time: "5:00 PM", spots: 4 },
-  { icon: "🎾", title: "Singles Tennis Match", venue: "Green Court Club", time: "6:30 AM", spots: 1 },
-  { icon: "🏐", title: "Beach Volleyball", venue: "Sunset Sands", time: "4:00 PM", spots: 5 },
-  { icon: "🏏", title: "Corporate T20", venue: "Riverside Ground", time: "9:00 AM", spots: 2 },
-  { icon: "⚽", title: "Under-18 Friendly", venue: "Municipal Stadium", time: "3:00 PM", spots: 6 },
-];
-
-function useCountUp(target, durationMs = 1400) {
+function useCountUp(target, durationMs = 1200) {
   const [value, setValue] = useState(0);
   const startedRef = useRef(false);
 
@@ -31,19 +20,6 @@ function useCountUp(target, durationMs = 1400) {
   }, [target, durationMs]);
 
   return value;
-}
-
-function ScoreDigits({ value, suffix = "" }) {
-  const str = value.toLocaleString("en-IN") + suffix;
-  return (
-    <span className="lp-digits">
-      {str.split("").map((ch, i) => (
-        <span key={i} className={ch >= "0" && ch <= "9" ? "lp-digit" : "lp-digit lp-digit--sym"}>
-          {ch}
-        </span>
-      ))}
-    </span>
-  );
 }
 
 function Landing() {
@@ -80,9 +56,7 @@ function Landing() {
       {/* HERO */}
       <section className="lp-hero">
         <div className="lp-wrap lp-hero-inner">
-          <div className="lp-pill">
-            <span className="lp-live-dot" /> LIVE — matches being posted right now
-          </div>
+          <div className="lp-pill">🏆 Play · Match · Compete · Win</div>
 
           <h1 className="lp-hero-h1">
             Find your next game,<br />
@@ -103,50 +77,38 @@ function Landing() {
               Log in to your account
             </Link>
           </div>
-        </div>
-      </section>
 
-      {/* LIVE SCOREBOARD TICKER — signature element */}
-      <section className="lp-ticker-section" aria-label="Live match board">
-        <div className="lp-ticker-frame">
-          <div className="lp-ticker-label">
-            <span className="lp-live-dot" /> ON THE BOARD
-          </div>
-          <div className="lp-ticker-track">
-            <div className="lp-ticker-row">
-              {TICKER_MATCHES.concat(TICKER_MATCHES).map((m, i) => (
-                <div className="lp-ticker-item" key={i}>
-                  <span className="lp-ticker-icon">{m.icon}</span>
-                  <span className="lp-ticker-title">{m.title}</span>
-                  <span className="lp-ticker-sep">·</span>
-                  <span className="lp-ticker-venue">{m.venue}</span>
-                  <span className="lp-ticker-sep">·</span>
-                  <span className="lp-ticker-time">{m.time}</span>
-                  <span className={"lp-ticker-spots " + (m.spots <= 1 ? "lp-ticker-spots--low" : "")}>
-                    {m.spots} spot{m.spots !== 1 ? "s" : ""} left
-                  </span>
-                </div>
-              ))}
-            </div>
+          <div className="lp-hero-trust">
+            <span className="lp-trust-item">
+              <span className="lp-check">✓</span> Free plan — instant access
+            </span>
+            <span className="lp-trust-sep">|</span>
+            <span className="lp-trust-item">
+              <span className="lp-check">✓</span> Any sport, any city
+            </span>
+            <span className="lp-trust-sep">|</span>
+            <span className="lp-trust-item">
+              <span className="lp-check">✓</span> Secure Firebase auth
+            </span>
           </div>
         </div>
       </section>
 
-      {/* SCOREBOARD STATS */}
+      {/* STATS STRIP */}
       <section className="lp-stats">
         <div className="lp-wrap lp-stats-grid">
           <div className="lp-stat">
-            <div className="lp-stat-num"><ScoreDigits value={matchesCount} suffix="+" /></div>
+            <div className="lp-stat-num">{matchesCount.toLocaleString("en-IN")}+</div>
             <div className="lp-stat-label">Matches hosted</div>
           </div>
           <div className="lp-stat-div" />
           <div className="lp-stat">
-            <div className="lp-stat-num"><ScoreDigits value={playersCount} suffix="+" /></div>
+            <div className="lp-stat-num">{playersCount.toLocaleString("en-IN")}+</div>
             <div className="lp-stat-label">Players on Knowora</div>
           </div>
           <div className="lp-stat-div" />
           <div className="lp-stat">
-            <div className="lp-stat-num"><ScoreDigits value={citiesCount} /></div>
+            <div className="lp-stat-num">{citiesCount}</div>
             <div className="lp-stat-label">Cities and counting</div>
           </div>
         </div>
@@ -156,7 +118,7 @@ function Landing() {
       <section id="features" className="lp-section">
         <div className="lp-wrap">
           <div className="lp-section-header">
-            <span className="lp-label">[ 01 ] Features</span>
+            <span className="lp-label">01 / Features</span>
             <h2>Everything a sports matchmaking platform needs</h2>
             <p>Post games, join matches, earn points, and build your player rank — all in one place.</p>
           </div>
@@ -205,7 +167,7 @@ function Landing() {
       <section id="how" className="lp-section lp-section--alt">
         <div className="lp-wrap">
           <div className="lp-section-header">
-            <span className="lp-label">[ 02 ] How it works</span>
+            <span className="lp-label">02 / How it works</span>
             <h2>Up and running in three steps</h2>
             <p>From signing up to playing your first match takes under two minutes.</p>
           </div>
@@ -242,7 +204,7 @@ function Landing() {
       <section id="pricing" className="lp-section">
         <div className="lp-wrap">
           <div className="lp-section-header">
-            <span className="lp-label">[ 03 ] Pricing</span>
+            <span className="lp-label">03 / Pricing</span>
             <h2>Choose your plan</h2>
             <p>Start free. Upgrade when you need more access. No auto-renewal.</p>
           </div>
@@ -305,7 +267,7 @@ function Landing() {
       <section id="reviews" className="lp-section lp-section--alt">
         <div className="lp-wrap">
           <div className="lp-section-header">
-            <span className="lp-label">[ 04 ] Reviews</span>
+            <span className="lp-label">04 / Reviews</span>
             <h2>What players say</h2>
             <p>Players and hosts who found their perfect match when they needed one most.</p>
           </div>
@@ -354,7 +316,7 @@ function Landing() {
       <section id="faq" className="lp-section">
         <div className="lp-wrap">
           <div className="lp-section-header">
-            <span className="lp-label">[ 05 ] FAQ</span>
+            <span className="lp-label">05 / FAQ</span>
             <h2>Good to know</h2>
           </div>
 
