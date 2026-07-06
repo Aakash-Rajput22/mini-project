@@ -12,8 +12,21 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
+// Equipment catalog lives on the backend so prices/discounts are always
+// calculated server-side — never trust an amount sent by the client.
+const EQUIPMENT_PRICES = {
+  bat: 1500,
+  football: 800,
+  racket: 1200,
+  basketball: 900,
+  volleyball: 700,
+  tennis: 2000,
+  jersey: 2500,
+  kit: 600,
+};
+
 app.post("/create-order", async (req, res) => {
-  const { plan, type, amount } = req.body;
+  const { plan, type, amount, itemId, discounted } = req.body;
 
   let orderAmount;
 
@@ -22,6 +35,13 @@ app.post("/create-order", async (req, res) => {
       return res.status(400).json({ error: "Invalid amount" });
     }
     orderAmount = Math.round(amount * 100);
+  } else if (type === "equipment") {
+    const basePrice = EQUIPMENT_PRICES[itemId];
+    if (basePrice === undefined) {
+      return res.status(400).json({ error: "Invalid item" });
+    }
+    const finalPrice = discounted ? basePrice * 0.75 : basePrice;
+    orderAmount = Math.round(finalPrice * 100);
   } else {
     const prices = { Free: 0, Silver: 199, Gold: 499 };
     orderAmount = prices[plan];
