@@ -21,7 +21,6 @@ function Profile() {
   const [address, setAddress] = useState("");
   const [name, setName] = useState("");
   const [photoURL, setPhotoURL] = useState("");
-  const [photoFile, setPhotoFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -59,39 +58,6 @@ function Profile() {
     });
   }, [currentUser]);
 
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      alert("File size 2MB se zyada hai. Chhoti file choose karo.");
-      return;
-    }
-    setPhotoFile(file);
-    setPhotoURL(URL.createObjectURL(file));
-  };
-
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/login");
-  };
-
-  const downloadProfile = () => {
-    const pdf = new jsPDF();
-    pdf.setFontSize(18);
-    pdf.text("User Profile", 20, 20);
-    autoTable(pdf, {
-      startY: 35,
-      head: [["Field", "Value"]],
-      body: [
-        ["Name", name || "-"],
-        ["Email", currentUser?.email || "-"],
-        ["Phone", phone || "-"],
-        ["Address", address || "-"],
-      ],
-    });
-    pdf.save("Profile.pdf");
-  };
-
   const uploadToCloudinary = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -104,40 +70,129 @@ function Profile() {
     );
 
     if (!res.ok) {
-      throw new Error("Cloudinary upload failed");
+      const errData = await res.json().catch(() => null);
+      throw new Error(errData?.error?.message || "Cloudinary upload failed");
     }
 
     const data = await res.json();
     return data.secure_url;
   };
 
+  // Photo now uploads AND saves to Firestore immediately on selection —
+  // it no longer waits for the "Save profile" button, which was the bug:
+  // selecting a photo only showed a local preview until Save was clicked,
+  // so an unsaved preview would revert on refresh.
+  const handlePhotoChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert("File size 2MB se zyada hai. Chhoti file choose karo.");
+      e.target.value = "";
+      return;
+    }
+    if (!currentUser) {
+      alert("Please login first.");
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    const previousPhotoURL = photoURL;
+    setPhotoURL(previewUrl);
+
+    try {
+      setUploadProgress("Uploading photo...");
+      const uploadedUrl = await uploadToCloudinary(file);
+
+      setUploadProgress("Saving...");
+      await setDoc(doc(db, "users", currentUser.uid), {
+        photoURL: uploadedUrl,
+      }, { merge: true });
+
+      setPhotoURL(uploadedUrl);
+      URL.revokeObjectURL(previewUrl);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+      alert("Photo upload/save nahi hui: " + error.message);
+      setPhotoURL(previousPhotoURL);
+      URL.revokeObjectURL(previewUrl);
+    }
+    setUploadProgress("");
+    e.target.value = "";
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/login");
+  };
+
+  // Fetches a remote image (Cloudinary URL) and converts it to a data URL
+  // so jsPDF can embed it — jsPDF cannot use a plain remote URL directly.
+  const loadImageAsDataURL = (url) => {
+    return new Promise((resolve, reject) => {
+      fetch(url)
+        .then((res) => {
+          if (!res.ok) throw new Error("Could not fetch photo");
+          return res.blob();
+        })
+        .then((blob) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        })
+        .catch(reject);
+    });
+  };
+
+  const downloadProfile = async () => {
+    const pdf = new jsPDF();
+    pdf.setFontSize(18);
+    pdf.text("User Profile", 20, 20);
+
+    let tableStartY = 35;
+
+    if (photoURL) {
+      try {
+        const imgData = await loadImageAsDataURL(photoURL);
+        const format = imgData.substring(imgData.indexOf("/") + 1, imgData.indexOf(";")).toUpperCase();
+        pdf.addImage(imgData, format, 150, 10, 35, 35);
+        tableStartY = 55;
+      } catch (err) {
+        console.error("Could not add photo to PDF:", err);
+      }
+    }
+
+    autoTable(pdf, {
+      startY: tableStartY,
+      head: [["Field", "Value"]],
+      body: [
+        ["Name", name || "-"],
+        ["Email", currentUser?.email || "-"],
+        ["Phone", phone || "-"],
+        ["Address", address || "-"],
+      ],
+    });
+    pdf.save("Profile.pdf");
+  };
+
   const saveProfile = async () => {
     if (!currentUser) { alert("Please login first"); return; }
     setLoading(true);
     try {
-      let uploadedPhotoURL = photoURL;
-
-      if (photoFile) {
-        setUploadProgress("Uploading photo...");
-        uploadedPhotoURL = await uploadToCloudinary(photoFile);
-        setUploadProgress("");
-        setPhotoFile(null);
-      }
-
       await setDoc(doc(db, "users", currentUser.uid), {
         name,
         email: currentUser.email,
         phone,
         address,
-        photoURL: uploadedPhotoURL,
+        photoURL,
       }, { merge: true });
 
-      setPhotoURL(uploadedPhotoURL);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
       alert(error.message);
-      setUploadProgress("");
     }
     setLoading(false);
   };
@@ -237,7 +292,7 @@ function Profile() {
                   {uploadProgress}
                 </p>
               )}
-              <p className="pf-upload-hint">JPG, PNG — max 2MB</p>
+              <p className="pf-upload-hint">JPG, PNG — max 2MB · saves instantly</p>
 
               <div className="pf-info-list">
                 <div className="pf-info-item">
@@ -323,7 +378,7 @@ function Profile() {
                   onClick={saveProfile}
                   disabled={loading}
                 >
-                  {loading ? (uploadProgress || "Saving...") : "Save profile"}
+                  {loading ? "Saving..." : "Save profile"}
                 </button>
               </div>
             </div>
