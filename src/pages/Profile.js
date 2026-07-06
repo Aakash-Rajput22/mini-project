@@ -8,6 +8,9 @@ import autoTable from "jspdf-autotable";
 import "../styles/dashboard.css";
 import "../styles/profile.css";
 
+const CLOUDINARY_CLOUD_NAME = "g5bvacyh";
+const CLOUDINARY_UPLOAD_PRESET = "knowora_profiles";
+
 function Profile() {
   const navigate = useNavigate();
   const autocompleteRef = useRef(null);
@@ -22,6 +25,7 @@ function Profile() {
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState("");
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -29,7 +33,6 @@ function Profile() {
       setCurrentUser(user);
       setName(user.displayName || "");
       setPhotoURL(user.photoURL || "");
-
       const ref = doc(db, "users", user.uid);
       const snap = await getDoc(ref);
       if (snap.exists()) {
@@ -59,6 +62,10 @@ function Profile() {
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert("File size 2MB se zyada hai. Chhoti file choose karo.");
+      return;
+    }
     setPhotoFile(file);
     setPhotoURL(URL.createObjectURL(file));
   };
@@ -85,14 +92,38 @@ function Profile() {
     pdf.save("Profile.pdf");
   };
 
+  const uploadToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+    formData.append("folder", "knowora/profiles");
+
+    const res = await fetch(
+      "https://api.cloudinary.com/v1_1/" + CLOUDINARY_CLOUD_NAME + "/image/upload",
+      { method: "POST", body: formData }
+    );
+
+    if (!res.ok) {
+      throw new Error("Cloudinary upload failed");
+    }
+
+    const data = await res.json();
+    return data.secure_url;
+  };
+
   const saveProfile = async () => {
     if (!currentUser) { alert("Please login first"); return; }
     setLoading(true);
     try {
       let uploadedPhotoURL = photoURL;
+
       if (photoFile) {
-        uploadedPhotoURL = URL.createObjectURL(photoFile);
+        setUploadProgress("Uploading photo...");
+        uploadedPhotoURL = await uploadToCloudinary(photoFile);
+        setUploadProgress("");
+        setPhotoFile(null);
       }
+
       await setDoc(doc(db, "users", currentUser.uid), {
         name,
         email: currentUser.email,
@@ -100,10 +131,13 @@ function Profile() {
         address,
         photoURL: uploadedPhotoURL,
       }, { merge: true });
+
+      setPhotoURL(uploadedPhotoURL);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
       alert(error.message);
+      setUploadProgress("");
     }
     setLoading(false);
   };
@@ -111,29 +145,28 @@ function Profile() {
   return (
     <div className="db-shell">
 
-      {/* ── SIDEBAR ── */}
       <aside className="db-sidebar">
         <div className="db-sidebar-top">
           <div className="db-brand">
-            <span className="db-brand-mark">M</span>
+            <span className="db-brand-mark">K</span>
             <span className="db-brand-name">Knowora</span>
           </div>
           <nav className="db-nav">
             <span className="db-nav-label">Main</span>
             <Link to="/dashboard" className="db-nav-item">
-              <span className="db-nav-ico">📊</span> Dashboard
+              <i className="ti ti-layout-dashboard db-nav-ico" aria-hidden="true"></i> Dashboard
             </Link>
             <Link to="/profile" className="db-nav-item db-nav-item--active">
-              <span className="db-nav-ico">👤</span> Profile
+              <i className="ti ti-user db-nav-ico" aria-hidden="true"></i> Profile
             </Link>
             <Link to="/pricing" className="db-nav-item">
-              <span className="db-nav-ico">💳</span> Pricing plans
+              <i className="ti ti-credit-card db-nav-ico" aria-hidden="true"></i> Pricing plans
             </Link>
             {isAdmin && (
               <>
                 <span className="db-nav-label" style={{marginTop:"16px"}}>Admin</span>
                 <Link to="/admin" className="db-nav-item">
-                  <span className="db-nav-ico">🛡️</span> Admin panel
+                  <i className="ti ti-shield db-nav-ico" aria-hidden="true"></i> Admin panel
                 </Link>
               </>
             )}
@@ -142,19 +175,28 @@ function Profile() {
 
         <div className="db-sidebar-foot">
           <div className="db-user-row">
-            <div className="db-user-avatar">
-              {name ? name.charAt(0).toUpperCase() : "U"}
+            <div className="db-user-avatar" style={{overflow:"hidden"}}>
+              {photoURL ? (
+                <img
+                  src={photoURL}
+                  alt=""
+                  style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:"50%"}}
+                />
+              ) : (
+                name ? name.charAt(0).toUpperCase() : "U"
+              )}
             </div>
             <div className="db-user-info">
               <div className="db-user-name">{name || "User"}</div>
               <div className="db-user-email">{currentUser?.email || ""}</div>
             </div>
           </div>
-          <button className="db-logout" onClick={handleLogout}>Sign out</button>
+          <button className="db-logout" onClick={handleLogout}>
+            <i className="ti ti-logout" aria-hidden="true"></i> Sign out
+          </button>
         </div>
       </aside>
 
-      {/* ── MAIN ── */}
       <div className="db-main">
         <header className="db-topbar">
           <div>
@@ -162,14 +204,13 @@ function Profile() {
             <p className="db-page-sub">Manage your personal information</p>
           </div>
           <button className="db-upgrade-btn" onClick={downloadProfile}>
-            Download PDF
+            <i className="ti ti-download" aria-hidden="true"></i> Download PDF
           </button>
         </header>
 
         <div className="db-body">
           <div className="pf-grid">
 
-            {/* ── LEFT: PHOTO CARD ── */}
             <div className="pf-photo-card">
               <div className="pf-avatar-wrap">
                 {photoURL ? (
@@ -191,6 +232,11 @@ function Profile() {
                   style={{ display: "none" }}
                 />
               </label>
+              {uploadProgress && (
+                <p style={{fontSize:"12px",color:"#60a5fa",marginTop:"4px"}}>
+                  {uploadProgress}
+                </p>
+              )}
               <p className="pf-upload-hint">JPG, PNG — max 2MB</p>
 
               <div className="pf-info-list">
@@ -207,7 +253,6 @@ function Profile() {
               </div>
             </div>
 
-            {/* ── RIGHT: FORM CARD ── */}
             <div className="pf-form-card">
               <div className="pf-form-header">
                 <h2 className="pf-form-title">Personal information</h2>
@@ -273,8 +318,12 @@ function Profile() {
 
               <div className="pf-form-actions">
                 {saved && <span className="pf-saved">✓ Profile saved!</span>}
-                <button className="pf-save-btn" onClick={saveProfile} disabled={loading}>
-                  {loading ? "Saving..." : "Save profile"}
+                <button
+                  className="pf-save-btn"
+                  onClick={saveProfile}
+                  disabled={loading}
+                >
+                  {loading ? (uploadProgress || "Saving...") : "Save profile"}
                 </button>
               </div>
             </div>
