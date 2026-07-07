@@ -230,6 +230,7 @@ function Profile() {
         ["Email", currentUser?.email || "-"],
         ["Phone", phone || "-"],
         ["Address", address || "-"],
+        ["Bio", bio || "-"],
       ],
     });
     pdf.save("Profile.pdf");
