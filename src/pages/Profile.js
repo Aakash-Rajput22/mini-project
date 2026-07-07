@@ -49,8 +49,6 @@ function Profile() {
     return () => unsub();
   }, [navigate]);
 
-  // Free address search using OpenStreetMap's Nominatim — no API key or
-  // billing needed, unlike Google Places Autocomplete.
   const handleAddressChange = (e) => {
     const value = e.target.value;
     setAddress(value);
@@ -100,15 +98,11 @@ function Profile() {
     return data.secure_url;
   };
 
-  // Photo now uploads AND saves to Firestore immediately on selection —
-  // it no longer waits for the "Save profile" button, which was the bug:
-  // selecting a photo only showed a local preview until Save was clicked,
-  // so an unsaved preview would revert on refresh.
   const handlePhotoChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      alert("File size 2MB se zyada hai. Chhoti file choose karo.");
+      alert("Choose a smaller file.");
       e.target.value = "";
       return;
     }
@@ -136,7 +130,7 @@ function Profile() {
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
       console.error("Error uploading photo:", error);
-      alert("Photo upload/save nahi hui: " + error.message);
+      alert("Photo upload/save failed: " + error.message);
       setPhotoURL(previousPhotoURL);
       URL.revokeObjectURL(previewUrl);
     }
@@ -146,7 +140,7 @@ function Profile() {
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("Location detect nahi ho sakti is browser mein.");
+      alert("Location detection is not supported in this browser.");
       return;
     }
     setLocatingAddress(true);
@@ -163,18 +157,18 @@ function Profile() {
             setAddress(data.display_name);
             setAddressSuggestions([]);
           } else {
-            alert("Address nahi mil paya. Manually type karo.");
+            alert("Address not found. Please type manually.");
           }
         } catch (err) {
           console.error("Reverse geocoding error:", err);
-          alert("Address fetch nahi ho paya. Manually type karo.");
+          alert("Failed to fetch address. Please type manually.");
         }
         setLocatingAddress(false);
       },
       (err) => {
         console.error("Geolocation error:", err);
         setLocatingAddress(false);
-        alert("Location access allow nahi hui. Browser settings check karo.");
+        alert("Location access are not allowed. check your browser settings.");
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -185,8 +179,6 @@ function Profile() {
     navigate("/login");
   };
 
-  // Fetches a remote image (Cloudinary URL) and converts it to a data URL
-  // so jsPDF can embed it — jsPDF cannot use a plain remote URL directly.
   const loadImageAsDataURL = (url) => {
     return new Promise((resolve, reject) => {
       fetch(url)
