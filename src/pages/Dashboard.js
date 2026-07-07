@@ -211,6 +211,9 @@ function Dashboard() {
             <Link to="/matches" className="db-nav-item">
               <i className="ti ti-ball-basketball db-nav-ico" aria-hidden="true"></i> Matches
             </Link>
+            <Link to="/teams" className="db-nav-item">
+              <i className="ti ti-users-group db-nav-ico" aria-hidden="true"></i> Teams
+            </Link>
             <Link to="/leaderboard" className="db-nav-item">
               <i className="ti ti-trophy db-nav-ico" aria-hidden="true"></i> Leaderboard
             </Link>
