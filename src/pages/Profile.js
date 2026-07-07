@@ -13,18 +13,20 @@ const CLOUDINARY_UPLOAD_PRESET = "knowora_profiles";
 
 function Profile() {
   const navigate = useNavigate();
-  const autocompleteRef = useRef(null);
-  const inputRef = useRef(null);
+  const debounceRef = useRef(null);
 
   const [currentUser, setCurrentUser] = useState(null);
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [bio, setBio] = useState("");
   const [name, setName] = useState("");
   const [photoURL, setPhotoURL] = useState("");
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
+  const [locatingAddress, setLocatingAddress] = useState(false);
+  const [addressSuggestions, setAddressSuggestions] = useState([]);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -38,6 +40,7 @@ function Profile() {
         const data = snap.data();
         setPhone(data.phone || "");
         setAddress(data.address || "");
+        setBio(data.bio || "");
         setName(data.name || user.displayName || "");
         setPhotoURL(data.photoURL || user.photoURL || "");
         if (data.role === "admin") setIsAdmin(true);
@@ -46,17 +49,36 @@ function Profile() {
     return () => unsub();
   }, [navigate]);
 
-  useEffect(() => {
-    if (!window.google || !inputRef.current) return;
-    autocompleteRef.current = new window.google.maps.places.Autocomplete(
-      inputRef.current,
-      { types: ["geocode"] }
-    );
-    autocompleteRef.current.addListener("place_changed", () => {
-      const place = autocompleteRef.current.getPlace();
-      setAddress(place.formatted_address || "");
-    });
-  }, [currentUser]);
+  // Free address search using OpenStreetMap's Nominatim — no API key or
+  // billing needed, unlike Google Places Autocomplete.
+  const handleAddressChange = (e) => {
+    const value = e.target.value;
+    setAddress(value);
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (value.trim().length < 3) {
+      setAddressSuggestions([]);
+      return;
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(value)}&addressdetails=0&limit=5`
+        );
+        const data = await res.json();
+        setAddressSuggestions(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Address search error:", err);
+      }
+    }, 400);
+  };
+
+  const handleSelectSuggestion = (suggestion) => {
+    setAddress(suggestion.display_name);
+    setAddressSuggestions([]);
+  };
 
   const uploadToCloudinary = async (file) => {
     const formData = new FormData();
@@ -120,6 +142,42 @@ function Profile() {
     }
     setUploadProgress("");
     e.target.value = "";
+  };
+
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Location detect nahi ho sakti is browser mein.");
+      return;
+    }
+    setLocatingAddress(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
+          );
+          if (!res.ok) throw new Error("Reverse geocoding failed");
+          const data = await res.json();
+          if (data && data.display_name) {
+            setAddress(data.display_name);
+            setAddressSuggestions([]);
+          } else {
+            alert("Address nahi mil paya. Manually type karo.");
+          }
+        } catch (err) {
+          console.error("Reverse geocoding error:", err);
+          alert("Address fetch nahi ho paya. Manually type karo.");
+        }
+        setLocatingAddress(false);
+      },
+      (err) => {
+        console.error("Geolocation error:", err);
+        setLocatingAddress(false);
+        alert("Location access allow nahi hui. Browser settings check karo.");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   };
 
   const handleLogout = async () => {
@@ -186,6 +244,7 @@ function Profile() {
         email: currentUser.email,
         phone,
         address,
+        bio,
         photoURL,
       }, { merge: true });
 
@@ -346,16 +405,36 @@ function Profile() {
                   />
                 </div>
 
-                <div className="pf-form-group pf-full-width">
+                <div className="pf-form-group pf-full-width" style={{ position: "relative" }}>
                   <label className="pf-label">Address</label>
                   <input
                     className="pf-input"
                     type="text"
                     placeholder="Start typing your address..."
                     value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    ref={inputRef}
+                    onChange={handleAddressChange}
+                    autoComplete="off"
                   />
+                  {addressSuggestions.length > 0 && (
+                    <ul className="pf-suggestions">
+                      {addressSuggestions.map((s) => (
+                        <li
+                          key={s.place_id}
+                          onClick={() => handleSelectSuggestion(s)}
+                        >
+                          {s.display_name}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <button
+                    type="button"
+                    className="pf-location-btn"
+                    onClick={handleUseCurrentLocation}
+                    disabled={locatingAddress}
+                  >
+                    📍 {locatingAddress ? "Detecting..." : "Use my current location"}
+                  </button>
                 </div>
 
                 {address && (
@@ -369,6 +448,19 @@ function Profile() {
                     />
                   </div>
                 )}
+
+                <div className="pf-form-group pf-full-width">
+                  <label className="pf-label">Bio</label>
+                  <textarea
+                    className="pf-input pf-textarea"
+                    placeholder="Tell other players a bit about yourself — favourite sports, skill level, availability..."
+                    value={bio}
+                    maxLength={300}
+                    onChange={(e) => setBio(e.target.value)}
+                    rows={4}
+                  />
+                  <span className="pf-char-count">{bio.length}/300</span>
+                </div>
               </div>
 
               <div className="pf-form-actions">
