@@ -33,9 +33,6 @@ const PLAN_MULTIPLIER = { Free: 1, Silver: 2, Gold: 5 };
 const BASE_POINTS = 10;
 const ORGANIZE_LIMITS = { Free: 1, Silver: 2, Gold: 10 };
 
-// Verified venues — picking from this list avoids typos and keeps
-// listings trustworthy. "Other" lets a host add a venue not yet verified
-// (it won't have coordinates, so it's excluded from "near me" search).
 const VERIFIED_VENUES = [
   { name: "Church Street Ground, MG Road", lat: 12.9750, lng: 77.6050 },
   { name: "Turf Arena, Koramangala", lat: 12.9352, lng: 77.6245 },
@@ -48,7 +45,6 @@ const VERIFIED_VENUES = [
   { name: "Other (not listed)", lat: null, lng: null },
 ];
 
-// Great-circle distance between two lat/lng points, in kilometers.
 const distanceKm = (lat1, lng1, lat2, lng2) => {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -83,7 +79,6 @@ function Matches() {
   const [locationError, setLocationError] = useState("");
   const [locatingUser, setLocatingUser] = useState(false);
 
-  // Create form state
   const [title, setTitle] = useState("");
   const [sport, setSport] = useState("Cricket");
   const [venue, setVenue] = useState(VERIFIED_VENUES[0].name);
@@ -100,7 +95,7 @@ function Matches() {
     fetchMatches();
     loadBlockedUsers();
     if (auth.currentUser) checkAndDowngradeIfExpired(auth.currentUser.uid);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, []);
 
   const loadBlockedUsers = async () => {
@@ -135,7 +130,7 @@ function Matches() {
 
   const handleUseMyLocation = () => {
     if (!navigator.geolocation) {
-      setLocationError("Location detect nahi ho sakti is browser mein.");
+      setLocationError("Location not detected in this browser.");
       return;
     }
     setLocationError("");
@@ -148,7 +143,7 @@ function Matches() {
       },
       (err) => {
         console.error("Geolocation error:", err);
-        setLocationError("Location access allow nahi hui. Browser settings check karo.");
+        setLocationError("Location access denied. Please check your browser settings.");
         setLocatingUser(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -172,24 +167,24 @@ function Matches() {
       return;
     }
     if (title.trim().length < 5) {
-      setError("Match ka title thoda detail mein likho.");
+      setError("Title should be at least 5 characters long.");
       return;
     }
     if (venue === "Other (not listed)" && !customVenue.trim()) {
-      setError("Ground/venue ka naam daalo.");
+      setError("Ground/venue name is required.");
       return;
     }
     if (!matchDate || !matchTime) {
-      setError("Date aur time dono select karo.");
+      setError("Date and time are required.");
       return;
     }
     const dateTimeObj = new Date(`${matchDate}T${matchTime}`);
     if (dateTimeObj <= new Date()) {
-      setError("Match ka time future mein hona chahiye.");
+      setError("Match time must be in the future.");
       return;
     }
     if (maxPlayers < 2) {
-      setError("Kam se kam 2 players chahiye.");
+      setError("At least 2 players are required.");
       return;
     }
 
@@ -208,7 +203,7 @@ function Matches() {
           usage = data.usage || null;
         }
       } catch (e) {
-        // fallback
+        
       }
 
       const monthKey = getCurrentMonthKey();
@@ -217,7 +212,7 @@ function Matches() {
       const organizeLimit = ORGANIZE_LIMITS[userPlan] ?? ORGANIZE_LIMITS.Free;
 
       if (organizesThisMonth >= organizeLimit) {
-        setError(`Is mahine ka match-organize limit (${organizeLimit}) khatam ho gaya. Plan upgrade karo ya agle mahine try karo.`);
+        setError(`This month organize limit reached (${organizeLimit}). Please upgrade your plan.`);
         setPosting(false);
         return;
       }
@@ -242,7 +237,6 @@ function Matches() {
         createdAt: serverTimestamp(),
       });
 
-      // Award points for hosting a match, scaled by plan
       try {
         const multiplier = PLAN_MULTIPLIER[userPlan] || 1;
         await updateDoc(doc(db, "users", uid), {
@@ -277,7 +271,7 @@ function Matches() {
       fetchMatches();
     } catch (err) {
       console.error("Error creating match:", err);
-      setError("Match create nahi ho paya. Dobara try karo.");
+      setError("Match not created. Please try again.");
     }
     setPosting(false);
   };
@@ -337,7 +331,7 @@ function Matches() {
           {error && <div className="form-error">{error}</div>}
           <input
             type="text"
-            placeholder="Match ka title (e.g. Sunday Morning Cricket)"
+            placeholder="Match title (e.g. Sunday Morning Cricket)"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={100}

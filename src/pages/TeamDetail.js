@@ -77,7 +77,7 @@ function TeamDetail() {
 
   const handleDisbandTeam = async () => {
     if (!currentUid || !team || currentUid !== team.createdBy) return;
-    if (!window.confirm("this will permanently delete the team. Confirm?")) return;
+    if (!window.confirm("This team will be permanently deleted. Confirm?")) return;
 
     setBusy(true);
     setError("");
@@ -96,7 +96,7 @@ function TeamDetail() {
   if (!team) {
     return (
       <div className="empty-text">
-        Ye team nahi mili.{" "}
+        Team not found.
         <button className="link-btn" onClick={() => navigate("/teams")}>Go back</button>
       </div>
     );
