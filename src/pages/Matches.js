@@ -444,9 +444,9 @@ function Matches() {
         <div className="loading-text">Loading matches...</div>
       ) : filteredMatches.length === 0 ? (
         <div className="empty-text">
-          <p>Koi match nahi mila.</p>
+          <p>No matches found.</p>
           <button className="link-btn" onClick={openCreateForm}>
-            Pehla match tum create karo →
+            Create the first match →
           </button>
         </div>
       ) : (
