@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
 import "../styles/dashboard.css";
 
 function Admin() {
@@ -14,6 +14,10 @@ function Admin() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isAdmin, setIsAdmin] = useState(null);
   const usersPerPage = 8;
+
+  const [reports, setReports] = useState([]);
+  const [reportsLoading, setReportsLoading] = useState(true);
+  const [reportStatusFilter, setReportStatusFilter] = useState("All");
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (currentUser) => {
@@ -28,16 +32,53 @@ function Admin() {
           if (docSnap.id === currentUser.uid && data.role === "admin") adminFound = true;
         });
         setIsAdmin(adminFound);
-        if (adminFound) setUsers(allUsers);
+        if (adminFound) {
+          setUsers(allUsers);
+          await fetchReports();
+        }
       } catch (error) {
         console.log("Error:", error.message);
       }
       setLoading(false);
     });
     return () => unsub();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
+  const fetchReports = async () => {
+    setReportsLoading(true);
+    try {
+      const snap = await getDocs(collection(db, "reports"));
+      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      list.sort((a, b) => {
+        const da = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
+        const dbb = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
+        return dbb - da;
+      });
+      setReports(list);
+    } catch (error) {
+      console.error("Error fetching reports:", error);
+    }
+    setReportsLoading(false);
+  };
+
+  const handleUpdateReportStatus = async (reportId, status) => {
+    try {
+      await updateDoc(doc(db, "reports", reportId), { status });
+      setReports((prev) => prev.map((r) => (r.id === reportId ? { ...r, status } : r)));
+    } catch (error) {
+      console.error("Error updating report status:", error);
+      alert("Status update nahi hua. Dobara try karo.");
+    }
+  };
+
   const handleLogout = async () => { await signOut(auth); navigate("/login"); };
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return "—";
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  };
 
   if (loading) return (
     <div className="db-shell">
@@ -72,10 +113,24 @@ function Admin() {
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
   const paginated = filteredUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
 
+  const filteredReports = reports.filter((r) => {
+    const status = r.status || "open";
+    return reportStatusFilter === "All" || status === reportStatusFilter;
+  });
+
+  const openReportsCount = reports.filter((r) => (r.status || "open") === "open").length;
+
   const planBadge = (plan) => {
     if (plan === "Gold")   return <span className="db-badge db-badge--gold">🥇 Gold</span>;
     if (plan === "Silver") return <span className="db-badge db-badge--silver">🥈 Silver</span>;
     return <span className="db-badge db-badge--free">🆓 Free</span>;
+  };
+
+  const reportStatusBadge = (status) => {
+    const s = status || "open";
+    if (s === "resolved") return <span className="adm-role adm-role--admin">✓ Resolved</span>;
+    if (s === "dismissed") return <span className="adm-role adm-role--user">Dismissed</span>;
+    return <span className="db-badge db-badge--gold">⚠ Open</span>;
   };
 
   return (
@@ -85,12 +140,15 @@ function Admin() {
       <aside className="db-sidebar">
         <div className="db-sidebar-top">
           <div className="db-brand">
-            <span className="db-brand-mark">M</span>
+            <span className="db-brand-mark">K</span>
             <span className="db-brand-name">Knowora</span>
           </div>
           <nav className="db-nav">
             <span className="db-nav-label">Main</span>
             <Link to="/dashboard" className="db-nav-item"><span className="db-nav-ico">📊</span> Dashboard</Link>
+            <Link to="/matches"   className="db-nav-item"><span className="db-nav-ico">🏀</span> Matches</Link>
+            <Link to="/teams"     className="db-nav-item"><span className="db-nav-ico">👥</span> Teams</Link>
+            <Link to="/leaderboard" className="db-nav-item"><span className="db-nav-ico">🏆</span> Leaderboard</Link>
             <Link to="/profile"   className="db-nav-item"><span className="db-nav-ico">👤</span> Profile</Link>
             <Link to="/pricing"   className="db-nav-item"><span className="db-nav-ico">💳</span> Pricing plans</Link>
             <span className="db-nav-label" style={{marginTop:"16px"}}>Admin</span>
@@ -244,6 +302,89 @@ function Admin() {
             )}
 
           </div>
+
+          {/* PLAYER REPORTS CARD */}
+          <div className="adm-card" style={{ marginTop: "20px" }}>
+
+            <div className="adm-controls">
+              <div>
+                <span className="db-section-card-title">Player Reports</span>
+                {openReportsCount > 0 && (
+                  <span className="db-badge db-badge--gold" style={{ marginLeft: "10px" }}>
+                    {openReportsCount} open
+                  </span>
+                )}
+              </div>
+              <select
+                className="adm-filter"
+                value={reportStatusFilter}
+                onChange={(e) => setReportStatusFilter(e.target.value)}
+              >
+                <option value="All">All reports</option>
+                <option value="open">Open</option>
+                <option value="resolved">Resolved</option>
+                <option value="dismissed">Dismissed</option>
+              </select>
+            </div>
+
+            <div className="adm-table-wrap">
+              <table className="adm-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Reported player</th>
+                    <th>Reported by</th>
+                    <th>Match</th>
+                    <th>Reason</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reportsLoading ? (
+                    <tr><td colSpan="8" className="adm-empty">Loading reports...</td></tr>
+                  ) : filteredReports.length === 0 ? (
+                    <tr><td colSpan="8" className="adm-empty">No reports found</td></tr>
+                  ) : filteredReports.map((r, i) => (
+                    <tr key={r.id}>
+                      <td className="adm-num">{i + 1}</td>
+                      <td>
+                        <div className="adm-user">
+                          <div className="adm-avatar">{(r.reportedName || "?").charAt(0).toUpperCase()}</div>
+                          <span className="adm-name">{r.reportedName || "—"}</span>
+                        </div>
+                      </td>
+                      <td className="adm-email">{r.reporterName || "—"}</td>
+                      <td className="adm-email">{r.matchTitle || "—"}</td>
+                      <td style={{ maxWidth: "220px" }}>{r.reason || "—"}</td>
+                      <td className="adm-email">{formatDate(r.createdAt)}</td>
+                      <td>{reportStatusBadge(r.status)}</td>
+                      <td>
+                        <div style={{ display: "flex", gap: "6px" }}>
+                          <button
+                            className="adm-page-btn"
+                            onClick={() => handleUpdateReportStatus(r.id, "resolved")}
+                            disabled={(r.status || "open") === "resolved"}
+                          >
+                            Resolve
+                          </button>
+                          <button
+                            className="adm-page-btn"
+                            onClick={() => handleUpdateReportStatus(r.id, "dismissed")}
+                            disabled={(r.status || "open") === "dismissed"}
+                          >
+                            Dismiss
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
