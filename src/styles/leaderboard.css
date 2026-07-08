@@ -1,5 +1,34 @@
 .lb-list { display: flex; flex-direction: column; gap: 10px; }
 
+.lb-filters {
+  display: flex;
+  gap: 10px;
+  padding: 16px 20px 0;
+  flex-wrap: wrap;
+}
+
+.lb-search {
+  flex: 1;
+  min-width: 200px;
+  border: 1px solid #e5e7eb;
+  border-radius: 9px;
+  padding: 9px 14px;
+  font-size: 14px;
+  color: #0f172a;
+}
+.lb-search:focus { outline: none; border-color: #3b82f6; }
+
+.lb-plan-filter {
+  border: 1px solid #e5e7eb;
+  border-radius: 9px;
+  padding: 9px 14px;
+  font-size: 14px;
+  color: #0f172a;
+  background: #fff;
+  cursor: pointer;
+}
+.lb-plan-filter:focus { outline: none; border-color: #3b82f6; }
+
 .lb-row {
   display: flex;
   align-items: center;

@@ -133,6 +133,19 @@
 .sport-chip.active,
 .sport-chip:hover { background: #3b82f6; border-color: #3b82f6; color: #fff; }
 
+.sort-select {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #475569;
+  padding: 7px 14px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-left: auto;
+}
+.sort-select:focus { outline: none; border-color: #3b82f6; }
+
 /* ══ LOCATION ══ */
 .location-bar {
   display: flex;

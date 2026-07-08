@@ -73,12 +73,15 @@ function Matches() {
   );
   const [searchTerm, setSearchTerm] = useState("");
   const [needPlayersOnly, setNeedPlayersOnly] = useState(false);
+  const [costFilter, setCostFilter] = useState("All");
+  const [sortBy, setSortBy] = useState("soonest");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [nearMeOnly, setNearMeOnly] = useState(false);
   const [locationError, setLocationError] = useState("");
   const [locatingUser, setLocatingUser] = useState(false);
 
+  // Create form state
   const [title, setTitle] = useState("");
   const [sport, setSport] = useState("Cricket");
   const [venue, setVenue] = useState(VERIFIED_VENUES[0].name);
@@ -95,7 +98,7 @@ function Matches() {
     fetchMatches();
     loadBlockedUsers();
     if (auth.currentUser) checkAndDowngradeIfExpired(auth.currentUser.uid);
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadBlockedUsers = async () => {
@@ -130,7 +133,7 @@ function Matches() {
 
   const handleUseMyLocation = () => {
     if (!navigator.geolocation) {
-      setLocationError("Location not detected in this browser.");
+      setLocationError("Location not available in this browser.");
       return;
     }
     setLocationError("");
@@ -143,7 +146,7 @@ function Matches() {
       },
       (err) => {
         console.error("Geolocation error:", err);
-        setLocationError("Location access denied. Please check your browser settings.");
+        setLocationError("Location access not allowed. Please check your browser settings.");
         setLocatingUser(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -167,20 +170,20 @@ function Matches() {
       return;
     }
     if (title.trim().length < 5) {
-      setError("Title should be at least 5 characters long.");
+      setError("Title must be at least 5 characters long.");
       return;
     }
     if (venue === "Other (not listed)" && !customVenue.trim()) {
-      setError("Ground/venue name is required.");
+      setError("Ground/venue ka naam daalo.");
       return;
     }
     if (!matchDate || !matchTime) {
-      setError("Date and time are required.");
+      setError("both date and time are required.");
       return;
     }
     const dateTimeObj = new Date(`${matchDate}T${matchTime}`);
     if (dateTimeObj <= new Date()) {
-      setError("Match time must be in the future.");
+      setError("Match date and time must be in future.");
       return;
     }
     if (maxPlayers < 2) {
@@ -203,7 +206,7 @@ function Matches() {
           usage = data.usage || null;
         }
       } catch (e) {
-        
+        // fallback
       }
 
       const monthKey = getCurrentMonthKey();
@@ -212,7 +215,7 @@ function Matches() {
       const organizeLimit = ORGANIZE_LIMITS[userPlan] ?? ORGANIZE_LIMITS.Free;
 
       if (organizesThisMonth >= organizeLimit) {
-        setError(`This month organize limit reached (${organizeLimit}). Please upgrade your plan.`);
+        setError(`organize limit reached for this month (${organizeLimit}) . please upgrade your plan or try again next month.`);
         setPosting(false);
         return;
       }
@@ -237,6 +240,7 @@ function Matches() {
         createdAt: serverTimestamp(),
       });
 
+      // Award points for hosting a match, scaled by plan
       try {
         const multiplier = PLAN_MULTIPLIER[userPlan] || 1;
         await updateDoc(doc(db, "users", uid), {
@@ -271,27 +275,48 @@ function Matches() {
       fetchMatches();
     } catch (err) {
       console.error("Error creating match:", err);
-      setError("Match not created. Please try again.");
+      setError("Match create failed. Please try again.");
     }
     setPosting(false);
   };
 
-  const filteredMatches = matches.filter((m) => {
-    const matchesSport = activeSport === "All" || m.sport === activeSport;
-    const matchesSearch =
-      m.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.venue?.toLowerCase().includes(searchTerm.toLowerCase());
-    const spotsLeft = m.maxPlayers - (m.joinedPlayers?.length || 0);
-    const matchesNeedPlayers = !needPlayersOnly || spotsLeft > 0;
-    const hostNotBlocked = !blockedUsers.includes(m.createdBy);
-    const matchesNearMe =
-      !nearMeOnly ||
-      !userLocation ||
-      (m.venueLat != null &&
-        m.venueLng != null &&
-        distanceKm(userLocation.lat, userLocation.lng, m.venueLat, m.venueLng) <= 5);
-    return matchesSport && matchesSearch && matchesNeedPlayers && hostNotBlocked && matchesNearMe;
-  });
+  const filteredMatches = matches
+    .filter((m) => {
+      const matchesSport = activeSport === "All" || m.sport === activeSport;
+      const matchesSearch =
+        m.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        m.venue?.toLowerCase().includes(searchTerm.toLowerCase());
+      const spotsLeft = m.maxPlayers - (m.joinedPlayers?.length || 0);
+      const matchesNeedPlayers = !needPlayersOnly || spotsLeft > 0;
+      const hostNotBlocked = !blockedUsers.includes(m.createdBy);
+      const matchesNearMe =
+        !nearMeOnly ||
+        !userLocation ||
+        (m.venueLat != null &&
+          m.venueLng != null &&
+          distanceKm(userLocation.lat, userLocation.lng, m.venueLat, m.venueLng) <= 5);
+      const matchesCost =
+        costFilter === "All" ||
+        (costFilter === "Free" ? !m.costPerPlayer || m.costPerPlayer === 0 : m.costPerPlayer > 0);
+      return matchesSport && matchesSearch && matchesNeedPlayers && hostNotBlocked && matchesNearMe && matchesCost;
+    })
+    .sort((a, b) => {
+      if (sortBy === "nearest" && userLocation) {
+        const da = a.venueLat != null ? distanceKm(userLocation.lat, userLocation.lng, a.venueLat, a.venueLng) : Infinity;
+        const db_ = b.venueLat != null ? distanceKm(userLocation.lat, userLocation.lng, b.venueLat, b.venueLng) : Infinity;
+        return da - db_;
+      }
+      if (sortBy === "mostSpots") {
+        const spotsA = a.maxPlayers - (a.joinedPlayers?.length || 0);
+        const spotsB = b.maxPlayers - (b.joinedPlayers?.length || 0);
+        return spotsB - spotsA;
+      }
+      // "soonest" — already sorted by date asc from the Firestore query,
+      // but re-sort defensively in case filters reorder anything.
+      const dateA = a.date?.toDate ? a.date.toDate() : new Date(a.date);
+      const dateB = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+      return dateA - dateB;
+    });
 
   const formatDate = (timestamp) => {
     if (!timestamp) return "";
@@ -331,7 +356,7 @@ function Matches() {
           {error && <div className="form-error">{error}</div>}
           <input
             type="text"
-            placeholder="Match title (e.g. Sunday Morning Cricket)"
+            placeholder="Match tittle (e.g. Sunday Morning Cricket)"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={100}
@@ -437,6 +462,27 @@ function Matches() {
           >
             🙋 Need Players
           </button>
+          <button
+            className={`sport-chip ${costFilter === "Free" ? "active" : ""}`}
+            onClick={() => setCostFilter(costFilter === "Free" ? "All" : "Free")}
+          >
+            🆓 Free only
+          </button>
+          <button
+            className={`sport-chip ${costFilter === "Paid" ? "active" : ""}`}
+            onClick={() => setCostFilter(costFilter === "Paid" ? "All" : "Paid")}
+          >
+            💰 Paid only
+          </button>
+          <select
+            className="sort-select"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="soonest">Sort: Soonest</option>
+            <option value="mostSpots">Sort: Most spots open</option>
+            {userLocation && <option value="nearest">Sort: Nearest</option>}
+          </select>
         </div>
       </div>
 
@@ -446,7 +492,7 @@ function Matches() {
         <div className="empty-text">
           <p>No matches found.</p>
           <button className="link-btn" onClick={openCreateForm}>
-            Create the first match →
+            Create Match →
           </button>
         </div>
       ) : (

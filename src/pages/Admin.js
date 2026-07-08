@@ -11,6 +11,7 @@ function Admin() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [planFilter, setPlanFilter] = useState("All");
+  const [roleFilter, setRoleFilter] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [isAdmin, setIsAdmin] = useState(null);
   const usersPerPage = 8;
@@ -18,6 +19,7 @@ function Admin() {
   const [reports, setReports] = useState([]);
   const [reportsLoading, setReportsLoading] = useState(true);
   const [reportStatusFilter, setReportStatusFilter] = useState("All");
+  const [reportSearch, setReportSearch] = useState("");
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (currentUser) => {
@@ -107,7 +109,10 @@ function Admin() {
       (u.name && u.name.toLowerCase().includes(search.toLowerCase())) ||
       (u.email && u.email.toLowerCase().includes(search.toLowerCase()));
     const matchPlan = planFilter === "All" || (u.plan || "Free") === planFilter;
-    return matchSearch && matchPlan;
+    const matchRole =
+      roleFilter === "All" ||
+      (roleFilter === "Admin" ? u.role === "admin" : u.role !== "admin");
+    return matchSearch && matchPlan && matchRole;
   });
 
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
@@ -115,7 +120,12 @@ function Admin() {
 
   const filteredReports = reports.filter((r) => {
     const status = r.status || "open";
-    return reportStatusFilter === "All" || status === reportStatusFilter;
+    const matchStatus = reportStatusFilter === "All" || status === reportStatusFilter;
+    const matchSearch =
+      !reportSearch ||
+      (r.reportedName && r.reportedName.toLowerCase().includes(reportSearch.toLowerCase())) ||
+      (r.reporterName && r.reporterName.toLowerCase().includes(reportSearch.toLowerCase()));
+    return matchStatus && matchSearch;
   });
 
   const openReportsCount = reports.filter((r) => (r.status || "open") === "open").length;
@@ -231,6 +241,15 @@ function Admin() {
                 <option value="Silver">Silver</option>
                 <option value="Gold">Gold</option>
               </select>
+              <select
+                className="adm-filter"
+                value={roleFilter}
+                onChange={(e) => { setRoleFilter(e.target.value); setCurrentPage(1); }}
+              >
+                <option value="All">All roles</option>
+                <option value="Admin">Admin</option>
+                <option value="User">User</option>
+              </select>
             </div>
 
             {/* TABLE */}
@@ -307,18 +326,27 @@ function Admin() {
           <div className="adm-card" style={{ marginTop: "20px" }}>
 
             <div className="adm-controls">
-              <div>
-                <span className="db-section-card-title">Player Reports</span>
-                {openReportsCount > 0 && (
-                  <span className="db-badge db-badge--gold" style={{ marginLeft: "10px" }}>
-                    {openReportsCount} open
-                  </span>
-                )}
+              <div className="adm-search-wrap">
+                <span className="adm-search-ico">🔍</span>
+                <input
+                  type="text"
+                  className="adm-search"
+                  placeholder="Search by player name..."
+                  value={reportSearch}
+                  onChange={(e) => setReportSearch(e.target.value)}
+                />
               </div>
+              <span className="db-section-card-title">Player Reports</span>
+              {openReportsCount > 0 && (
+                <span className="db-badge db-badge--gold" style={{ marginLeft: "6px" }}>
+                  {openReportsCount} open
+                </span>
+              )}
               <select
                 className="adm-filter"
                 value={reportStatusFilter}
                 onChange={(e) => setReportStatusFilter(e.target.value)}
+                style={{ marginLeft: "auto" }}
               >
                 <option value="All">All reports</option>
                 <option value="open">Open</option>

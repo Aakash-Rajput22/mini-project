@@ -11,6 +11,8 @@ function Leaderboard() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [leaders, setLeaders] = useState([]);
+  const [search, setSearch] = useState("");
+  const [planFilter, setPlanFilter] = useState("All");
   const [totalMatches, setTotalMatches] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -52,7 +54,8 @@ function Leaderboard() {
           matchesPlayed: matchCounts[u.uid] || 0,
         }))
         .filter((u) => u.points > 0 || u.matchesPlayed > 0)
-        .sort((a, b) => b.points - a.points);
+        .sort((a, b) => b.points - a.points)
+        .map((u, idx) => ({ ...u, rank: idx }));
 
       setLeaders(ranked);
     } catch (err) {
@@ -194,18 +197,50 @@ function Leaderboard() {
               <Link to="/matches" className="db-section-card-link">Play a match to earn points</Link>
             </div>
 
+            <div className="lb-filters">
+              <input
+                type="text"
+                className="lb-search"
+                placeholder="Search player by name..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <select
+                className="lb-plan-filter"
+                value={planFilter}
+                onChange={(e) => setPlanFilter(e.target.value)}
+              >
+                <option value="All">All plans</option>
+                <option value="Free">Free</option>
+                <option value="Silver">Silver</option>
+                <option value="Gold">Gold</option>
+              </select>
+            </div>
+
             {loading ? (
               <p className="lb-empty">Loading leaderboard...</p>
             ) : leaders.length === 0 ? (
               <p className="lb-empty">No ranked players yet. Join or host a match to appear on the leaderboard!</p>
             ) : (
-              <div className="lb-list">
-                {leaders.map((p, idx) => {
-                  const badge = rankBadge(idx);
-                  const isMe = p.uid === currentUser?.uid;
-                  return (
-                    <div key={p.uid} className={"lb-row " + (isMe ? "lb-row--me" : "")}>
-                      <div className={"lb-rank " + badge.cls}>{badge.label}</div>
+              (() => {
+                const filteredLeaders = leaders.filter((p) => {
+                  const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
+                  const matchesPlan = planFilter === "All" || p.plan === planFilter;
+                  return matchesSearch && matchesPlan;
+                });
+
+                if (filteredLeaders.length === 0) {
+                  return <p className="lb-empty">No players match this filter.</p>;
+                }
+
+                return (
+                  <div className="lb-list">
+                    {filteredLeaders.map((p) => {
+                      const badge = rankBadge(p.rank);
+                      const isMe = p.uid === currentUser?.uid;
+                      return (
+                        <div key={p.uid} className={"lb-row " + (isMe ? "lb-row--me" : "")}>
+                          <div className={"lb-rank " + badge.cls}>{badge.label}</div>
                       <div className="lb-avatar">{p.name.charAt(0).toUpperCase()}</div>
                       <div className="lb-player">
                         <Link to={`/players/${p.uid}`} className="lb-player-name">
@@ -226,7 +261,9 @@ function Leaderboard() {
                     </div>
                   );
                 })}
-              </div>
+                  </div>
+                );
+              })()
             )}
           </div>
 
