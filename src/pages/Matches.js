@@ -15,6 +15,7 @@ import {
   increment,
 } from "firebase/firestore";
 import { db, auth } from "../firebase/firebase";
+import { checkAndDowngradeIfExpired } from "../utils/planExpiry";
 import "../styles/matches.css";
 
 const SPORTS = [
@@ -98,6 +99,7 @@ function Matches() {
   useEffect(() => {
     fetchMatches();
     loadBlockedUsers();
+    if (auth.currentUser) checkAndDowngradeIfExpired(auth.currentUser.uid);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -133,7 +135,7 @@ function Matches() {
 
   const handleUseMyLocation = () => {
     if (!navigator.geolocation) {
-      setLocationError("Location not detected in this browser.");
+      setLocationError("Location detect nahi ho sakti is browser mein.");
       return;
     }
     setLocationError("");
@@ -146,7 +148,7 @@ function Matches() {
       },
       (err) => {
         console.error("Geolocation error:", err);
-        setLocationError("Location access is not allowed.check browser settings.");
+        setLocationError("Location access allow nahi hui. Browser settings check karo.");
         setLocatingUser(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -170,24 +172,24 @@ function Matches() {
       return;
     }
     if (title.trim().length < 5) {
-      setError("write match tittle in detail.");
+      setError("Match ka title thoda detail mein likho.");
       return;
     }
     if (venue === "Other (not listed)" && !customVenue.trim()) {
-      setError("write a name for the venue.");
+      setError("Ground/venue ka naam daalo.");
       return;
     }
     if (!matchDate || !matchTime) {
-      setError("Date aur time must be selected.");
+      setError("Date aur time dono select karo.");
       return;
     }
     const dateTimeObj = new Date(`${matchDate}T${matchTime}`);
     if (dateTimeObj <= new Date()) {
-      setError("Match time must be in future.");
+      setError("Match ka time future mein hona chahiye.");
       return;
     }
     if (maxPlayers < 2) {
-      setError("minimum 2 players required.");
+      setError("Kam se kam 2 players chahiye.");
       return;
     }
 
@@ -215,7 +217,7 @@ function Matches() {
       const organizeLimit = ORGANIZE_LIMITS[userPlan] ?? ORGANIZE_LIMITS.Free;
 
       if (organizesThisMonth >= organizeLimit) {
-        setError(`this month match organize limit reached (${organizeLimit})  upgrade plan and try again.`);
+        setError(`Is mahine ka match-organize limit (${organizeLimit}) khatam ho gaya. Plan upgrade karo ya agle mahine try karo.`);
         setPosting(false);
         return;
       }
@@ -275,7 +277,7 @@ function Matches() {
       fetchMatches();
     } catch (err) {
       console.error("Error creating match:", err);
-      setError("Match not created .try again");
+      setError("Match create nahi ho paya. Dobara try karo.");
     }
     setPosting(false);
   };
@@ -335,7 +337,7 @@ function Matches() {
           {error && <div className="form-error">{error}</div>}
           <input
             type="text"
-            placeholder="Match title(e.g. Sunday Morning Cricket)"
+            placeholder="Match ka title (e.g. Sunday Morning Cricket)"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={100}
@@ -448,9 +450,9 @@ function Matches() {
         <div className="loading-text">Loading matches...</div>
       ) : filteredMatches.length === 0 ? (
         <div className="empty-text">
-          <p>NO matches found.</p>
+          <p>Koi match nahi mila.</p>
           <button className="link-btn" onClick={openCreateForm}>
-            create match→
+            Pehla match tum create karo →
           </button>
         </div>
       ) : (

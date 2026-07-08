@@ -15,6 +15,7 @@ import {
   addDoc,
 } from "firebase/firestore";
 import { db, auth } from "../firebase/firebase";
+import { checkAndDowngradeIfExpired } from "../utils/planExpiry";
 import "../styles/matches.css";
 
 const BACKEND_URL = "https://mini-project-backend-4kid.onrender.com";
@@ -101,6 +102,7 @@ function MatchDetail() {
     const loadPlan = async () => {
       if (!currentUid) return;
       try {
+        await checkAndDowngradeIfExpired(currentUid);
         const snap = await getDoc(doc(db, "users", currentUid));
         if (snap.exists()) {
           if (snap.data().plan) setCurrentUserPlan(snap.data().plan);
@@ -201,7 +203,7 @@ function MatchDetail() {
       const joinsThisMonth = usage?.month === monthKey ? (usage.joinsThisMonth || 0) : 0;
       const joinLimit = JOIN_LIMITS[userPlan] ?? JOIN_LIMITS.Free;
       if (joinsThisMonth >= joinLimit) {
-        setError(`join limit reached  (${joinLimit}) for this month. upgrade plan and try again.`);
+        setError(`Is mahine ka join limit (${joinLimit}) khatam ho gaya. Plan upgrade karo ya agle mahine try karo.`);
         setBusy(false);
         return;
       }
@@ -244,7 +246,7 @@ function MatchDetail() {
               }
             } catch (e) {
               console.error("Error finalizing paid join request:", e);
-              setError("something went wrong. try again.");
+              setError("Kuch gadbad hui. Dobara try karo.");
             }
             setBusy(false);
           },
@@ -263,7 +265,7 @@ function MatchDetail() {
       setSelectedRole("");
     } catch (err) {
       console.error("Error sending join request:", err);
-      setError("Request not sent. TRY AGAIN.");
+      setError("Request nahi bheji ja saki. Dobara try karo.");
     }
     setBusy(false);
   };
@@ -309,7 +311,7 @@ function MatchDetail() {
       }
     } catch (err) {
       console.error("Error approving request:", err);
-      setError("Not approved. TRY AGAIN.");
+      setError("Approve nahi ho paya. Dobara try karo.");
     }
     setBusy(false);
   };
@@ -336,7 +338,7 @@ function MatchDetail() {
   const handleLeave = async () => {
     if (!currentUid || !match) return;
     if (currentUid === match.createdBy) {
-      setError("Match organizer does not left the match. for cancel match call admin.");
+      setError("Match organizer match nahi chhod sakta. Match cancel karne ke liye admin se baat karo.");
       return;
     }
 
@@ -375,7 +377,7 @@ function MatchDetail() {
 
   const handleSubmitReport = async (uid, name) => {
     if (!currentUid || !reportReason.trim()) {
-      setError("Please provide a reason for the report.");
+      setError("Report ki wajah likho.");
       return;
     }
     setBusy(true);
@@ -396,7 +398,7 @@ function MatchDetail() {
       alert("Report submitted. Our team will review it.");
     } catch (err) {
       console.error("Error submitting report:", err);
-      setError("Report not submitted. TRY AGAIN.");
+      setError("Report submit nahi hua. Dobara try karo.");
     }
     setBusy(false);
   };
@@ -417,7 +419,7 @@ function MatchDetail() {
       });
     } catch (err) {
       console.error("Error marking no-show:", err);
-      setError("No-show mark not applied. TRY AGAIN.");
+      setError("No-show mark nahi hua. Dobara try karo.");
     }
     setBusy(false);
   };
@@ -446,7 +448,7 @@ function MatchDetail() {
       setRatingTargetUid(null);
     } catch (err) {
       console.error("Error submitting rating:", err);
-      setError("Rating not submitted. TRY AGAIN.");
+      setError("Rating submit nahi hui. Dobara try karo.");
     }
     setBusy(false);
   };
@@ -486,7 +488,7 @@ function MatchDetail() {
       setShowScorecardForm(false);
     } catch (err) {
       console.error("Error saving scorecard:", err);
-      setError("Scorecard not saved. TRY AGAIN.");
+      setError("Scorecard save nahi hua. Dobara try karo.");
     }
     setBusy(false);
   };

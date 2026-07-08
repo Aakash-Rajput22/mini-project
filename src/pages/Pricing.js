@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
 import { doc, setDoc, getDoc, Timestamp, collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { checkAndDowngradeIfExpired } from "../utils/planExpiry";
 import "../styles/dashboard.css";
 import "../styles/equipment.css";
 
@@ -32,6 +33,7 @@ function Pricing() {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) return;
       try {
+        await checkAndDowngradeIfExpired(user.uid);
         const snap = await getDoc(doc(db, "users", user.uid));
         if (snap.exists() && snap.data().plan) setCurrentPlan(snap.data().plan);
       } catch (e) {
