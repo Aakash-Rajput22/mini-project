@@ -174,6 +174,7 @@ function Admin() {
       <div className="db-main">
         <header className="db-topbar">
           <div>
+            <button className="db-back-btn" onClick={() => navigate(-1)}>← Back</button>
             <h1 className="db-page-title">Admin panel</h1>
             <p className="db-page-sub">{filteredUsers.length} user{filteredUsers.length !== 1 ? "s" : ""} found</p>
           </div>

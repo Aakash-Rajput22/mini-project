@@ -78,7 +78,7 @@ function Teams() {
       return;
     }
     if (name.trim().length < 3) {
-      setError("Team name must be at least 3 characters long.");
+      setError("Team ka naam thoda detail mein likho.");
       return;
     }
 
@@ -112,7 +112,7 @@ function Teams() {
       fetchMyTeams();
     } catch (err) {
       console.error("Error creating team:", err);
-      setError("Team creation failed. Try again.");
+      setError("Team create nahi hui. Dobara try karo.");
     }
     setPosting(false);
   };
@@ -133,14 +133,14 @@ function Teams() {
         query(collection(db, "teams"), where("inviteCode", "==", joinCode.trim().toUpperCase()))
       );
       if (snap.empty) {
-        setError("This invite code is not valid.");
+        setError("Ye invite code kisi team se match nahi karta.");
         setJoining(false);
         return;
       }
       const teamDoc = snap.docs[0];
       const uid = auth.currentUser.uid;
       if (teamDoc.data().members.includes(uid)) {
-        setError("you are already a member of this team.");
+        setError("Aap already is team ke member ho.");
         setJoining(false);
         return;
       }
@@ -162,7 +162,7 @@ function Teams() {
       navigate(`/teams/${teamDoc.id}`);
     } catch (err) {
       console.error("Error joining team:", err);
-      setError("not able to join team. Try again.");
+      setError("Join nahi ho paya. Dobara try karo.");
     }
     setJoining(false);
   };
@@ -182,6 +182,7 @@ function Teams() {
 
   return (
     <div className="matches-page">
+      <button className="back-btn" onClick={() => navigate(-1)}>&larr; Back</button>
       <div className="matches-header">
         <h1>My Teams</h1>
         <button className="create-btn" onClick={openCreateForm}>
@@ -239,9 +240,9 @@ function Teams() {
         <div className="loading-text">Loading teams...</div>
       ) : myTeams.length === 0 ? (
         <div className="empty-text">
-          <p>you are not a member of any team.</p>
+          <p>Aap abhi kisi team ke member nahi ho.</p>
           <button className="link-btn" onClick={openCreateForm}>
-            create your first team →
+            Apni pehli team banao →
           </button>
         </div>
       ) : (

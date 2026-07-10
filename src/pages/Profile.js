@@ -377,6 +377,7 @@ function Profile() {
       <div className="db-main">
         <header className="db-topbar">
           <div>
+            <button className="db-back-btn" onClick={() => navigate(-1)}>← Back</button>
             <h1 className="db-page-title">Profile</h1>
             <p className="db-page-sub">Manage your personal information</p>
           </div>
@@ -510,28 +511,30 @@ function Profile() {
                   />
                 </div>
 
-                <div className="pf-form-group pf-full-width" style={{ position: "relative" }}>
+                <div className="pf-form-group pf-full-width">
                   <label className="pf-label">Address</label>
-                  <input
-                    className="pf-input"
-                    type="text"
-                    placeholder="Start typing your address..."
-                    value={address}
-                    onChange={handleAddressChange}
-                    autoComplete="off"
-                  />
-                  {addressSuggestions.length > 0 && (
-                    <ul className="pf-suggestions">
-                      {addressSuggestions.map((s) => (
-                        <li
-                          key={s.place_id}
-                          onClick={() => handleSelectSuggestion(s)}
-                        >
-                          {s.display_name}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  <div className="pf-input-wrap">
+                    <input
+                      className="pf-input"
+                      type="text"
+                      placeholder="Start typing your address..."
+                      value={address}
+                      onChange={handleAddressChange}
+                      autoComplete="off"
+                    />
+                    {addressSuggestions.length > 0 && (
+                      <ul className="pf-suggestions">
+                        {addressSuggestions.map((s) => (
+                          <li
+                            key={s.place_id}
+                            onClick={() => handleSelectSuggestion(s)}
+                          >
+                            {s.display_name}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                   <button
                     type="button"
                     className="pf-location-btn"

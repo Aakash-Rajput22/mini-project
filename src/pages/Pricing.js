@@ -214,6 +214,7 @@ function Pricing() {
       <div className="db-main">
         <header className="db-topbar">
           <div>
+            <button className="db-back-btn" onClick={() => navigate(-1)}>← Back</button>
             <h1 className="db-page-title">Pricing plans</h1>
             <p className="db-page-sub">Pay once, play for exactly as long as you need</p>
           </div>
@@ -238,9 +239,9 @@ function Pricing() {
               <button
                 className="pr-btn"
                 onClick={() => handlePlanSelect("Free")}
-                disabled={loading === "Free"}
+                disabled={loading === "Free" || currentPlan === "Free"}
               >
-                {loading === "Free" ? "Activating..." : "Get started free"}
+                {currentPlan === "Free" ? "Current plan" : loading === "Free" ? "Activating..." : "Get started free"}
               </button>
             </div>
 
@@ -260,9 +261,9 @@ function Pricing() {
               <button
                 className="pr-btn pr-btn--primary"
                 onClick={() => handlePlanSelect("Silver")}
-                disabled={loading === "Silver"}
+                disabled={loading === "Silver" || currentPlan === "Silver"}
               >
-                {loading === "Silver" ? "Processing..." : "Choose Silver"}
+                {currentPlan === "Silver" ? "Current plan" : loading === "Silver" ? "Processing..." : "Choose Silver"}
               </button>
             </div>
 
@@ -284,9 +285,9 @@ function Pricing() {
               <button
                 className="pr-btn pr-btn--gold"
                 onClick={() => handlePlanSelect("Gold")}
-                disabled={loading === "Gold"}
+                disabled={loading === "Gold" || currentPlan === "Gold"}
               >
-                {loading === "Gold" ? "Processing..." : "Choose Gold"}
+                {currentPlan === "Gold" ? "Current plan" : loading === "Gold" ? "Processing..." : "Choose Gold"}
               </button>
             </div>
 

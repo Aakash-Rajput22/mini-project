@@ -33,6 +33,9 @@ const PLAN_MULTIPLIER = { Free: 1, Silver: 2, Gold: 5 };
 const BASE_POINTS = 10;
 const ORGANIZE_LIMITS = { Free: 1, Silver: 2, Gold: 10 };
 
+// Verified venues — picking from this list avoids typos and keeps
+// listings trustworthy. "Other" lets a host add a venue not yet verified
+// (it won't have coordinates, so it's excluded from "near me" search).
 const VERIFIED_VENUES = [
   { name: "Church Street Ground, MG Road", lat: 12.9750, lng: 77.6050 },
   { name: "Turf Arena, Koramangala", lat: 12.9352, lng: 77.6245 },
@@ -45,6 +48,7 @@ const VERIFIED_VENUES = [
   { name: "Other (not listed)", lat: null, lng: null },
 ];
 
+// Great-circle distance between two lat/lng points, in kilometers.
 const distanceKm = (lat1, lng1, lat2, lng2) => {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -133,7 +137,7 @@ function Matches() {
 
   const handleUseMyLocation = () => {
     if (!navigator.geolocation) {
-      setLocationError("Location not available in this browser.");
+      setLocationError("Location detect nahi ho sakti is browser mein.");
       return;
     }
     setLocationError("");
@@ -146,7 +150,7 @@ function Matches() {
       },
       (err) => {
         console.error("Geolocation error:", err);
-        setLocationError("Location access not allowed. Please check your browser settings.");
+        setLocationError("Location access allow nahi hui. Browser settings check karo.");
         setLocatingUser(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -170,7 +174,7 @@ function Matches() {
       return;
     }
     if (title.trim().length < 5) {
-      setError("Title must be at least 5 characters long.");
+      setError("Match ka title thoda detail mein likho.");
       return;
     }
     if (venue === "Other (not listed)" && !customVenue.trim()) {
@@ -178,16 +182,16 @@ function Matches() {
       return;
     }
     if (!matchDate || !matchTime) {
-      setError("both date and time are required.");
+      setError("Date aur time dono select karo.");
       return;
     }
     const dateTimeObj = new Date(`${matchDate}T${matchTime}`);
     if (dateTimeObj <= new Date()) {
-      setError("Match date and time must be in future.");
+      setError("Match ka time future mein hona chahiye.");
       return;
     }
     if (maxPlayers < 2) {
-      setError("At least 2 players are required.");
+      setError("Kam se kam 2 players chahiye.");
       return;
     }
 
@@ -215,7 +219,7 @@ function Matches() {
       const organizeLimit = ORGANIZE_LIMITS[userPlan] ?? ORGANIZE_LIMITS.Free;
 
       if (organizesThisMonth >= organizeLimit) {
-        setError(`organize limit reached for this month (${organizeLimit}) . please upgrade your plan or try again next month.`);
+        setError(`Is mahine ka match-organize limit (${organizeLimit}) khatam ho gaya. Plan upgrade karo ya agle mahine try karo.`);
         setPosting(false);
         return;
       }
@@ -275,7 +279,7 @@ function Matches() {
       fetchMatches();
     } catch (err) {
       console.error("Error creating match:", err);
-      setError("Match create failed. Please try again.");
+      setError("Match create nahi ho paya. Dobara try karo.");
     }
     setPosting(false);
   };
@@ -344,6 +348,7 @@ function Matches() {
 
   return (
     <div className="matches-page">
+      <button className="back-btn" onClick={() => navigate(-1)}>&larr; Back</button>
       <div className="matches-header">
         <h1>Knowora Matches</h1>
         <button className="create-btn" onClick={openCreateForm}>
@@ -356,7 +361,7 @@ function Matches() {
           {error && <div className="form-error">{error}</div>}
           <input
             type="text"
-            placeholder="Match tittle (e.g. Sunday Morning Cricket)"
+            placeholder="Match ka title (e.g. Sunday Morning Cricket)"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={100}
@@ -479,9 +484,9 @@ function Matches() {
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
           >
-            <option value="soonest"> Soonest</option>
-            <option value="mostSpots"> Most spots open</option>
-            {userLocation && <option value="nearest"> Nearest</option>}
+            <option value="soonest">Sort: Soonest</option>
+            <option value="mostSpots">Sort: Most spots open</option>
+            {userLocation && <option value="nearest">Sort: Nearest</option>}
           </select>
         </div>
       </div>
@@ -490,9 +495,9 @@ function Matches() {
         <div className="loading-text">Loading matches...</div>
       ) : filteredMatches.length === 0 ? (
         <div className="empty-text">
-          <p>No matches found.</p>
+          <p>Koi match nahi mila.</p>
           <button className="link-btn" onClick={openCreateForm}>
-            Create Match →
+            Pehla match tum create karo →
           </button>
         </div>
       ) : (

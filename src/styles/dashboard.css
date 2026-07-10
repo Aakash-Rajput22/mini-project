@@ -121,6 +121,19 @@ body {
 }
 
 .db-page-title { font-size: 19px; font-weight: 700; color: #0f172a; }
+
+.db-back-btn {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 8px;
+  display: block;
+}
+.db-back-btn:hover { color: #2563eb; text-decoration: underline; }
 .db-page-sub   { font-size: 12px; color: #9ca3af; margin-top: 2px; }
 .db-topbar-right { display: flex; align-items: center; gap: 12px; }
 

@@ -192,12 +192,20 @@
 .pf-location-btn:hover:not(:disabled) { background: #dbeafe; }
 .pf-location-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
+/* Address input + its autocomplete dropdown share this positioning
+   context, kept separate from the location button below so the dropdown
+   never overlaps it. */
+.pf-input-wrap {
+  position: relative;
+}
+
 /* Address autocomplete suggestions (OpenStreetMap/Nominatim) */
 .pf-suggestions {
   position: absolute;
-  top: 62px;
+  top: 100%;
   left: 0;
   right: 0;
+  margin-top: 4px;
   z-index: 20;
   background: #ffffff;
   border: 1px solid #e2e8f0;
