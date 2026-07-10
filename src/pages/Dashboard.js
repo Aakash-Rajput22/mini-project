@@ -19,6 +19,7 @@ function Dashboard() {
     createdCount: 0,
     upcomingCount: 0,
   });
+  const [reminderMatches, setReminderMatches] = useState([]);
   const [upcomingMatches, setUpcomingMatches] = useState([]);
   const [sportStats, setSportStats] = useState([]);
   const [statsLoading, setStatsLoading] = useState(true);
@@ -84,8 +85,23 @@ function Dashboard() {
           createdCount: createdSnap.size,
           upcomingCount: upcomingJoined.length,
         });
+
+        // Reminders — joined matches starting within the next 24 hours.
+        const next24h = new Date(now.getTime() + 24 * 3600000);
+        const soon = upcomingJoined
+          .filter((m) => {
+            const d = m.date?.toDate ? m.date.toDate() : new Date(m.date);
+            return d <= next24h;
+          })
+          .sort((a, b) => {
+            const da = a.date?.toDate ? a.date.toDate() : new Date(a.date);
+            const dbb = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+            return da - dbb;
+          });
+        setReminderMatches(soon);
       } else {
         setMyMatchStats({ joinedCount: 0, createdCount: 0, upcomingCount: 0 });
+        setReminderMatches([]);
       }
     } catch (err) {
       console.error("Error fetching match stats:", err);
@@ -289,6 +305,31 @@ function Dashboard() {
         </header>
 
         <div className="db-body">
+
+          {/* MATCH REMINDERS */}
+          {!isGuest && reminderMatches.length > 0 && (
+            <div className="db-section-card" style={{ borderColor: "#fde68a", background: "#fffbeb" }}>
+              <div className="db-section-card-header" style={{ borderBottom: "1px solid #fde68a" }}>
+                <span className="db-section-card-title">⏰ Coming up in the next 24 hours</span>
+              </div>
+              <div className="db-actions-list">
+                {reminderMatches.map((m) => (
+                  <Link to={`/matches/${m.id}`} className="db-action-row" key={m.id}>
+                    <div className="db-action-ico db-ico--amber">
+                      <i className="ti ti-alarm" aria-hidden="true"></i>
+                    </div>
+                    <div className="db-action-body">
+                      <div className="db-action-name">{sportIcon(m.sport)} {m.title}</div>
+                      <div className="db-action-desc">
+                        {m.venue} · {formatMatchDate(m.date)}
+                      </div>
+                    </div>
+                    <i className="ti ti-chevron-right db-action-arrow" aria-hidden="true"></i>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* GUEST BANNER */}
           {isGuest && (

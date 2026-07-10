@@ -226,6 +226,45 @@
   border-radius: 12px;
 }
 
+/* Referrals */
+.pf-referral-box {
+  width: 100%;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 8px;
+  padding-top: 14px;
+}
+
+.pf-referral-code-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pf-referral-code {
+  font-family: "Courier New", monospace;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #0f172a;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 12px;
+}
+
+.pf-referral-redeem {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.pf-referral-redeem .pf-input { flex: 1; }
+
+.pf-referral-msg {
+  font-size: 12px;
+  color: #10b981;
+  margin-top: 8px;
+}
+
 .pf-form-actions {
   display: flex;
   align-items: center;

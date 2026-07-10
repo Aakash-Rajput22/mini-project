@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, increment, collection, query, where, getDocs } from "firebase/firestore";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import "../styles/dashboard.css";
@@ -27,6 +27,11 @@ function Profile() {
   const [uploadProgress, setUploadProgress] = useState("");
   const [locatingAddress, setLocatingAddress] = useState(false);
   const [addressSuggestions, setAddressSuggestions] = useState([]);
+  const [referralCode, setReferralCode] = useState("");
+  const [referredBy, setReferredBy] = useState("");
+  const [referralInput, setReferralInput] = useState("");
+  const [referralBusy, setReferralBusy] = useState(false);
+  const [referralMsg, setReferralMsg] = useState("");
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -43,12 +48,27 @@ function Profile() {
         setBio(data.bio || "");
         setName(data.name || user.displayName || "");
         setPhotoURL(data.photoURL || user.photoURL || "");
+        setReferredBy(data.referredBy || "");
         if (data.role === "admin") setIsAdmin(true);
+
+        if (data.referralCode) {
+          setReferralCode(data.referralCode);
+        } else {
+          const newCode = (user.uid.slice(0, 4) + Math.random().toString(36).slice(2, 6)).toUpperCase();
+          setReferralCode(newCode);
+          try {
+            await setDoc(ref, { referralCode: newCode }, { merge: true });
+          } catch (e) {
+            console.error("Error saving referral code:", e);
+          }
+        }
       }
     });
     return () => unsub();
   }, [navigate]);
 
+  // Free address search using OpenStreetMap's Nominatim — no API key or
+  // billing needed, unlike Google Places Autocomplete.
   const handleAddressChange = (e) => {
     const value = e.target.value;
     setAddress(value);
@@ -98,11 +118,15 @@ function Profile() {
     return data.secure_url;
   };
 
+  // Photo now uploads AND saves to Firestore immediately on selection —
+  // it no longer waits for the "Save profile" button, which was the bug:
+  // selecting a photo only showed a local preview until Save was clicked,
+  // so an unsaved preview would revert on refresh.
   const handlePhotoChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      alert("Choose a smaller file.");
+      alert("File size 2MB se zyada hai. Chhoti file choose karo.");
       e.target.value = "";
       return;
     }
@@ -130,7 +154,7 @@ function Profile() {
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
       console.error("Error uploading photo:", error);
-      alert("Photo upload/save failed: " + error.message);
+      alert("Photo upload/save nahi hui: " + error.message);
       setPhotoURL(previousPhotoURL);
       URL.revokeObjectURL(previewUrl);
     }
@@ -140,7 +164,7 @@ function Profile() {
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("Location detection is not supported in this browser.");
+      alert("Location detect nahi ho sakti is browser mein.");
       return;
     }
     setLocatingAddress(true);
@@ -157,18 +181,18 @@ function Profile() {
             setAddress(data.display_name);
             setAddressSuggestions([]);
           } else {
-            alert("Address not found. Please type manually.");
+            alert("Address nahi mil paya. Manually type karo.");
           }
         } catch (err) {
           console.error("Reverse geocoding error:", err);
-          alert("Failed to fetch address. Please type manually.");
+          alert("Address fetch nahi ho paya. Manually type karo.");
         }
         setLocatingAddress(false);
       },
       (err) => {
         console.error("Geolocation error:", err);
         setLocatingAddress(false);
-        alert("Location access are not allowed. check your browser settings.");
+        alert("Location access allow nahi hui. Browser settings check karo.");
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -179,6 +203,8 @@ function Profile() {
     navigate("/login");
   };
 
+  // Fetches a remote image (Cloudinary URL) and converts it to a data URL
+  // so jsPDF can embed it — jsPDF cannot use a plain remote URL directly.
   const loadImageAsDataURL = (url) => {
     return new Promise((resolve, reject) => {
       fetch(url)
@@ -247,6 +273,50 @@ function Profile() {
       alert(error.message);
     }
     setLoading(false);
+  };
+
+  const handleRedeemReferralCode = async () => {
+    if (!currentUser) return;
+    const code = referralInput.trim().toUpperCase();
+    if (!code) {
+      setReferralMsg("Referral code daalo.");
+      return;
+    }
+    if (code === referralCode) {
+      setReferralMsg("Aap apna khud ka code use nahi kar sakte.");
+      return;
+    }
+
+    setReferralBusy(true);
+    setReferralMsg("");
+    try {
+      const snap = await getDocs(
+        query(collection(db, "users"), where("referralCode", "==", code))
+      );
+      if (snap.empty) {
+        setReferralMsg("Ye referral code kisi se match nahi karta.");
+        setReferralBusy(false);
+        return;
+      }
+      const referrerDoc = snap.docs[0];
+      const REFERRAL_BONUS = 20;
+
+      await updateDoc(doc(db, "users", currentUser.uid), {
+        referredBy: referrerDoc.id,
+        points: increment(REFERRAL_BONUS),
+      });
+      await updateDoc(doc(db, "users", referrerDoc.id), {
+        points: increment(REFERRAL_BONUS),
+      });
+
+      setReferredBy(referrerDoc.id);
+      setReferralInput("");
+      setReferralMsg(`Code applied! Aapko aur ${referrerDoc.data().name || "your friend"} dono ko ${REFERRAL_BONUS} points mile.`);
+    } catch (err) {
+      console.error("Error redeeming referral code:", err);
+      setReferralMsg("Code apply nahi hua. Dobara try karo.");
+    }
+    setReferralBusy(false);
   };
 
   return (
@@ -357,6 +427,48 @@ function Profile() {
                   <span className="pf-info-label">Account role</span>
                   <span className="pf-info-val">{isAdmin ? "Admin" : "User"}</span>
                 </div>
+              </div>
+
+              {/* REFERRALS */}
+              <div className="pf-referral-box">
+                <p className="pf-label" style={{ marginBottom: "6px" }}>Your referral code</p>
+                <div className="pf-referral-code-row">
+                  <span className="pf-referral-code">{referralCode}</span>
+                  <button
+                    type="button"
+                    className="pf-location-btn"
+                    onClick={() => {
+                      navigator.clipboard.writeText(referralCode);
+                      setReferralMsg("Code copied!");
+                      setTimeout(() => setReferralMsg(""), 2000);
+                    }}
+                  >
+                    Copy
+                  </button>
+                </div>
+                <p className="pf-upload-hint">Share this — you both get 20 points when a friend uses it.</p>
+
+                {!referredBy && (
+                  <div className="pf-referral-redeem">
+                    <input
+                      type="text"
+                      className="pf-input"
+                      placeholder="Enter a friend's code"
+                      value={referralInput}
+                      onChange={(e) => setReferralInput(e.target.value.toUpperCase())}
+                      maxLength={10}
+                    />
+                    <button
+                      type="button"
+                      className="pf-location-btn"
+                      onClick={handleRedeemReferralCode}
+                      disabled={referralBusy}
+                    >
+                      {referralBusy ? "Applying..." : "Apply"}
+                    </button>
+                  </div>
+                )}
+                {referralMsg && <p className="pf-referral-msg">{referralMsg}</p>}
               </div>
             </div>
 

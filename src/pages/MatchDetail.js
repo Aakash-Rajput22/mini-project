@@ -13,6 +13,11 @@ import {
   serverTimestamp,
   collection,
   addDoc,
+  query,
+  where,
+  orderBy,
+  getDocs,
+  limit,
 } from "firebase/firestore";
 import { db, auth } from "../firebase/firebase";
 import { checkAndDowngradeIfExpired } from "../utils/planExpiry";
@@ -74,9 +79,20 @@ function MatchDetail() {
   const [reportReason, setReportReason] = useState("");
   const [ratingTargetUid, setRatingTargetUid] = useState(null);
 
+  // Team-match join flow (captain sends one request covering their whole team)
+  const [myCaptainTeams, setMyCaptainTeams] = useState([]);
+  const [showTeamJoinSelect, setShowTeamJoinSelect] = useState(false);
+  const [selectedJoinTeamId, setSelectedJoinTeamId] = useState("");
+
+  // In-app match chat
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatText, setChatText] = useState("");
+  const [chatSending, setChatSending] = useState(false);
+
   const currentUid = auth.currentUser?.uid;
 
-  
+  // Live listener — the match page (players, requests, scoreboard) updates
+  // for everyone in real time without needing a manual refresh.
   useEffect(() => {
     setLoading(true);
     const unsub = onSnapshot(
@@ -108,11 +124,40 @@ function MatchDetail() {
           if (Array.isArray(snap.data().blockedUsers)) setBlockedUsers(snap.data().blockedUsers);
         }
       } catch (e) {
-        
+        // fallback stays Free
       }
     };
     loadPlan();
   }, [currentUid]);
+
+  // Teams the current user captains — used to offer "Join as my team".
+  useEffect(() => {
+    const loadCaptainTeams = async () => {
+      if (!currentUid) return;
+      try {
+        const snap = await getDocs(
+          query(collection(db, "teams"), where("createdBy", "==", currentUid))
+        );
+        setMyCaptainTeams(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      } catch (e) {
+        console.error("Error loading captain teams:", e);
+      }
+    };
+    loadCaptainTeams();
+  }, [currentUid]);
+
+  // Live match chat — only rendered/usable for joined players, but the
+  // listener is safe to set up once currentUid exists (rules gate access).
+  useEffect(() => {
+    if (!currentUid) return;
+    const q = query(collection(db, "matches", id, "messages"), orderBy("createdAt", "asc"), limit(100));
+    const unsub = onSnapshot(
+      q,
+      (snap) => setChatMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      (err) => console.error("Error listening to chat:", err)
+    );
+    return () => unsub();
+  }, [id, currentUid]);
 
   const sportIcon = (s) => {
     const icons = {
@@ -139,7 +184,7 @@ function MatchDetail() {
     });
   };
 
-  
+  /* ─────────────── JOIN REQUEST FLOW ─────────────── */
 
   const finalizeJoinRequest = async (userName, userPlan, usage) => {
     const monthKey = getCurrentMonthKey();
@@ -171,12 +216,12 @@ function MatchDetail() {
       return;
     }
     if (!selectedRole) {
-      setError("Please select your role first.");
+      setError("Pehle apna role select karo.");
       return;
     }
     if (!match) return;
     if ((match.joinedPlayers?.length || 0) >= match.maxPlayers) {
-      setError("This match is already full.");
+      setError("Yeh match already full hai.");
       return;
     }
 
@@ -202,13 +247,13 @@ function MatchDetail() {
       const joinsThisMonth = usage?.month === monthKey ? (usage.joinsThisMonth || 0) : 0;
       const joinLimit = JOIN_LIMITS[userPlan] ?? JOIN_LIMITS.Free;
       if (joinsThisMonth >= joinLimit) {
-        setError(`This month join limit reached (${joinLimit}). Please upgrade your plan.`);
+        setError(`Is mahine ka join limit (${joinLimit}) khatam ho gaya. Plan upgrade karo ya agle mahine try karo.`);
         setBusy(false);
         return;
       }
 
       if (match.costPerPlayer > 0) {
-        
+        // Paid match: charge before the join request is created.
         const res = await fetch(BACKEND_URL + "/create-order", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -241,11 +286,11 @@ function MatchDetail() {
                 setShowRoleSelect(false);
                 setSelectedRole("");
               } else {
-                setError("Payment verification failed. Request not submitted.");
+                setError("Payment verification failed. Request nahi bheji gayi.");
               }
             } catch (e) {
               console.error("Error finalizing paid join request:", e);
-              setError("Something went wrong. Please try again.");
+              setError("Kuch gadbad hui. Dobara try karo.");
             }
             setBusy(false);
           },
@@ -264,7 +309,7 @@ function MatchDetail() {
       setSelectedRole("");
     } catch (err) {
       console.error("Error sending join request:", err);
-      setError("Request not submitted. Please try again.");
+      setError("Request nahi bheji ja saki. Dobara try karo.");
     }
     setBusy(false);
   };
@@ -282,9 +327,174 @@ function MatchDetail() {
     setBusy(false);
   };
 
+  /* ─────────────── TEAM MATCH JOIN ─────────────── */
+  // The captain sends ONE request tagged with their team's member list.
+  // On approval, the organizer's write (which already has full rights)
+  // adds every team member to the match at once — no rule changes needed.
+
+  const finalizeTeamJoinRequest = async (team, userName, userPlan) => {
+    const teamMembers = (team.members || []).map((uid) => ({
+      uid,
+      name: team.memberNames?.[uid] || "Player",
+    }));
+
+    await updateDoc(doc(db, "matches", id), {
+      [`pendingRequests.${currentUid}`]: {
+        name: userName,
+        role: "Team Captain",
+        plan: userPlan,
+        isTeam: true,
+        teamId: team.id,
+        teamName: team.name,
+        teamMembers,
+        requestedAt: serverTimestamp(),
+      },
+      [`requestHistory.${currentUid}`]: deleteField(),
+    });
+
+    setShowTeamJoinSelect(false);
+    setSelectedJoinTeamId("");
+  };
+
+  const handleRequestJoinAsTeam = async () => {
+    if (!currentUid || !selectedJoinTeamId) {
+      setError("Pehle team select karo.");
+      return;
+    }
+    const team = myCaptainTeams.find((t) => t.id === selectedJoinTeamId);
+    if (!team) return;
+
+    const teamSize = team.members?.length || 0;
+    const spotsAvailable = match.maxPlayers - (match.joinedPlayers?.length || 0);
+    if (teamSize > spotsAvailable) {
+      setError(`Is match mein sirf ${spotsAvailable} spots bache hain, aapki team mein ${teamSize} members hain.`);
+      return;
+    }
+
+    setBusy(true);
+    setError("");
+    try {
+      let userName = auth.currentUser.displayName || "Anonymous";
+      let userPlan = "Free";
+      try {
+        const userDoc = await getDoc(doc(db, "users", currentUid));
+        if (userDoc.exists()) {
+          if (userDoc.data().name) userName = userDoc.data().name;
+          if (userDoc.data().plan) userPlan = userDoc.data().plan;
+        }
+      } catch (e) {
+        // fallback
+      }
+
+      const totalCost = (match.costPerPlayer || 0) * teamSize;
+
+      if (totalCost > 0) {
+        const res = await fetch(BACKEND_URL + "/create-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "match_join", matchId: id, amount: totalCost }),
+        });
+        const data = await res.json();
+        if (data.error) { setError(data.error); setBusy(false); return; }
+
+        const options = {
+          key: data.keyId,
+          amount: data.amount,
+          currency: data.currency,
+          name: "Knowora",
+          description: `Team join fee — ${team.name} (${teamSize} players) — ${match.title}`,
+          order_id: data.orderId,
+          handler: async (response) => {
+            try {
+              const vRes = await fetch(BACKEND_URL + "/verify-payment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  order_id: response.razorpay_order_id,
+                  payment_id: response.razorpay_payment_id,
+                  signature: response.razorpay_signature,
+                }),
+              });
+              const vData = await vRes.json();
+              if (vData.verified) {
+                await finalizeTeamJoinRequest(team, userName, userPlan);
+              } else {
+                setError("Payment verification failed. Team request nahi bheji gayi.");
+              }
+            } catch (e) {
+              console.error("Error finalizing team join:", e);
+              setError("Kuch gadbad hui. Dobara try karo.");
+            }
+            setBusy(false);
+          },
+          modal: { ondismiss: () => setBusy(false) },
+          prefill: { email: auth.currentUser.email },
+          theme: { color: "#3b82f6" },
+        };
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+        return;
+      }
+
+      await finalizeTeamJoinRequest(team, userName, userPlan);
+    } catch (err) {
+      console.error("Error sending team join request:", err);
+      setError("Team request nahi bheji ja saki. Dobara try karo.");
+    }
+    setBusy(false);
+  };
+
+  const handleApproveTeamRequest = async (uid) => {
+    const request = match.pendingRequests?.[uid];
+    if (!request || !request.isTeam) return;
+
+    setBusy(true);
+    setError("");
+    try {
+      const members = request.teamMembers || [];
+      const newJoinedCount = (match.joinedPlayers?.length || 0) + members.length;
+
+      const updatePayload = {
+        joinedPlayers: arrayUnion(...members.map((m) => m.uid)),
+        [`pendingRequests.${uid}`]: deleteField(),
+        [`requestHistory.${uid}`]: deleteField(),
+        status: newJoinedCount >= match.maxPlayers ? "full" : "open",
+      };
+      members.forEach((m) => {
+        updatePayload[`joinedPlayerNames.${m.uid}`] = m.name;
+        updatePayload[`joinedPlayerRoles.${m.uid}`] = `Team: ${request.teamName}`;
+      });
+
+      await updateDoc(doc(db, "matches", id), updatePayload);
+
+      // Award points to every team member, based on each member's own plan.
+      for (const m of members) {
+        try {
+          const memberSnap = await getDoc(doc(db, "users", m.uid));
+          const memberPlan = memberSnap.exists() ? memberSnap.data().plan || "Free" : "Free";
+          const multiplier = PLAN_MULTIPLIER[memberPlan] || 1;
+          await updateDoc(doc(db, "users", m.uid), {
+            points: increment(BASE_POINTS * multiplier),
+          });
+        } catch (e) {
+          console.error("Error awarding points to team member:", m.uid, e);
+        }
+      }
+    } catch (err) {
+      console.error("Error approving team request:", err);
+      setError("Team approve nahi ho paya. Dobara try karo.");
+    }
+    setBusy(false);
+  };
+
   const handleApprove = async (uid) => {
     const request = match.pendingRequests?.[uid];
     if (!request) return;
+
+    if (request.isTeam) {
+      await handleApproveTeamRequest(uid);
+      return;
+    }
 
     setBusy(true);
     setError("");
@@ -310,7 +520,7 @@ function MatchDetail() {
       }
     } catch (err) {
       console.error("Error approving request:", err);
-      setError("Approval failed. Please try again.");
+      setError("Approve nahi ho paya. Dobara try karo.");
     }
     setBusy(false);
   };
@@ -337,7 +547,7 @@ function MatchDetail() {
   const handleLeave = async () => {
     if (!currentUid || !match) return;
     if (currentUid === match.createdBy) {
-      setError("Match organizer cannot leave the match. Please contact admin to cancel the match.");
+      setError("Match organizer match nahi chhod sakta. Match cancel karne ke liye admin se baat karo.");
       return;
     }
 
@@ -357,7 +567,7 @@ function MatchDetail() {
     setBusy(false);
   };
 
-  
+  /* ─────────────── SAFETY: REPORT & BLOCK ─────────────── */
 
   const handleBlockPlayer = async (uid, name) => {
     if (!currentUid || uid === currentUid) return;
@@ -376,7 +586,7 @@ function MatchDetail() {
 
   const handleSubmitReport = async (uid, name) => {
     if (!currentUid || !reportReason.trim()) {
-      setError("Write reason of report.");
+      setError("Report ki wajah likho.");
       return;
     }
     setBusy(true);
@@ -397,12 +607,12 @@ function MatchDetail() {
       alert("Report submitted. Our team will review it.");
     } catch (err) {
       console.error("Error submitting report:", err);
-      setError("Report not submitted. Please try again.");
+      setError("Report submit nahi hua. Dobara try karo.");
     }
     setBusy(false);
   };
 
-
+  /* ─────────────── SAFETY: NO-SHOW TRACKING ─────────────── */
 
   const handleMarkNoShow = async (uid) => {
     if (!isCreatorCheck() || !match) return;
@@ -418,7 +628,7 @@ function MatchDetail() {
       });
     } catch (err) {
       console.error("Error marking no-show:", err);
-      setError("No-show mark not applied. Please try again.");
+      setError("No-show mark nahi hua. Dobara try karo.");
     }
     setBusy(false);
   };
@@ -427,7 +637,37 @@ function MatchDetail() {
     return currentUid === match?.createdBy;
   }
 
+  /* ─────────────── MATCH CHAT ─────────────── */
 
+  const handleSendChatMessage = async (e) => {
+    e.preventDefault();
+    if (!currentUid || !chatText.trim()) return;
+
+    setChatSending(true);
+    try {
+      let userName = auth.currentUser.displayName || "Anonymous";
+      try {
+        const userDoc = await getDoc(doc(db, "users", currentUid));
+        if (userDoc.exists() && userDoc.data().name) userName = userDoc.data().name;
+      } catch (e) {
+        // fallback
+      }
+
+      await addDoc(collection(db, "matches", id, "messages"), {
+        text: chatText.trim().slice(0, 500),
+        senderUid: currentUid,
+        senderName: userName,
+        createdAt: serverTimestamp(),
+      });
+      setChatText("");
+    } catch (err) {
+      console.error("Error sending chat message:", err);
+      setError("Message bhej nahi paya. Dobara try karo.");
+    }
+    setChatSending(false);
+  };
+
+  /* ─────────────── POST-MATCH RATINGS ─────────────── */
 
   const handleSubmitRating = async (targetUid, stars) => {
     if (!currentUid || targetUid === currentUid || !match) return;
@@ -447,12 +687,12 @@ function MatchDetail() {
       setRatingTargetUid(null);
     } catch (err) {
       console.error("Error submitting rating:", err);
-      setError("Rating not submitted. Please try again.");
+      setError("Rating submit nahi hui. Dobara try karo.");
     }
     setBusy(false);
   };
 
-  
+  /* ─────────────── SCORECARD (Gold feature, live) ─────────────── */
 
   const openScorecardForm = () => {
     const sc = match.scorecard;
@@ -487,7 +727,7 @@ function MatchDetail() {
       setShowScorecardForm(false);
     } catch (err) {
       console.error("Error saving scorecard:", err);
-      setError("Scorecard save not applied. Please try again.");
+      setError("Scorecard save nahi hua. Dobara try karo.");
     }
     setBusy(false);
   };
@@ -562,10 +802,37 @@ function MatchDetail() {
         )}
 
         <div className="match-actions">
-          {!hasJoined && !hasPendingRequest && !isFull && !showRoleSelect && (
+          {!hasJoined && !hasPendingRequest && !isFull && !showRoleSelect && !showTeamJoinSelect && (
             <button className="join-btn" onClick={() => setShowRoleSelect(true)}>
               Request to Join
             </button>
+          )}
+
+          {!hasJoined && !hasPendingRequest && !isFull && !showRoleSelect && !showTeamJoinSelect && myCaptainTeams.length > 0 && (
+            <button className="leave-btn" onClick={() => setShowTeamJoinSelect(true)}>
+              👥 Join as my team
+            </button>
+          )}
+
+          {showTeamJoinSelect && (
+            <div className="role-select-box">
+              <select value={selectedJoinTeamId} onChange={(e) => setSelectedJoinTeamId(e.target.value)}>
+                <option value="">Select your team</option>
+                {myCaptainTeams.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name} ({t.members?.length || 0} members)</option>
+                ))}
+              </select>
+              <button
+                className="join-btn"
+                onClick={handleRequestJoinAsTeam}
+                disabled={busy || !selectedJoinTeamId}
+              >
+                {busy ? "Processing..." : "Send Team Request"}
+              </button>
+              <button className="link-btn" onClick={() => setShowTeamJoinSelect(false)}>
+                Cancel
+              </button>
+            </div>
           )}
 
           {showRoleSelect && (
@@ -592,7 +859,9 @@ function MatchDetail() {
           {hasPendingRequest && (
             <>
               <span className="status-tag status-pending">
-                Request pending — {match.pendingRequests[currentUid].role}
+                {match.pendingRequests[currentUid].isTeam
+                  ? `Team request pending — ${match.pendingRequests[currentUid].teamName} (${match.pendingRequests[currentUid].teamMembers?.length || 0} members)`
+                  : `Request pending — ${match.pendingRequests[currentUid].role}`}
               </span>
               <button className="leave-btn" onClick={handleCancelRequest} disabled={busy}>
                 {busy ? "Cancelling..." : "Cancel request"}
@@ -626,8 +895,14 @@ function MatchDetail() {
             <div key={uid} className="request-row">
               <div className="player-avatar">{req.name.charAt(0).toUpperCase()}</div>
               <div className="request-info">
-                <div className="request-name">{req.name}</div>
-                <span className="role-badge">{req.role}</span>
+                <div className="request-name">
+                  {req.isTeam ? `${req.teamName} — ${req.name} (Captain)` : req.name}
+                </div>
+                {req.isTeam ? (
+                  <span className="role-badge">👥 {req.teamMembers?.length || 0} team members</span>
+                ) : (
+                  <span className="role-badge">{req.role}</span>
+                )}
               </div>
               <div className="request-actions">
                 <button className="approve-btn" onClick={() => handleApprove(uid)} disabled={busy}>
@@ -733,6 +1008,44 @@ function MatchDetail() {
           );
         })}
       </div>
+
+      {/* MATCH CHAT (joined players only) */}
+      {hasJoined && (
+        <div className="scorecard-section">
+          <div className="scorecard-header">
+            <h2>Match Chat</h2>
+          </div>
+          <div className="chat-box">
+            <div className="chat-messages">
+              {chatMessages.length === 0 ? (
+                <p className="empty-text-small">No messages yet. Say hi to your teammates!</p>
+              ) : (
+                chatMessages.map((m) => (
+                  <div
+                    key={m.id}
+                    className={"chat-message " + (m.senderUid === currentUid ? "chat-message--me" : "")}
+                  >
+                    <span className="chat-sender">{m.senderUid === currentUid ? "You" : m.senderName}</span>
+                    <span className="chat-text">{m.text}</span>
+                  </div>
+                ))
+              )}
+            </div>
+            <form className="chat-input-row" onSubmit={handleSendChatMessage}>
+              <input
+                type="text"
+                placeholder="Type a message..."
+                value={chatText}
+                onChange={(e) => setChatText(e.target.value)}
+                maxLength={500}
+              />
+              <button type="submit" className="join-btn" disabled={chatSending || !chatText.trim()}>
+                Send
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* LIVE SCOREBOARD (Gold feature) */}
       <div className="scorecard-section">
