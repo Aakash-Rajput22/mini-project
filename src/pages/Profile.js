@@ -377,7 +377,9 @@ function Profile() {
       <div className="db-main">
         <header className="db-topbar">
           <div>
-            <button className="db-back-btn" onClick={() => navigate(-1)}>← Back</button>
+            <button className="db-back-btn" onClick={() => navigate(-1)}>
+              <i className="ti ti-arrow-left" aria-hidden="true"></i> Back
+            </button>
             <h1 className="db-page-title">Profile</h1>
             <p className="db-page-sub">Manage your personal information</p>
           </div>

@@ -1,3 +1,5 @@
+@import url('https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css');
+
 .matches-page,
 .match-detail-page {
   max-width: 900px;
@@ -231,14 +233,27 @@
 
 /* ══ MATCH DETAIL PAGE ══ */
 .back-btn {
-  background: none;
-  border: none;
-  color: #3b82f6;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  color: #475569;
   font-weight: 600;
   cursor: pointer;
   margin-bottom: 18px;
-  font-size: 14px;
+  font-size: 13px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
+.back-btn i { font-size: 14px; transition: transform 0.15s; }
+.back-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #1e293b;
+}
+.back-btn:hover i { transform: translateX(-2px); }
 
 .match-full {
   background: #fff;

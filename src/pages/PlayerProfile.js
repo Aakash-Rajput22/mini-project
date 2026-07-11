@@ -55,7 +55,9 @@ function PlayerProfile() {
 
   return (
     <div className="matches-page">
-      <button className="back-btn" onClick={() => navigate(-1)}>&larr; Back</button>
+      <button className="back-btn" onClick={() => navigate(-1)}>
+        <i className="ti ti-arrow-left" aria-hidden="true"></i> Back
+      </button>
 
       <div className="pf-grid">
         <div className="pf-photo-card">

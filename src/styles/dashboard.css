@@ -123,17 +123,27 @@ body {
 .db-page-title { font-size: 19px; font-weight: 700; color: #0f172a; }
 
 .db-back-btn {
-  background: none;
-  border: none;
-  color: #3b82f6;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
   font-size: 13px;
   font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 8px;
   cursor: pointer;
-  padding: 0;
-  margin-bottom: 8px;
-  display: block;
+  margin-bottom: 12px;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
 }
-.db-back-btn:hover { color: #2563eb; text-decoration: underline; }
+.db-back-btn i { font-size: 14px; transition: transform 0.15s; }
+.db-back-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #1e293b;
+}
+.db-back-btn:hover i { transform: translateX(-2px); }
 .db-page-sub   { font-size: 12px; color: #9ca3af; margin-top: 2px; }
 .db-topbar-right { display: flex; align-items: center; gap: 12px; }
 

@@ -760,7 +760,7 @@ function MatchDetail() {
   return (
     <div className="match-detail-page">
       <button className="back-btn" onClick={() => navigate("/matches")}>
-        &larr; Back to Matches
+        <i className="ti ti-arrow-left" aria-hidden="true"></i> Back to Matches
       </button>
 
       <div className="match-full">

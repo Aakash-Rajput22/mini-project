@@ -182,7 +182,9 @@ function Teams() {
 
   return (
     <div className="matches-page">
-      <button className="back-btn" onClick={() => navigate(-1)}>&larr; Back</button>
+      <button className="back-btn" onClick={() => navigate(-1)}>
+        <i className="ti ti-arrow-left" aria-hidden="true"></i> Back
+      </button>
       <div className="matches-header">
         <h1>My Teams</h1>
         <button className="create-btn" onClick={openCreateForm}>

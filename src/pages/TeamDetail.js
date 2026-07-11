@@ -56,10 +56,10 @@ function TeamDetail() {
   const handleLeaveTeam = async () => {
     if (!currentUid || !team) return;
     if (currentUid === team.createdBy) {
-      setError("Captain cannot leave the team.");
+      setError("Captain team nahi chhod sakta. Disband karo ya baad mein kisi aur ko captain banane ka option add karo.");
       return;
     }
-    if (!window.confirm("You sure you want to leave this team?")) return;
+    if (!window.confirm("Kya aap sach mein is team ko chhodna chahte ho?")) return;
 
     setBusy(true);
     setError("");
@@ -70,14 +70,14 @@ function TeamDetail() {
       navigate("/teams");
     } catch (err) {
       console.error("Error leaving team:", err);
-      setError("Team leaving failed. Try again.");
+      setError("Team chhodna fail ho gaya. Dobara try karo.");
     }
     setBusy(false);
   };
 
   const handleDisbandTeam = async () => {
     if (!currentUid || !team || currentUid !== team.createdBy) return;
-    if (!window.confirm("This team will be permanently deleted. Confirm?")) return;
+    if (!window.confirm("Ye team hamesha ke liye delete ho jayegi. Confirm karo?")) return;
 
     setBusy(true);
     setError("");
@@ -86,7 +86,7 @@ function TeamDetail() {
       navigate("/teams");
     } catch (err) {
       console.error("Error disbanding team:", err);
-      setError("Disbanding team failed. Try again.");
+      setError("Disband fail ho gaya. Dobara try karo.");
     }
     setBusy(false);
   };
@@ -96,7 +96,7 @@ function TeamDetail() {
   if (!team) {
     return (
       <div className="empty-text">
-        Team not found.
+        Ye team nahi mili.{" "}
         <button className="link-btn" onClick={() => navigate("/teams")}>Go back</button>
       </div>
     );
@@ -107,7 +107,7 @@ function TeamDetail() {
   return (
     <div className="match-detail-page">
       <button className="back-btn" onClick={() => navigate("/teams")}>
-        &larr; Back to Teams
+        <i className="ti ti-arrow-left" aria-hidden="true"></i> Back to Teams
       </button>
 
       <div className="match-full">
