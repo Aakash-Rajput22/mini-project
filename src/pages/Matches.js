@@ -33,9 +33,6 @@ const PLAN_MULTIPLIER = { Free: 1, Silver: 2, Gold: 5 };
 const BASE_POINTS = 10;
 const ORGANIZE_LIMITS = { Free: 1, Silver: 2, Gold: 10 };
 
-// Verified venues — picking from this list avoids typos and keeps
-// listings trustworthy. "Other" lets a host add a venue not yet verified
-// (it won't have coordinates, so it's excluded from "near me" search).
 const VERIFIED_VENUES = [
   { name: "Church Street Ground, MG Road", lat: 12.9750, lng: 77.6050 },
   { name: "Turf Arena, Koramangala", lat: 12.9352, lng: 77.6245 },
@@ -48,7 +45,6 @@ const VERIFIED_VENUES = [
   { name: "Other (not listed)", lat: null, lng: null },
 ];
 
-// Great-circle distance between two lat/lng points, in kilometers.
 const distanceKm = (lat1, lng1, lat2, lng2) => {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -137,7 +133,7 @@ function Matches() {
 
   const handleUseMyLocation = () => {
     if (!navigator.geolocation) {
-      setLocationError("Location detect nahi ho sakti is browser mein.");
+      setLocationError("Location is not detected in this browser.");
       return;
     }
     setLocationError("");
@@ -150,7 +146,7 @@ function Matches() {
       },
       (err) => {
         console.error("Geolocation error:", err);
-        setLocationError("Location access allow nahi hui. Browser settings check karo.");
+        setLocationError("Location access denied. Check your browser settings.");
         setLocatingUser(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -174,24 +170,24 @@ function Matches() {
       return;
     }
     if (title.trim().length < 5) {
-      setError("Match ka title thoda detail mein likho.");
+      setError("Match tittle is too short.");
       return;
     }
     if (venue === "Other (not listed)" && !customVenue.trim()) {
-      setError("Ground/venue ka naam daalo.");
+      setError("Ground/venue  name is required.");
       return;
     }
     if (!matchDate || !matchTime) {
-      setError("Date aur time dono select karo.");
+      setError("Date aur time is required.");
       return;
     }
     const dateTimeObj = new Date(`${matchDate}T${matchTime}`);
     if (dateTimeObj <= new Date()) {
-      setError("Match ka time future mein hona chahiye.");
+      setError("Match time should be in future.");
       return;
     }
     if (maxPlayers < 2) {
-      setError("Kam se kam 2 players chahiye.");
+      setError("Minimum 2 players required.");
       return;
     }
 
@@ -219,7 +215,7 @@ function Matches() {
       const organizeLimit = ORGANIZE_LIMITS[userPlan] ?? ORGANIZE_LIMITS.Free;
 
       if (organizesThisMonth >= organizeLimit) {
-        setError(`Is mahine ka match-organize limit (${organizeLimit}) khatam ho gaya. Plan upgrade karo ya agle mahine try karo.`);
+        setError(`match organizer limit reached in this month (${organizeLimit}) . upgrade your plan or try again next month.`);
         setPosting(false);
         return;
       }
@@ -279,7 +275,7 @@ function Matches() {
       fetchMatches();
     } catch (err) {
       console.error("Error creating match:", err);
-      setError("Match create nahi ho paya. Dobara try karo.");
+      setError("Match is not created .try again later .");
     }
     setPosting(false);
   };
@@ -486,9 +482,9 @@ function Matches() {
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
           >
-            <option value="soonest">Sort: Soonest</option>
-            <option value="mostSpots">Sort: Most spots open</option>
-            {userLocation && <option value="nearest">Sort: Nearest</option>}
+            <option value="soonest"> Soonest</option>
+            <option value="mostSpots"> Most spots open</option>
+            {userLocation && <option value="nearest"> Nearest</option>}
           </select>
         </div>
       </div>
@@ -497,9 +493,9 @@ function Matches() {
         <div className="loading-text">Loading matches...</div>
       ) : filteredMatches.length === 0 ? (
         <div className="empty-text">
-          <p>Koi match nahi mila.</p>
+          <p>No match found.</p>
           <button className="link-btn" onClick={openCreateForm}>
-            Pehla match tum create karo →
+            create first match  →
           </button>
         </div>
       ) : (
