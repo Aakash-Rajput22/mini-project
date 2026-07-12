@@ -20,6 +20,7 @@ function Dashboard() {
     upcomingCount: 0,
   });
   const [reminderMatches, setReminderMatches] = useState([]);
+  const [newMatches, setNewMatches] = useState([]);
   const [upcomingMatches, setUpcomingMatches] = useState([]);
   const [sportStats, setSportStats] = useState([]);
   const [statsLoading, setStatsLoading] = useState(true);
@@ -99,9 +100,31 @@ function Dashboard() {
             return da - dbb;
           });
         setReminderMatches(soon);
+
+        // "New match posted" alerts — matches created in the last 24 hours
+        // by someone else, that this player hasn't already joined. This is
+        // an in-app notification feed (no push/Cloud Function needed).
+        const last24h = new Date(now.getTime() - 24 * 3600000);
+        const freshMatches = allMatches
+          .filter((m) => {
+            const created = m.createdAt?.toDate ? m.createdAt.toDate() : null;
+            if (!created || created < last24h) return false;
+            if (m.createdBy === uid) return false;
+            if (m.joinedPlayers?.includes(uid)) return false;
+            const d = m.date?.toDate ? m.date.toDate() : new Date(m.date);
+            return d >= now;
+          })
+          .sort((a, b) => {
+            const ca = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
+            const cb = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
+            return cb - ca;
+          })
+          .slice(0, 5);
+        setNewMatches(freshMatches);
       } else {
         setMyMatchStats({ joinedCount: 0, createdCount: 0, upcomingCount: 0 });
         setReminderMatches([]);
+        setNewMatches([]);
       }
     } catch (err) {
       console.error("Error fetching match stats:", err);
@@ -322,6 +345,35 @@ function Dashboard() {
                       <div className="db-action-name">{sportIcon(m.sport)} {m.title}</div>
                       <div className="db-action-desc">
                         {m.venue} · {formatMatchDate(m.date)}
+                      </div>
+                    </div>
+                    <i className="ti ti-chevron-right db-action-arrow" aria-hidden="true"></i>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* NEW MATCH ALERTS */}
+          {!isGuest && newMatches.length > 0 && (
+            <div className="db-section-card" style={{ borderColor: "#bfdbfe", background: "#eff6ff" }}>
+              <div className="db-section-card-header" style={{ borderBottom: "1px solid #bfdbfe" }}>
+                <span className="db-section-card-title">🔔 New matches posted</span>
+              </div>
+              <div className="db-actions-list">
+                {newMatches.map((m) => (
+                  <Link to={`/matches/${m.id}`} className="db-action-row" key={m.id}>
+                    {m.venuePhotoURL ? (
+                      <img src={m.venuePhotoURL} alt="" className="db-action-photo" />
+                    ) : (
+                      <div className="db-action-ico db-ico--blue">
+                        <i className="ti ti-ball-basketball" aria-hidden="true"></i>
+                      </div>
+                    )}
+                    <div className="db-action-body">
+                      <div className="db-action-name">{sportIcon(m.sport)} {m.title}</div>
+                      <div className="db-action-desc">
+                        {m.venue} · {formatMatchDate(m.date)} · by {m.createdByName}
                       </div>
                     </div>
                     <i className="ti ti-chevron-right db-action-arrow" aria-hidden="true"></i>

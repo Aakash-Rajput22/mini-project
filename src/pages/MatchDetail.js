@@ -91,6 +91,8 @@ function MatchDetail() {
 
   const currentUid = auth.currentUser?.uid;
 
+  // Live listener — the match page (players, requests, scoreboard) updates
+  // for everyone in real time without needing a manual refresh.
   useEffect(() => {
     setLoading(true);
     const unsub = onSnapshot(
@@ -144,6 +146,8 @@ function MatchDetail() {
     loadCaptainTeams();
   }, [currentUid]);
 
+  // Live match chat — only rendered/usable for joined players, but the
+  // listener is safe to set up once currentUid exists (rules gate access).
   useEffect(() => {
     if (!currentUid) return;
     const q = query(collection(db, "matches", id, "messages"), orderBy("createdAt", "asc"), limit(100));
@@ -212,12 +216,12 @@ function MatchDetail() {
       return;
     }
     if (!selectedRole) {
-      setError("Select a role .");
+      setError("Pehle apna role select karo.");
       return;
     }
     if (!match) return;
     if ((match.joinedPlayers?.length || 0) >= match.maxPlayers) {
-      setError("This match is already full.");
+      setError("Yeh match already full hai.");
       return;
     }
 
@@ -243,7 +247,7 @@ function MatchDetail() {
       const joinsThisMonth = usage?.month === monthKey ? (usage.joinsThisMonth || 0) : 0;
       const joinLimit = JOIN_LIMITS[userPlan] ?? JOIN_LIMITS.Free;
       if (joinsThisMonth >= joinLimit) {
-        setError(`Join limit has been reached for this month (${joinLimit}) . upgrade your plan or try again next month.`);
+        setError(`Is mahine ka join limit (${joinLimit}) khatam ho gaya. Plan upgrade karo ya agle mahine try karo.`);
         setBusy(false);
         return;
       }
@@ -282,11 +286,11 @@ function MatchDetail() {
                 setShowRoleSelect(false);
                 setSelectedRole("");
               } else {
-                setError("Payment verification failed. Request not submitted.");
+                setError("Payment verification failed. Request nahi bheji gayi.");
               }
             } catch (e) {
               console.error("Error finalizing paid join request:", e);
-              setError("Something went wrong. Please try again.");
+              setError("Kuch gadbad hui. Dobara try karo.");
             }
             setBusy(false);
           },
@@ -305,7 +309,7 @@ function MatchDetail() {
       setSelectedRole("");
     } catch (err) {
       console.error("Error sending join request:", err);
-      setError("Request not submitted. Please try again.");
+      setError("Request nahi bheji ja saki. Dobara try karo.");
     }
     setBusy(false);
   };
@@ -354,7 +358,7 @@ function MatchDetail() {
 
   const handleRequestJoinAsTeam = async () => {
     if (!currentUid || !selectedJoinTeamId) {
-      setError("Please select a team first.");
+      setError("Pehle team select karo.");
       return;
     }
     const team = myCaptainTeams.find((t) => t.id === selectedJoinTeamId);
@@ -363,7 +367,7 @@ function MatchDetail() {
     const teamSize = team.members?.length || 0;
     const spotsAvailable = match.maxPlayers - (match.joinedPlayers?.length || 0);
     if (teamSize > spotsAvailable) {
-      setError(`Only ${spotsAvailable} spots available in this match, but your team has ${teamSize} members.`);
+      setError(`Is match mein sirf ${spotsAvailable} spots bache hain, aapki team mein ${teamSize} members hain.`);
       return;
     }
 
@@ -415,11 +419,11 @@ function MatchDetail() {
               if (vData.verified) {
                 await finalizeTeamJoinRequest(team, userName, userPlan);
               } else {
-                setError("Payment verification failed. Team request not submitted.");
+                setError("Payment verification failed. Team request nahi bheji gayi.");
               }
             } catch (e) {
               console.error("Error finalizing team join:", e);
-              setError("Something went wrong. Please try again.");
+              setError("Kuch gadbad hui. Dobara try karo.");
             }
             setBusy(false);
           },
@@ -435,7 +439,7 @@ function MatchDetail() {
       await finalizeTeamJoinRequest(team, userName, userPlan);
     } catch (err) {
       console.error("Error sending team join request:", err);
-      setError("Team request not submitted. Please try again.");
+      setError("Team request nahi bheji ja saki. Dobara try karo.");
     }
     setBusy(false);
   };
@@ -478,7 +482,7 @@ function MatchDetail() {
       }
     } catch (err) {
       console.error("Error approving team request:", err);
-      setError("Team request not approved. Please try again.");
+      setError("Team approve nahi ho paya. Dobara try karo.");
     }
     setBusy(false);
   };
@@ -516,7 +520,7 @@ function MatchDetail() {
       }
     } catch (err) {
       console.error("Error approving request:", err);
-      setError("Approve failed. Please try again.");
+      setError("Approve nahi ho paya. Dobara try karo.");
     }
     setBusy(false);
   };
@@ -543,7 +547,7 @@ function MatchDetail() {
   const handleLeave = async () => {
     if (!currentUid || !match) return;
     if (currentUid === match.createdBy) {
-      setError("Match organizer cannot leave the match. Contact admin to cancel the match.");
+      setError("Match organizer match nahi chhod sakta. Match cancel karne ke liye admin se baat karo.");
       return;
     }
 
@@ -582,7 +586,7 @@ function MatchDetail() {
 
   const handleSubmitReport = async (uid, name) => {
     if (!currentUid || !reportReason.trim()) {
-      setError("Please provide a reason for the report.");
+      setError("Report ki wajah likho.");
       return;
     }
     setBusy(true);
@@ -603,7 +607,7 @@ function MatchDetail() {
       alert("Report submitted. Our team will review it.");
     } catch (err) {
       console.error("Error submitting report:", err);
-      setError("Report submit failed. Please try again.");
+      setError("Report submit nahi hua. Dobara try karo.");
     }
     setBusy(false);
   };
@@ -624,7 +628,7 @@ function MatchDetail() {
       });
     } catch (err) {
       console.error("Error marking no-show:", err);
-      setError("No-show mark failed. Please try again.");
+      setError("No-show mark nahi hua. Dobara try karo.");
     }
     setBusy(false);
   };
@@ -658,7 +662,7 @@ function MatchDetail() {
       setChatText("");
     } catch (err) {
       console.error("Error sending chat message:", err);
-      setError("Message not sent. Please try again.");
+      setError("Message bhej nahi paya. Dobara try karo.");
     }
     setChatSending(false);
   };
@@ -683,7 +687,7 @@ function MatchDetail() {
       setRatingTargetUid(null);
     } catch (err) {
       console.error("Error submitting rating:", err);
-      setError("Rating submit failed. Please try again.");
+      setError("Rating submit nahi hui. Dobara try karo.");
     }
     setBusy(false);
   };
@@ -723,7 +727,7 @@ function MatchDetail() {
       setShowScorecardForm(false);
     } catch (err) {
       console.error("Error saving scorecard:", err);
-      setError("Scorecard save failed. Please try again.");
+      setError("Scorecard save nahi hua. Dobara try karo.");
     }
     setBusy(false);
   };
@@ -760,6 +764,9 @@ function MatchDetail() {
       </button>
 
       <div className="match-full">
+        {match.venuePhotoURL && (
+          <img src={match.venuePhotoURL} alt="Ground" className="match-photo-banner" />
+        )}
         <span className="sport-tag">
           {sportIcon(match.sport)} {match.sport}
         </span>

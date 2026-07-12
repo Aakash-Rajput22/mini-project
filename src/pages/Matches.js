@@ -31,8 +31,13 @@ const SPORTS = [
 
 const PLAN_MULTIPLIER = { Free: 1, Silver: 2, Gold: 5 };
 const BASE_POINTS = 10;
+const CLOUDINARY_CLOUD_NAME = "g5bvacyh";
+const CLOUDINARY_UPLOAD_PRESET = "knowora_profiles";
 const ORGANIZE_LIMITS = { Free: 1, Silver: 2, Gold: 10 };
 
+// Verified venues — picking from this list avoids typos and keeps
+// listings trustworthy. "Other" lets a host add a venue not yet verified
+// (it won't have coordinates, so it's excluded from "near me" search).
 const VERIFIED_VENUES = [
   { name: "Church Street Ground, MG Road", lat: 12.9750, lng: 77.6050 },
   { name: "Turf Arena, Koramangala", lat: 12.9352, lng: 77.6245 },
@@ -45,6 +50,7 @@ const VERIFIED_VENUES = [
   { name: "Other (not listed)", lat: null, lng: null },
 ];
 
+// Great-circle distance between two lat/lng points, in kilometers.
 const distanceKm = (lat1, lng1, lat2, lng2) => {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -91,6 +97,8 @@ function Matches() {
   const [maxPlayers, setMaxPlayers] = useState(10);
   const [costPerPlayer, setCostPerPlayer] = useState(0);
   const [posting, setPosting] = useState(false);
+  const [venuePhotoURL, setVenuePhotoURL] = useState("");
+  const [uploadingVenuePhoto, setUploadingVenuePhoto] = useState(false);
   const [error, setError] = useState("");
   const [blockedUsers, setBlockedUsers] = useState([]);
 
@@ -133,7 +141,7 @@ function Matches() {
 
   const handleUseMyLocation = () => {
     if (!navigator.geolocation) {
-      setLocationError("Location is not detected in this browser.");
+      setLocationError("Location detect nahi ho sakti is browser mein.");
       return;
     }
     setLocationError("");
@@ -146,7 +154,7 @@ function Matches() {
       },
       (err) => {
         console.error("Geolocation error:", err);
-        setLocationError("Location access denied. Check your browser settings.");
+        setLocationError("Location access allow nahi hui. Browser settings check karo.");
         setLocatingUser(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -161,6 +169,42 @@ function Matches() {
     setShowCreateForm(!showCreateForm);
   };
 
+  const uploadVenuePhoto = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+    formData.append("folder", "knowora/matches");
+
+    const res = await fetch(
+      "https://api.cloudinary.com/v1_1/" + CLOUDINARY_CLOUD_NAME + "/image/upload",
+      { method: "POST", body: formData }
+    );
+    if (!res.ok) throw new Error("Cloudinary upload failed");
+    const data = await res.json();
+    return data.secure_url;
+  };
+
+  const handleVenuePhotoChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setError("Ground photo 2MB se badi hai. Chhoti file choose karo.");
+      e.target.value = "";
+      return;
+    }
+    setUploadingVenuePhoto(true);
+    setError("");
+    try {
+      const url = await uploadVenuePhoto(file);
+      setVenuePhotoURL(url);
+    } catch (err) {
+      console.error("Error uploading venue photo:", err);
+      setError("Ground photo upload nahi hui. Dobara try karo.");
+    }
+    setUploadingVenuePhoto(false);
+    e.target.value = "";
+  };
+
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -170,24 +214,24 @@ function Matches() {
       return;
     }
     if (title.trim().length < 5) {
-      setError("Match tittle is too short.");
+      setError("Match ka title thoda detail mein likho.");
       return;
     }
     if (venue === "Other (not listed)" && !customVenue.trim()) {
-      setError("Ground/venue  name is required.");
+      setError("Ground/venue ka naam daalo.");
       return;
     }
     if (!matchDate || !matchTime) {
-      setError("Date aur time is required.");
+      setError("Date aur time dono select karo.");
       return;
     }
     const dateTimeObj = new Date(`${matchDate}T${matchTime}`);
     if (dateTimeObj <= new Date()) {
-      setError("Match time should be in future.");
+      setError("Match ka time future mein hona chahiye.");
       return;
     }
     if (maxPlayers < 2) {
-      setError("Minimum 2 players required.");
+      setError("Kam se kam 2 players chahiye.");
       return;
     }
 
@@ -215,7 +259,7 @@ function Matches() {
       const organizeLimit = ORGANIZE_LIMITS[userPlan] ?? ORGANIZE_LIMITS.Free;
 
       if (organizesThisMonth >= organizeLimit) {
-        setError(`match organizer limit reached in this month (${organizeLimit}) . upgrade your plan or try again next month.`);
+        setError(`Is mahine ka match-organize limit (${organizeLimit}) khatam ho gaya. Plan upgrade karo ya agle mahine try karo.`);
         setPosting(false);
         return;
       }
@@ -229,6 +273,7 @@ function Matches() {
         venueVerified: venue !== "Other (not listed)",
         venueLat: selectedVenue?.lat ?? null,
         venueLng: selectedVenue?.lng ?? null,
+        venuePhotoURL: venuePhotoURL || null,
         date: Timestamp.fromDate(dateTimeObj),
         maxPlayers: Number(maxPlayers),
         joinedPlayers: [uid],
@@ -266,6 +311,7 @@ function Matches() {
       setTitle("");
       setVenue(VERIFIED_VENUES[0].name);
       setCustomVenue("");
+      setVenuePhotoURL("");
       setMatchDate("");
       setMatchTime("");
       setMaxPlayers(10);
@@ -275,7 +321,7 @@ function Matches() {
       fetchMatches();
     } catch (err) {
       console.error("Error creating match:", err);
-      setError("Match is not created .try again later .");
+      setError("Match create nahi ho paya. Dobara try karo.");
     }
     setPosting(false);
   };
@@ -420,7 +466,29 @@ function Matches() {
               />
             </label>
           </div>
-          <button type="submit" disabled={posting}>
+
+          <div className="venue-photo-upload">
+            <label className="venue-upload-btn">
+              📷 {uploadingVenuePhoto ? "Uploading..." : "Add ground photo (optional)"}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleVenuePhotoChange}
+                style={{ display: "none" }}
+                disabled={uploadingVenuePhoto}
+              />
+            </label>
+            {venuePhotoURL && (
+              <div className="venue-photo-preview">
+                <img src={venuePhotoURL} alt="Ground preview" />
+                <button type="button" className="link-btn" onClick={() => setVenuePhotoURL("")}>
+                  Remove
+                </button>
+              </div>
+            )}
+          </div>
+
+          <button type="submit" disabled={posting || uploadingVenuePhoto}>
             {posting ? "Creating..." : "Create Match"}
           </button>
         </form>
@@ -482,9 +550,9 @@ function Matches() {
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
           >
-            <option value="soonest"> Soonest</option>
-            <option value="mostSpots"> Most spots open</option>
-            {userLocation && <option value="nearest"> Nearest</option>}
+            <option value="soonest">Sort: Soonest</option>
+            <option value="mostSpots">Sort: Most spots open</option>
+            {userLocation && <option value="nearest">Sort: Nearest</option>}
           </select>
         </div>
       </div>
@@ -493,9 +561,9 @@ function Matches() {
         <div className="loading-text">Loading matches...</div>
       ) : filteredMatches.length === 0 ? (
         <div className="empty-text">
-          <p>No match found.</p>
+          <p>Koi match nahi mila.</p>
           <button className="link-btn" onClick={openCreateForm}>
-            create first match  →
+            Pehla match tum create karo →
           </button>
         </div>
       ) : (
@@ -508,6 +576,9 @@ function Matches() {
                 className="match-card"
                 onClick={() => navigate(`/matches/${m.id}`)}
               >
+                {m.venuePhotoURL && (
+                  <img src={m.venuePhotoURL} alt="Ground" className="match-card-photo" />
+                )}
                 <div className="match-card-main">
                   <h3>
                     {sportIcon(m.sport)} {m.title}

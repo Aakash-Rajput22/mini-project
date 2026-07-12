@@ -105,6 +105,54 @@
   font-size: 13px;
 }
 
+/* ══ VENUE PHOTO ══ */
+.venue-photo-upload { display: flex; flex-direction: column; gap: 10px; }
+
+.venue-upload-btn {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 9px 16px;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.venue-upload-btn:hover { background: #e2e8f0; }
+
+.venue-photo-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.venue-photo-preview img {
+  width: 90px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.match-card-photo {
+  width: 84px;
+  height: 84px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid #e5e7eb;
+}
+
+.match-photo-banner {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 18px;
+}
+
 /* ══ TOOLBAR ══ */
 .matches-toolbar { display: flex; flex-direction: column; gap: 12px; margin-bottom: 22px; }
 
