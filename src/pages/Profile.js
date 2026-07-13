@@ -309,7 +309,7 @@ function Profile() {
 
       setReferredBy(referrerDoc.id);
       setReferralInput("");
-      setReferralMsg(`Code applied! Aapko aur ${referrerDoc.data().name || "your friend"} dono ko ${REFERRAL_BONUS} points mile.`);
+      setReferralMsg(`Code applied! You and ${referrerDoc.data().name || "your friend"} both earned ${REFERRAL_BONUS} points.`);
     } catch (err) {
       console.error("Error redeeming referral code:", err);
       setReferralMsg("Code not applied. try again.");
