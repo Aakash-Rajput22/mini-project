@@ -26,6 +26,7 @@ body {
   top: 0;
   height: 100vh;
   overflow-y: auto;
+  box-shadow: 2px 0 8px rgba(15,23,42,0.06);
 }
 
 .db-sidebar-top { padding: 24px 0 16px; }
@@ -115,10 +116,11 @@ body {
 /* ══ TOPBAR ══ */
 .db-topbar {
   background: #fff;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #eef0f3;
   padding: 16px 28px;
   display: flex; align-items: center; justify-content: space-between;
   position: sticky; top: 0; z-index: 10;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.03);
 }
 
 .db-page-title { font-size: 19px; font-weight: 700; color: #0f172a; }
@@ -164,10 +166,11 @@ body {
 /* ══ PLAN HERO ══ */
 .db-plan-hero {
   background: #fff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #eef0f3;
   border-radius: 16px;
   padding: 24px 28px;
   display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 4px 16px rgba(15,23,42,0.04);
 }
 
 .db-plan-hero-left  { display: flex; align-items: center; gap: 18px; }
@@ -236,9 +239,15 @@ body {
 
 .db-stat-card {
   background: #fff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #eef0f3;
   border-radius: 14px;
   padding: 18px 20px;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.db-stat-card:hover {
+  box-shadow: 0 4px 14px rgba(15,23,42,0.07);
+  transform: translateY(-1px);
 }
 
 .db-stat-top {
@@ -271,9 +280,10 @@ body {
 /* ══ SECTION CARD ══ */
 .db-section-card {
   background: #fff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #eef0f3;
   border-radius: 14px;
   overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04);
 }
 
 .db-section-card-header {
@@ -395,7 +405,8 @@ body {
 
 /* ══ ADMIN PANEL ══ */
 .adm-card {
-  background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden;
+  background: #fff; border: 1px solid #eef0f3; border-radius: 16px; overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04);
 }
 .adm-controls {
   display: flex; align-items: center; gap: 12px;
@@ -471,8 +482,9 @@ body {
 /* ══ PRICING ══ */
 .pr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .pr-card {
-  background: #fff; border: 1px solid #e5e7eb; border-radius: 16px;
+  background: #fff; border: 1px solid #eef0f3; border-radius: 16px;
   padding: 28px 24px; display: flex; flex-direction: column; position: relative;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 .pr-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.07); }

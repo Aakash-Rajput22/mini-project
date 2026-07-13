@@ -10,7 +10,7 @@
 /* ── PHOTO CARD ── */
 .pf-photo-card {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #eef0f3;
   border-radius: 16px;
   padding: 28px 24px;
   display: flex;
@@ -18,6 +18,7 @@
   align-items: center;
   text-align: center;
   gap: 10px;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04);
 }
 
 .pf-avatar-wrap {
@@ -102,10 +103,11 @@
 /* ── FORM CARD ── */
 .pf-form-card {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #eef0f3;
   border-radius: 16px;
   padding: 28px;
   min-width: 0;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04);
 }
 
 .pf-form-header { margin-bottom: 24px; }
