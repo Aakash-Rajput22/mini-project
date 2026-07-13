@@ -120,15 +120,11 @@ function Profile() {
     return data.secure_url;
   };
 
-  // Photo now uploads AND saves to Firestore immediately on selection —
-  // it no longer waits for the "Save profile" button, which was the bug:
-  // selecting a photo only showed a local preview until Save was clicked,
-  // so an unsaved preview would revert on refresh.
   const handlePhotoChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      alert("File size 2MB se zyada hai. Chhoti file choose karo.");
+      alert("File size only 2 mb. Choose a small file.");
       e.target.value = "";
       return;
     }
@@ -166,7 +162,7 @@ function Profile() {
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("Location detect nahi ho sakti is browser mein.");
+      alert("Location is not detected in this browser.");
       return;
     }
     setLocatingAddress(true);
@@ -183,18 +179,18 @@ function Profile() {
             setAddress(data.display_name);
             setAddressSuggestions([]);
           } else {
-            alert("Address nahi mil paya. Manually type karo.");
+            alert("Address not detected. Type manually.");
           }
         } catch (err) {
           console.error("Reverse geocoding error:", err);
-          alert("Address fetch nahi ho paya. Manually type karo.");
+          alert("Address is not fetched. Type Manually.");
         }
         setLocatingAddress(false);
       },
       (err) => {
         console.error("Geolocation error:", err);
         setLocatingAddress(false);
-        alert("Location access allow nahi hui. Browser settings check karo.");
+        alert("Location access denied. Check browser settings.");
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -281,11 +277,11 @@ function Profile() {
     if (!currentUser) return;
     const code = referralInput.trim().toUpperCase();
     if (!code) {
-      setReferralMsg("Referral code daalo.");
+      setReferralMsg("Enter Referal code.");
       return;
     }
     if (code === referralCode) {
-      setReferralMsg("Aap apna khud ka code use nahi kar sakte.");
+      setReferralMsg("You cannot use own code.");
       return;
     }
 
@@ -296,7 +292,7 @@ function Profile() {
         query(collection(db, "users"), where("referralCode", "==", code))
       );
       if (snap.empty) {
-        setReferralMsg("Ye referral code kisi se match nahi karta.");
+        setReferralMsg("The referral code you entered is not valid.");
         setReferralBusy(false);
         return;
       }
@@ -316,7 +312,7 @@ function Profile() {
       setReferralMsg(`Code applied! Aapko aur ${referrerDoc.data().name || "your friend"} dono ko ${REFERRAL_BONUS} points mile.`);
     } catch (err) {
       console.error("Error redeeming referral code:", err);
-      setReferralMsg("Code apply nahi hua. Dobara try karo.");
+      setReferralMsg("Code not applied. try again.");
     }
     setReferralBusy(false);
   };
@@ -461,7 +457,7 @@ function Profile() {
                     Copy
                   </button>
                 </div>
-                <p className="pf-upload-hint">Share this — you both get 20 points when a friend uses it.</p>
+                <p className="pf-upload-hint">Share this - you both get 20 points when a friend uses it.</p>
 
                 {!referredBy && (
                   <div className="pf-referral-redeem">

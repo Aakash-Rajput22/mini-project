@@ -78,7 +78,7 @@ function Teams() {
       return;
     }
     if (name.trim().length < 3) {
-      setError("Team ka naam thoda detail mein likho.");
+      setError("Write taem name in detail.");
       return;
     }
 
@@ -112,7 +112,7 @@ function Teams() {
       fetchMyTeams();
     } catch (err) {
       console.error("Error creating team:", err);
-      setError("Team create nahi hui. Dobara try karo.");
+      setError("Team not creatd. please try again.");
     }
     setPosting(false);
   };
@@ -123,7 +123,7 @@ function Teams() {
       return;
     }
     if (!joinCode.trim()) {
-      setError("Invite code daalo.");
+      setError("write invite code.");
       return;
     }
     setJoining(true);
@@ -133,14 +133,14 @@ function Teams() {
         query(collection(db, "teams"), where("inviteCode", "==", joinCode.trim().toUpperCase()))
       );
       if (snap.empty) {
-        setError("Ye invite code kisi team se match nahi karta.");
+        setError("The invite code you entered is not valid.");
         setJoining(false);
         return;
       }
       const teamDoc = snap.docs[0];
       const uid = auth.currentUser.uid;
       if (teamDoc.data().members.includes(uid)) {
-        setError("Aap already is team ke member ho.");
+        setError("You are already a member of this team.");
         setJoining(false);
         return;
       }
@@ -162,7 +162,7 @@ function Teams() {
       navigate(`/teams/${teamDoc.id}`);
     } catch (err) {
       console.error("Error joining team:", err);
-      setError("Join nahi ho paya. Dobara try karo.");
+      setError("Failed to join the team. Please try again.");
     }
     setJoining(false);
   };
@@ -242,9 +242,9 @@ function Teams() {
         <div className="loading-text">Loading teams...</div>
       ) : myTeams.length === 0 ? (
         <div className="empty-text">
-          <p>Aap abhi kisi team ke member nahi ho.</p>
+          <p>You are not a member of any team now .</p>
           <button className="link-btn" onClick={openCreateForm}>
-            Apni pehli team banao →
+            Create your first team →
           </button>
         </div>
       ) : (

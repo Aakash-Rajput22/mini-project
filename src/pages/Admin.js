@@ -70,7 +70,7 @@ function Admin() {
       setReports((prev) => prev.map((r) => (r.id === reportId ? { ...r, status } : r)));
     } catch (error) {
       console.error("Error updating report status:", error);
-      alert("Status update nahi hua. Dobara try karo.");
+      alert("Status update failed. Please try again.");
     }
   };
 

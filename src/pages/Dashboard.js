@@ -100,10 +100,6 @@ function Dashboard() {
             return da - dbb;
           });
         setReminderMatches(soon);
-
-        // "New match posted" alerts — matches created in the last 24 hours
-        // by someone else, that this player hasn't already joined. This is
-        // an in-app notification feed (no push/Cloud Function needed).
         const last24h = new Date(now.getTime() - 24 * 3600000);
         const freshMatches = allMatches
           .filter((m) => {
