@@ -33,11 +33,7 @@ const PLAN_MULTIPLIER = { Free: 1, Silver: 2, Gold: 5 };
 const BASE_POINTS = 10;
 const CLOUDINARY_CLOUD_NAME = "g5bvacyh";
 const CLOUDINARY_UPLOAD_PRESET = "knowora_profiles";
-const ORGANIZE_LIMITS = { Free: 1, Silver: 2, Gold: 10 };
-
-// Verified venues — picking from this list avoids typos and keeps
-// listings trustworthy. "Other" lets a host add a venue not yet verified
-// (it won't have coordinates, so it's excluded from "near me" search).
+const ORGANIZE_LIMITS = { Free: 1, Silver: 2, Gold: 10 }
 const VERIFIED_VENUES = [
   { name: "Church Street Ground, MG Road", lat: 12.9750, lng: 77.6050 },
   { name: "Turf Arena, Koramangala", lat: 12.9352, lng: 77.6245 },
@@ -141,7 +137,7 @@ function Matches() {
 
   const handleUseMyLocation = () => {
     if (!navigator.geolocation) {
-      setLocationError("Location detect nahi ho sakti is browser mein.");
+      setLocationError("Location is not detected in this browser.");
       return;
     }
     setLocationError("");
@@ -154,7 +150,7 @@ function Matches() {
       },
       (err) => {
         console.error("Geolocation error:", err);
-        setLocationError("Location access allow nahi hui. Browser settings check karo.");
+        setLocationError("Location access denied. check your browser settings.");
         setLocatingUser(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -188,7 +184,7 @@ function Matches() {
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      setError("Ground photo 2MB se badi hai. Chhoti file choose karo.");
+      setError("Ground photo can be up to 2MB. Please choose a smaller file.");
       e.target.value = "";
       return;
     }
@@ -199,7 +195,7 @@ function Matches() {
       setVenuePhotoURL(url);
     } catch (err) {
       console.error("Error uploading venue photo:", err);
-      setError("Ground photo upload nahi hui. Dobara try karo.");
+      setError("Ground photo is not uploaded. try again.");
     }
     setUploadingVenuePhoto(false);
     e.target.value = "";
@@ -214,24 +210,24 @@ function Matches() {
       return;
     }
     if (title.trim().length < 5) {
-      setError("Match ka title thoda detail mein likho.");
+      setError("Match title should be at least 5 characters long.");
       return;
     }
     if (venue === "Other (not listed)" && !customVenue.trim()) {
-      setError("Ground/venue ka naam daalo.");
+      setError("Ground/venue name is required.");
       return;
     }
     if (!matchDate || !matchTime) {
-      setError("Date aur time dono select karo.");
+      setError("Date and time are required.");
       return;
     }
     const dateTimeObj = new Date(`${matchDate}T${matchTime}`);
     if (dateTimeObj <= new Date()) {
-      setError("Match ka time future mein hona chahiye.");
+      setError("Match time must be in the future.");
       return;
     }
     if (maxPlayers < 2) {
-      setError("Kam se kam 2 players chahiye.");
+      setError("At least 2 players are required.");
       return;
     }
 
@@ -259,7 +255,7 @@ function Matches() {
       const organizeLimit = ORGANIZE_LIMITS[userPlan] ?? ORGANIZE_LIMITS.Free;
 
       if (organizesThisMonth >= organizeLimit) {
-        setError(`Is mahine ka match-organize limit (${organizeLimit}) khatam ho gaya. Plan upgrade karo ya agle mahine try karo.`);
+        setError(`match organize limit reached for this month(${organizeLimit}) . upgrade your plan or try again next month.`);
         setPosting(false);
         return;
       }
@@ -321,7 +317,7 @@ function Matches() {
       fetchMatches();
     } catch (err) {
       console.error("Error creating match:", err);
-      setError("Match create nahi ho paya. Dobara try karo.");
+      setError("Match not created. Please try again.");
     }
     setPosting(false);
   };
@@ -405,7 +401,7 @@ function Matches() {
           {error && <div className="form-error">{error}</div>}
           <input
             type="text"
-            placeholder="Match ka title (e.g. Sunday Morning Cricket)"
+            placeholder="Match title(e.g. Sunday Morning Cricket)"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={100}
@@ -561,9 +557,9 @@ function Matches() {
         <div className="loading-text">Loading matches...</div>
       ) : filteredMatches.length === 0 ? (
         <div className="empty-text">
-          <p>Koi match nahi mila.</p>
+          <p>No matches found.</p>
           <button className="link-btn" onClick={openCreateForm}>
-            Pehla match tum create karo →
+            Create first match. →
           </button>
         </div>
       ) : (

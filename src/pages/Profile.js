@@ -24,6 +24,7 @@ function Profile() {
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
   const [uploadProgress, setUploadProgress] = useState("");
   const [locatingAddress, setLocatingAddress] = useState(false);
   const [addressSuggestions, setAddressSuggestions] = useState([]);
@@ -63,6 +64,7 @@ function Profile() {
           }
         }
       }
+      setPageLoading(false);
     });
     return () => unsub();
   }, [navigate]);
@@ -318,6 +320,16 @@ function Profile() {
     }
     setReferralBusy(false);
   };
+
+  if (pageLoading) {
+    return (
+      <div className="db-shell">
+        <div className="db-main" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <p style={{ color: "#94a3b8" }}>Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="db-shell">
