@@ -100,6 +100,10 @@ function Dashboard() {
             return da - dbb;
           });
         setReminderMatches(soon);
+
+        // "New match posted" alerts — matches created in the last 24 hours
+        // by someone else, that this player hasn't already joined. This is
+        // an in-app notification feed (no push/Cloud Function needed).
         const last24h = new Date(now.getTime() - 24 * 3600000);
         const freshMatches = allMatches
           .filter((m) => {
@@ -492,35 +496,37 @@ function Dashboard() {
                 <span className="db-section-card-title">My Matches</span>
                 <Link to="/matches" className="db-section-card-link">Go to Matches</Link>
               </div>
-              <div className="db-stats-grid">
-                <div className="db-stat-card">
-                  <div className="db-stat-top">
-                    <span className="db-stat-label">Matches joined</span>
-                    <div className="db-stat-ico db-ico--blue">
-                      <i className="ti ti-users" aria-hidden="true"></i>
+              <div className="db-section-card-body">
+                <div className="db-stats-grid">
+                  <div className="db-stat-card">
+                    <div className="db-stat-top">
+                      <span className="db-stat-label">Matches joined</span>
+                      <div className="db-stat-ico db-ico--blue">
+                        <i className="ti ti-users" aria-hidden="true"></i>
+                      </div>
                     </div>
+                    <p className="db-stat-value">{statsLoading ? "—" : myMatchStats.joinedCount}</p>
                   </div>
-                  <p className="db-stat-value">{statsLoading ? "—" : myMatchStats.joinedCount}</p>
-                </div>
 
-                <div className="db-stat-card">
-                  <div className="db-stat-top">
-                    <span className="db-stat-label">Matches created</span>
-                    <div className="db-stat-ico db-ico--amber">
-                      <i className="ti ti-flag" aria-hidden="true"></i>
+                  <div className="db-stat-card">
+                    <div className="db-stat-top">
+                      <span className="db-stat-label">Matches created</span>
+                      <div className="db-stat-ico db-ico--amber">
+                        <i className="ti ti-flag" aria-hidden="true"></i>
+                      </div>
                     </div>
+                    <p className="db-stat-value">{statsLoading ? "—" : myMatchStats.createdCount}</p>
                   </div>
-                  <p className="db-stat-value">{statsLoading ? "—" : myMatchStats.createdCount}</p>
-                </div>
 
-                <div className="db-stat-card">
-                  <div className="db-stat-top">
-                    <span className="db-stat-label">Upcoming for me</span>
-                    <div className="db-stat-ico db-ico--green">
-                      <i className="ti ti-calendar-event" aria-hidden="true"></i>
+                  <div className="db-stat-card">
+                    <div className="db-stat-top">
+                      <span className="db-stat-label">Upcoming for me</span>
+                      <div className="db-stat-ico db-ico--green">
+                        <i className="ti ti-calendar-event" aria-hidden="true"></i>
+                      </div>
                     </div>
+                    <p className="db-stat-value">{statsLoading ? "—" : myMatchStats.upcomingCount}</p>
                   </div>
-                  <p className="db-stat-value">{statsLoading ? "—" : myMatchStats.upcomingCount}</p>
                 </div>
               </div>
             </div>

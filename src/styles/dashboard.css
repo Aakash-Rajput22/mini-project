@@ -2,6 +2,11 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans-serif;
   background: #f5f6fa;
@@ -14,6 +19,9 @@ body {
   grid-template-columns: 248px 1fr;
   min-height: 100vh;
   min-width: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 /* ══ SIDEBAR ══ */
@@ -298,6 +306,11 @@ body {
   font-size: 12px; font-weight: 500; color: #3b82f6; text-decoration: none;
 }
 .db-section-card-link:hover { color: #2563eb; }
+
+/* Wraps stat grids / other content nested inside a db-section-card so
+   they align flush with the header's own padding, instead of touching
+   the card edges. */
+.db-section-card-body { padding: 16px 20px 20px; }
 
 /* ══ ACTIONS LIST ══ */
 .db-actions-list { padding: 8px; display: flex; flex-direction: column; gap: 2px; }
