@@ -21,7 +21,7 @@
   background: var(--bg);
   color: var(--ink);
   line-height: 1.6;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .lp-wrap {
@@ -212,6 +212,8 @@
 .lp-trust-sep { opacity: 0.5; }
 .lp-check { color: var(--green); font-weight: 600; margin-right: 4px; }
 .lp-check--gold { color: var(--amber); }
+.lp-cross { color: #cbd5e1; font-weight: 600; margin-right: 4px; }
+.lp-plan-features li.lp-feature-off { color: var(--muted-2); }
 
 /* ══ STATS STRIP ══ */
 .lp-stats {

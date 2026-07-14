@@ -26,44 +26,90 @@ function Landing() {
   const matchesCount = useCountUp(1240);
   const playersCount = useCountUp(8500);
   const citiesCount = useCountUp(42);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 12);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <div className="lp">
 
       {/* HEADER */}
-      <header className="lp-header">
+      <header
+        className="lp-header"
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
+          ...(isScrolled
+            ? {
+                backgroundColor: "rgba(10,12,20,0.92)",
+                backdropFilter: "blur(10px)",
+                boxShadow: "0 2px 16px rgba(0,0,0,0.25)",
+              }
+            : {}),
+          transition: "background-color 0.25s ease, box-shadow 0.25s ease",
+        }}
+      >
         <div className="lp-nav-inner">
-          <Link to="/" className="lp-brand">
+          <Link
+            to="/"
+            className="lp-brand"
+            style={isScrolled ? { color: "#ffffff" } : undefined}
+          >
             <span className="lp-brand-mark">K</span>
             Knowora
           </Link>
 
           <nav className="lp-nav-links">
-            <a href="#features">Features</a>
-            <a href="#how">How it works</a>
-            <a href="#pricing">Pricing</a>
-            <a href="#reviews">Reviews</a>
-            <a href="#faq">FAQ</a>
+            <a href="#features" style={isScrolled ? { color: "rgba(255,255,255,0.8)" } : undefined}>Features</a>
+            <a href="#how" style={isScrolled ? { color: "rgba(255,255,255,0.8)" } : undefined}>How it works</a>
+            <a href="#pricing" style={isScrolled ? { color: "rgba(255,255,255,0.8)" } : undefined}>Pricing</a>
+            <a href="#reviews" style={isScrolled ? { color: "rgba(255,255,255,0.8)" } : undefined}>Reviews</a>
+            <a href="#faq" style={isScrolled ? { color: "rgba(255,255,255,0.8)" } : undefined}>FAQ</a>
           </nav>
 
           <div className="lp-nav-cta">
-            <Link to="/login" className="lp-btn-ghost">Log in</Link>
+            <Link
+              to="/login"
+              className="lp-btn-ghost"
+              style={
+                isScrolled
+                  ? { color: "#ffffff", borderColor: "rgba(255,255,255,0.4)" }
+                  : undefined
+              }
+            >
+              Log in
+            </Link>
             <Link to="/dashboard" className="lp-btn-primary">Get started</Link>
           </div>
         </div>
       </header>
 
       {/* HERO */}
-      <section className="lp-hero">
+      <section
+        className="lp-hero"
+        style={{
+          backgroundImage:
+            "linear-gradient(180deg, rgba(8,12,24,0.78) 0%, rgba(8,12,24,0.88) 55%, rgba(8,12,24,0.96) 100%), url('https://images.pexels.com/photos/16588259/pexels-photo-16588259.jpeg?auto=compress&cs=tinysrgb&w=1920&q=80')",
+          backgroundSize: "cover",
+          backgroundPosition: "center 30%",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
         <div className="lp-wrap lp-hero-inner">
           <div className="lp-pill">🏆 Play · Match · Compete · Win</div>
 
-          <h1 className="lp-hero-h1">
+          <h1 className="lp-hero-h1" style={{ color: "#ffffff" }}>
             Find your next game,<br />
             <span className="lp-gradient-text">meet your perfect match</span>
           </h1>
 
-          <p className="lp-hero-sub">
+          <p className="lp-hero-sub" style={{ color: "rgba(255,255,255,0.85)" }}>
             Post a match, join a game near you, and get matched with players
             at your skill level — across any sport. Knowora is your
             community-powered sports matchmaking hub.
@@ -73,12 +119,20 @@ function Landing() {
             <Link to="/dashboard" className="lp-btn-primary lp-btn-lg">
               Start for free — no card needed
             </Link>
-            <Link to="/login" className="lp-btn-outline lp-btn-lg">
+            <Link
+              to="/login"
+              className="lp-btn-outline lp-btn-lg"
+              style={{
+                color: "#ffffff",
+                borderColor: "rgba(255,255,255,0.7)",
+                backgroundColor: "transparent",
+              }}
+            >
               Log in to your account
             </Link>
           </div>
 
-          <div className="lp-hero-trust">
+          <div className="lp-hero-trust" style={{ color: "rgba(255,255,255,0.75)" }}>
             <span className="lp-trust-item">
               <span className="lp-check">✓</span> Free plan — instant access
             </span>
@@ -136,11 +190,20 @@ function Landing() {
               </ul>
             </div>
 
-            <div className="lp-feature-card lp-feature-card--highlight">
+            <div
+              className="lp-feature-card lp-feature-card--highlight"
+              style={{
+                backgroundImage:
+                  "linear-gradient(160deg, rgba(30,10,50,0.88) 0%, rgba(20,8,40,0.93) 100%), url('https://images.pexels.com/photos/2202685/pexels-photo-2202685.jpeg?auto=compress&cs=tinysrgb&w=1200&q=80')",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                color: "#ffffff",
+              }}
+            >
               <div className="lp-feature-ico lp-ico-purple">🤝</div>
-              <h3>Join and earn</h3>
-              <p>Join matches hosted by others. Earn points for every game you play, and build your reputation on the platform.</p>
-              <ul className="lp-feature-list">
+              <h3 style={{ color: "#ffffff" }}>Join and earn</h3>
+              <p style={{ color: "rgba(255,255,255,0.85)" }}>Join matches hosted by others. Earn points for every game you play, and build your reputation on the platform.</p>
+              <ul className="lp-feature-list" style={{ color: "rgba(255,255,255,0.85)" }}>
                 <li>Points for every match played</li>
                 <li>Sport-specific role selection</li>
                 <li>Player leaderboard</li>
@@ -221,6 +284,10 @@ function Landing() {
                 <li><span className="lp-check">✓</span> 5 joins / 1 organize per month</li>
                 <li><span className="lp-check">✓</span> Profile management</li>
                 <li><span className="lp-check">✓</span> No card required</li>
+                <li className="lp-feature-off"><span className="lp-cross">✗</span> Points earning</li>
+                <li className="lp-feature-off"><span className="lp-cross">✗</span> Silver badge</li>
+                <li className="lp-feature-off"><span className="lp-cross">✗</span> Live scoreboards</li>
+                <li className="lp-feature-off"><span className="lp-cross">✗</span> 25% off sports equipment</li>
               </ul>
               <Link to="/dashboard" className="lp-plan-btn">Get started free</Link>
             </div>
@@ -233,10 +300,14 @@ function Landing() {
                 <div className="lp-plan-dur">1 month access</div>
               </div>
               <ul className="lp-plan-features">
-                <li><span className="lp-check">✓</span> Everything in Free</li>
+                <li><span className="lp-check">✓</span> Post &amp; join matches</li>
                 <li><span className="lp-check">✓</span> 10 joins / 2 organizes per month</li>
+                <li><span className="lp-check">✓</span> Profile management</li>
+                <li className="lp-feature-off"><span className="lp-cross">✗</span> No card required</li>
                 <li><span className="lp-check">✓</span> 2× points earning</li>
                 <li><span className="lp-check">✓</span> Silver badge</li>
+                <li className="lp-feature-off"><span className="lp-cross">✗</span> Live scoreboards</li>
+                <li className="lp-feature-off"><span className="lp-cross">✗</span> 25% off sports equipment</li>
               </ul>
               <Link to="/dashboard" className="lp-plan-btn lp-plan-btn--primary">Choose Silver</Link>
             </div>
@@ -248,9 +319,13 @@ function Landing() {
                 <div className="lp-plan-dur">2 months access</div>
               </div>
               <ul className="lp-plan-features">
-                <li><span className="lp-check lp-check--gold">✓</span> Everything in Silver</li>
+                <li><span className="lp-check lp-check--gold">✓</span> Post &amp; join matches</li>
                 <li><span className="lp-check lp-check--gold">✓</span> Unlimited joins, 10 organizes</li>
-                <li><span className="lp-check lp-check--gold">✓</span> Live scoreboards + 5× points</li>
+                <li><span className="lp-check lp-check--gold">✓</span> Profile management</li>
+                <li className="lp-feature-off"><span className="lp-cross">✗</span> No card required</li>
+                <li><span className="lp-check lp-check--gold">✓</span> 5× points earning</li>
+                <li><span className="lp-check lp-check--gold">✓</span> Silver badge</li>
+                <li><span className="lp-check lp-check--gold">✓</span> Live scoreboards</li>
                 <li><span className="lp-check lp-check--gold">✓</span> 25% off sports equipment</li>
               </ul>
               <Link to="/dashboard" className="lp-plan-btn lp-plan-btn--gold">Choose Gold</Link>
@@ -350,10 +425,19 @@ function Landing() {
       </section>
 
       {/* FINAL CTA */}
-      <section className="lp-cta-section">
+      <section
+        className="lp-cta-section"
+        style={{
+          backgroundImage:
+            "linear-gradient(180deg, rgba(6,10,20,0.85) 0%, rgba(6,10,20,0.92) 100%), url('https://images.pexels.com/photos/30651230/pexels-photo-30651230.jpeg?auto=compress&cs=tinysrgb&w=1920&q=80')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
         <div className="lp-wrap lp-cta-inner">
-          <h2>Ready to play your next match?</h2>
-          <p>Join Knowora today — post or join your first match for free, no card needed.</p>
+          <h2 style={{ color: "#ffffff" }}>Ready to play your next match?</h2>
+          <p style={{ color: "rgba(255,255,255,0.85)" }}>Join Knowora today — post or join your first match for free, no card needed.</p>
           <div className="lp-cta-actions">
             <Link to="/dashboard" className="lp-btn-primary lp-btn-lg">Create a free account</Link>
             <Link to="/login" className="lp-btn-outline lp-btn-lg lp-btn-light">Already have an account?</Link>
