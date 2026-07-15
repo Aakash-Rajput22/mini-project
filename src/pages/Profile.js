@@ -120,11 +120,15 @@ function Profile() {
     return data.secure_url;
   };
 
+  // Photo now uploads AND saves to Firestore immediately on selection —
+  // it no longer waits for the "Save profile" button, which was the bug:
+  // selecting a photo only showed a local preview until Save was clicked,
+  // so an unsaved preview would revert on refresh.
   const handlePhotoChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      alert("File size only 2 Mb. Choose samll file.");
+      alert("File size 2MB se zyada hai. Chhoti file choose karo.");
       e.target.value = "";
       return;
     }
@@ -162,7 +166,7 @@ function Profile() {
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("Location is not detected in this browser.");
+      alert("Location detect nahi ho sakti is browser mein.");
       return;
     }
     setLocatingAddress(true);
@@ -179,18 +183,18 @@ function Profile() {
             setAddress(data.display_name);
             setAddressSuggestions([]);
           } else {
-            alert("Address not detected. Type manually.");
+            alert("Address nahi mil paya. Manually type karo.");
           }
         } catch (err) {
           console.error("Reverse geocoding error:", err);
-          alert("Address not found. Manually type the address.");
+          alert("Address fetch nahi ho paya. Manually type karo.");
         }
         setLocatingAddress(false);
       },
       (err) => {
         console.error("Geolocation error:", err);
         setLocatingAddress(false);
-        alert("Location access are not allowed. Check browesr settings.");
+        alert("Location access allow nahi hui. Browser settings check karo.");
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -201,6 +205,8 @@ function Profile() {
     navigate("/login");
   };
 
+  // Fetches a remote image (Cloudinary URL) and converts it to a data URL
+  // so jsPDF can embed it — jsPDF cannot use a plain remote URL directly.
   const loadImageAsDataURL = (url) => {
     return new Promise((resolve, reject) => {
       fetch(url)
@@ -275,11 +281,11 @@ function Profile() {
     if (!currentUser) return;
     const code = referralInput.trim().toUpperCase();
     if (!code) {
-      setReferralMsg("Enter referral code .");
+      setReferralMsg("Referral code daalo.");
       return;
     }
     if (code === referralCode) {
-      setReferralMsg("You can not use your own code.");
+      setReferralMsg("Aap apna khud ka code use nahi kar sakte.");
       return;
     }
 
@@ -290,7 +296,7 @@ function Profile() {
         query(collection(db, "users"), where("referralCode", "==", code))
       );
       if (snap.empty) {
-        setReferralMsg("This referral code is not valid .");
+        setReferralMsg("Ye referral code kisi se match nahi karta.");
         setReferralBusy(false);
         return;
       }
@@ -310,7 +316,7 @@ function Profile() {
       setReferralMsg(`Code applied! Aapko aur ${referrerDoc.data().name || "your friend"} dono ko ${REFERRAL_BONUS} points mile.`);
     } catch (err) {
       console.error("Error redeeming referral code:", err);
-      setReferralMsg("Code not applied. please try again.");
+      setReferralMsg("Code apply nahi hua. Dobara try karo.");
     }
     setReferralBusy(false);
   };
