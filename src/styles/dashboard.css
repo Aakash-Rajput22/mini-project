@@ -385,10 +385,11 @@ body {
 .db-plan-tile--gold     { background: #fffdf5; }
 
 .db-plan-tile-badge {
-  position: absolute; top: 14px; right: 14px;
+  position: absolute; top: -12px; right: 14px;
   background: #3b82f6; color: #fff;
   font-size: 10px; font-weight: 700;
   padding: 3px 8px; border-radius: 100px;
+  box-shadow: 0 2px 6px rgba(59,130,246,0.35);
 }
 
 .db-plan-tile-top {

@@ -124,7 +124,7 @@ function Profile() {
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      alert("File size only 2 mb. Choose a small file.");
+      alert("File size only 2 Mb. Choose samll file.");
       e.target.value = "";
       return;
     }
@@ -183,14 +183,14 @@ function Profile() {
           }
         } catch (err) {
           console.error("Reverse geocoding error:", err);
-          alert("Address is not fetched. Type Manually.");
+          alert("Address not found. Manually type the address.");
         }
         setLocatingAddress(false);
       },
       (err) => {
         console.error("Geolocation error:", err);
         setLocatingAddress(false);
-        alert("Location access denied. Check browser settings.");
+        alert("Location access are not allowed. Check browesr settings.");
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -201,8 +201,6 @@ function Profile() {
     navigate("/login");
   };
 
-  // Fetches a remote image (Cloudinary URL) and converts it to a data URL
-  // so jsPDF can embed it — jsPDF cannot use a plain remote URL directly.
   const loadImageAsDataURL = (url) => {
     return new Promise((resolve, reject) => {
       fetch(url)
@@ -277,11 +275,11 @@ function Profile() {
     if (!currentUser) return;
     const code = referralInput.trim().toUpperCase();
     if (!code) {
-      setReferralMsg("Enter Referal code.");
+      setReferralMsg("Enter referral code .");
       return;
     }
     if (code === referralCode) {
-      setReferralMsg("You cannot use own code.");
+      setReferralMsg("You can not use your own code.");
       return;
     }
 
@@ -292,7 +290,7 @@ function Profile() {
         query(collection(db, "users"), where("referralCode", "==", code))
       );
       if (snap.empty) {
-        setReferralMsg("The referral code you entered is not valid.");
+        setReferralMsg("This referral code is not valid .");
         setReferralBusy(false);
         return;
       }
@@ -309,10 +307,10 @@ function Profile() {
 
       setReferredBy(referrerDoc.id);
       setReferralInput("");
-      setReferralMsg(`Code applied! You and ${referrerDoc.data().name || "your friend"} both earned ${REFERRAL_BONUS} points.`);
+      setReferralMsg(`Code applied! Aapko aur ${referrerDoc.data().name || "your friend"} dono ko ${REFERRAL_BONUS} points mile.`);
     } catch (err) {
       console.error("Error redeeming referral code:", err);
-      setReferralMsg("Code not applied. try again.");
+      setReferralMsg("Code not applied. please try again.");
     }
     setReferralBusy(false);
   };
@@ -340,6 +338,15 @@ function Profile() {
             <span className="db-nav-label">Main</span>
             <Link to="/dashboard" className="db-nav-item">
               <i className="ti ti-layout-dashboard db-nav-ico" aria-hidden="true"></i> Dashboard
+            </Link>
+            <Link to="/matches" className="db-nav-item">
+              <i className="ti ti-ball-basketball db-nav-ico" aria-hidden="true"></i> Matches
+            </Link>
+            <Link to="/teams" className="db-nav-item">
+              <i className="ti ti-users-group db-nav-ico" aria-hidden="true"></i> Teams
+            </Link>
+            <Link to="/leaderboard" className="db-nav-item">
+              <i className="ti ti-trophy db-nav-ico" aria-hidden="true"></i> Leaderboard
             </Link>
             <Link to="/profile" className="db-nav-item db-nav-item--active">
               <i className="ti ti-user db-nav-ico" aria-hidden="true"></i> Profile
@@ -457,7 +464,7 @@ function Profile() {
                     Copy
                   </button>
                 </div>
-                <p className="pf-upload-hint">Share this - you both get 20 points when a friend uses it.</p>
+                <p className="pf-upload-hint">Share this — you both get 20 points when a friend uses it.</p>
 
                 {!referredBy && (
                   <div className="pf-referral-redeem">
