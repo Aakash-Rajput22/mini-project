@@ -546,9 +546,9 @@ function Matches() {
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
           >
-            <option value="soonest">Sort: Soonest</option>
-            <option value="mostSpots">Sort: Most spots open</option>
-            {userLocation && <option value="nearest">Sort: Nearest</option>}
+            <option value="soonest"> Soonest</option>
+            <option value="mostSpots"> Most spots open</option>
+            {userLocation && <option value="nearest">Nearest</option>}
           </select>
         </div>
       </div>
