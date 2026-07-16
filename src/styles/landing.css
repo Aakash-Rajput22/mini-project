@@ -123,6 +123,14 @@
   transition: all 0.15s;
 }
 .lp-btn-ghost:hover { background: var(--bg-alt); }
+.lp-btn-ghost--on-dark {
+  color: #ffffff;
+  border-color: rgba(255,255,255,0.4);
+}
+.lp-btn-ghost--on-dark:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.6);
+}
 
 .lp-btn-primary {
   background: var(--blue);

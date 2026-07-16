@@ -125,12 +125,7 @@ function Landing() {
           <div className="lp-nav-cta">
             <Link
               to="/login"
-              className="lp-btn-ghost"
-              style={
-                isScrolled
-                  ? { color: "#ffffff", borderColor: "rgba(255,255,255,0.4)" }
-                  : undefined
-              }
+              className={"lp-btn-ghost" + (isScrolled ? " lp-btn-ghost--on-dark" : "")}
             >
               Log in
             </Link>
