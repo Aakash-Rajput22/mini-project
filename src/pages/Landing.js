@@ -473,7 +473,7 @@ function Landing() {
         className="lp-cta-section"
         style={{
           backgroundImage:
-            "linear-gradient(180deg, rgba(6,10,20,0.85) 0%, rgba(6,10,20,0.92) 100%), url('https://images.pexels.com/photos/30651230/pexels-photo-30651230.jpeg?auto=compress&cs=tinysrgb&w=1920&q=80')",
+            "linear-gradient(180deg, rgba(6,10,20,0.85) 0%, rgba(6,10,20,0.92) 100%), url('https://images.pexels.com/photos/200986/pexels-photo-200986.jpeg?auto=compress&cs=tinysrgb&w=1920&q=80')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",

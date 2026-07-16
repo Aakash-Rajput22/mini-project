@@ -385,7 +385,13 @@ function Dashboard() {
 
           {/* GUEST BANNER */}
           {isGuest && (
-            <div className="db-plan-hero">
+            <div
+              className="db-plan-hero db-plan-hero--photo"
+              style={{
+                backgroundImage:
+                  "linear-gradient(120deg, rgba(15,23,42,0.88) 0%, rgba(30,41,59,0.82) 100%), url('https://images.pexels.com/photos/29175974/pexels-photo-29175974.jpeg?auto=compress&cs=tinysrgb&w=1600&q=80')",
+              }}
+            >
               <div className="db-plan-hero-left">
                 <div className="db-plan-hero-icon">👋</div>
                 <div>
@@ -405,7 +411,13 @@ function Dashboard() {
 
           {/* PLAN HERO CARD */}
           {!isGuest && (
-            <div className="db-plan-hero">
+            <div
+              className="db-plan-hero db-plan-hero--photo"
+              style={{
+                backgroundImage:
+                  "linear-gradient(120deg, rgba(15,23,42,0.88) 0%, rgba(30,41,59,0.82) 100%), url('https://images.pexels.com/photos/29175974/pexels-photo-29175974.jpeg?auto=compress&cs=tinysrgb&w=1600&q=80')",
+              }}
+            >
               <div className="db-plan-hero-left">
                 <div className="db-plan-hero-icon">{planIcon(plan)}</div>
                 <div>
