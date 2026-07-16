@@ -47,6 +47,31 @@ function Landing() {
     return () => window.removeEventListener("resize", measure);
   }, []);
 
+  useEffect(() => {
+    const sectionIds = ["features", "how", "pricing", "reviews", "faq"];
+    const sections = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter(Boolean);
+    if (sections.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveLink(entry.target.id);
+          }
+        });
+      },
+      {
+        rootMargin: `-${headerHeight + 40}px 0px -60% 0px`,
+        threshold: 0,
+      }
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, [headerHeight]);
+
   const navLinks = [
     { id: "features", label: "Features" },
     { id: "how", label: "How it works" },
@@ -181,12 +206,10 @@ function Landing() {
             <div className="lp-stat-num">{matchesCount.toLocaleString("en-IN")}+</div>
             <div className="lp-stat-label">Matches hosted</div>
           </div>
-          <div className="lp-stat-div" />
           <div className="lp-stat">
             <div className="lp-stat-num">{playersCount.toLocaleString("en-IN")}+</div>
             <div className="lp-stat-label">Players on Knowora</div>
           </div>
-          <div className="lp-stat-div" />
           <div className="lp-stat">
             <div className="lp-stat-num">{citiesCount}</div>
             <div className="lp-stat-label">Cities and counting</div>
