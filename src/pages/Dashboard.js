@@ -734,6 +734,9 @@ function Dashboard() {
                   <li><span className="pr-check">✓</span> Basic player profile</li>
                   <li><span className="pr-check">✓</span> 1× points per match</li>
                   <li><span className="pr-check">✓</span> 5 joins / 1 organize per month</li>
+                  <li className="pr-feature-off"><span className="pr-cross">✗</span> Priority match visibility</li>
+                  <li className="pr-feature-off"><span className="pr-cross">✗</span> Pro player status</li>
+                  <li className="pr-feature-off"><span className="pr-cross">✗</span> Scorecards + 25% off equipment</li>
                 </ul>
                 <button className="db-plan-tile-btn" onClick={() => navigate(isGuest ? "/login" : "/pricing?plan=Free")}>
                   Select
@@ -748,10 +751,13 @@ function Dashboard() {
                 </div>
                 <p className="db-plan-tile-dur">1 month · Razorpay</p>
                 <ul className="pr-features">
-                  <li><span className="pr-check">✓</span> Everything in Free</li>
-                  <li><span className="pr-check">✓</span> Priority match visibility</li>
+                  <li><span className="pr-check">✓</span> Post &amp; join matches</li>
+                  <li><span className="pr-check">✓</span> Basic player profile</li>
                   <li><span className="pr-check">✓</span> 2× points per match</li>
                   <li><span className="pr-check">✓</span> 10 joins / 2 organizes per month</li>
+                  <li><span className="pr-check">✓</span> Priority match visibility</li>
+                  <li className="pr-feature-off"><span className="pr-cross">✗</span> Pro player status</li>
+                  <li className="pr-feature-off"><span className="pr-cross">✗</span> Scorecards + 25% off equipment</li>
                 </ul>
                 <button className="db-plan-tile-btn db-plan-tile-btn--primary" onClick={() => navigate(isGuest ? "/login" : "/pricing?plan=Silver")}>
                   Select
@@ -765,10 +771,12 @@ function Dashboard() {
                 </div>
                 <p className="db-plan-tile-dur">2 months · Razorpay</p>
                 <ul className="pr-features">
-                  <li><span className="pr-check--gold">✓</span> Everything in Silver</li>
-                  <li><span className="pr-check--gold">✓</span> Pro player status</li>
+                  <li><span className="pr-check--gold">✓</span> Post &amp; join matches</li>
+                  <li><span className="pr-check--gold">✓</span> Basic player profile</li>
                   <li><span className="pr-check--gold">✓</span> 5× points per match</li>
                   <li><span className="pr-check--gold">✓</span> Unlimited joins / 10 organizes</li>
+                  <li><span className="pr-check--gold">✓</span> Priority match visibility</li>
+                  <li><span className="pr-check--gold">✓</span> Pro player status</li>
                   <li><span className="pr-check--gold">✓</span> Scorecards + 25% off equipment</li>
                 </ul>
                 <button className="db-plan-tile-btn db-plan-tile-btn--gold" onClick={() => navigate(isGuest ? "/login" : "/pricing?plan=Gold")}>

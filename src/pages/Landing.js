@@ -27,6 +27,9 @@ function Landing() {
   const playersCount = useCountUp(8500);
   const citiesCount = useCountUp(42);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [activeLink, setActiveLink] = useState(null);
+  const headerRef = useRef(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 12);
@@ -35,16 +38,31 @@ function Landing() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    const measure = () => {
+      if (headerRef.current) setHeaderHeight(headerRef.current.offsetHeight);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  const navLinks = [
+    { id: "features", label: "Features" },
+    { id: "how", label: "How it works" },
+    { id: "pricing", label: "Pricing" },
+    { id: "reviews", label: "Reviews" },
+    { id: "faq", label: "FAQ" },
+  ];
+
   return (
     <div className="lp">
 
       {/* HEADER */}
       <header
+        ref={headerRef}
         className="lp-header"
         style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 100,
           ...(isScrolled
             ? {
                 backgroundColor: "rgba(10,12,20,0.92)",
@@ -66,11 +84,17 @@ function Landing() {
           </Link>
 
           <nav className="lp-nav-links">
-            <a href="#features" style={isScrolled ? { color: "rgba(255,255,255,0.8)" } : undefined}>Features</a>
-            <a href="#how" style={isScrolled ? { color: "rgba(255,255,255,0.8)" } : undefined}>How it works</a>
-            <a href="#pricing" style={isScrolled ? { color: "rgba(255,255,255,0.8)" } : undefined}>Pricing</a>
-            <a href="#reviews" style={isScrolled ? { color: "rgba(255,255,255,0.8)" } : undefined}>Reviews</a>
-            <a href="#faq" style={isScrolled ? { color: "rgba(255,255,255,0.8)" } : undefined}>FAQ</a>
+            {navLinks.map((link) => (
+              <a
+                key={link.id}
+                href={`#${link.id}`}
+                onClick={() => setActiveLink(link.id)}
+                className={activeLink === link.id ? "lp-nav-active" : ""}
+                style={isScrolled ? { color: "rgba(255,255,255,0.8)" } : undefined}
+              >
+                {link.label}
+              </a>
+            ))}
           </nav>
 
           <div className="lp-nav-cta">
@@ -89,6 +113,8 @@ function Landing() {
           </div>
         </div>
       </header>
+
+      <div style={{ height: headerHeight }} aria-hidden="true" />
 
       {/* HERO */}
       <section
