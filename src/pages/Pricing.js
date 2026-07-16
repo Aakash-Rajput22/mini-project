@@ -171,6 +171,13 @@ function Pricing() {
     }
   };
 
+  // Plan tiers rank low → high. Used only to decide which pricing card's
+  // button is selectable — a user can move up but never "select" a tier
+  // at or below the one they already hold.
+  const PLAN_RANK = { Free: 0, Silver: 1, Gold: 2 };
+  const currentPlanRank = PLAN_RANK[currentPlan] ?? 0;
+  const isBelowCurrent = (tierName) => PLAN_RANK[tierName] < currentPlanRank;
+
   return (
     <div className="db-shell">
 
@@ -237,13 +244,22 @@ function Pricing() {
                 <li><span className="pr-check">✓</span> Basic player profile</li>
                 <li><span className="pr-check">✓</span> 1× points per match</li>
                 <li><span className="pr-check">✓</span> 5 joins / 1 organize per month</li>
+                <li className="pr-feature-off"><span className="pr-cross">✗</span> Priority match visibility</li>
+                <li className="pr-feature-off"><span className="pr-cross">✗</span> Pro player status</li>
+                <li className="pr-feature-off"><span className="pr-cross">✗</span> Scorecards + 25% off equipment</li>
               </ul>
               <button
                 className="pr-btn"
                 onClick={() => handlePlanSelect("Free")}
-                disabled={loading === "Free" || currentPlan === "Free"}
+                disabled={loading === "Free" || currentPlan === "Free" || isBelowCurrent("Free")}
               >
-                {currentPlan === "Free" ? "Current plan" : loading === "Free" ? "Activating..." : "Get started free"}
+                {currentPlan === "Free"
+                  ? "Current plan"
+                  : isBelowCurrent("Free")
+                  ? "Included"
+                  : loading === "Free"
+                  ? "Activating..."
+                  : "Get started free"}
               </button>
             </div>
 
@@ -255,17 +271,26 @@ function Pricing() {
               <div className="pr-plan-price">₹199</div>
               <div className="pr-plan-dur">1 month access · Razorpay payment</div>
               <ul className="pr-features">
-                <li><span className="pr-check">✓</span> Everything in Free</li>
-                <li><span className="pr-check">✓</span> Priority match visibility</li>
+                <li><span className="pr-check">✓</span> Post &amp; join matches</li>
+                <li><span className="pr-check">✓</span> Basic player profile</li>
                 <li><span className="pr-check">✓</span> 2× points per match</li>
                 <li><span className="pr-check">✓</span> 10 joins / 2 organizes per month</li>
+                <li><span className="pr-check">✓</span> Priority match visibility</li>
+                <li className="pr-feature-off"><span className="pr-cross">✗</span> Pro player status</li>
+                <li className="pr-feature-off"><span className="pr-cross">✗</span> Scorecards + 25% off equipment</li>
               </ul>
               <button
                 className="pr-btn pr-btn--primary"
                 onClick={() => handlePlanSelect("Silver")}
-                disabled={loading === "Silver" || currentPlan === "Silver"}
+                disabled={loading === "Silver" || currentPlan === "Silver" || isBelowCurrent("Silver")}
               >
-                {currentPlan === "Silver" ? "Current plan" : loading === "Silver" ? "Processing..." : "Choose Silver"}
+                {currentPlan === "Silver"
+                  ? "Current plan"
+                  : isBelowCurrent("Silver")
+                  ? "Included"
+                  : loading === "Silver"
+                  ? "Processing..."
+                  : "Choose Silver"}
               </button>
             </div>
 
@@ -277,12 +302,13 @@ function Pricing() {
               <div className="pr-plan-dur">2 months access · Razorpay payment</div>
 
               <ul className="pr-features">
-                <li><span className="pr-check--gold">✓</span> Everything in Silver</li>
-                <li><span className="pr-check--gold">✓</span> Pro player status</li>
+                <li><span className="pr-check--gold">✓</span> Post &amp; join matches</li>
+                <li><span className="pr-check--gold">✓</span> Basic player profile</li>
                 <li><span className="pr-check--gold">✓</span> 5× points per match</li>
                 <li><span className="pr-check--gold">✓</span> Unlimited joins / 10 organizes per month</li>
-                <li><span className="pr-check--gold">✓</span> Create match scorecards</li>
-                <li><span className="pr-check--gold">✓</span> 25% off all sports equipment</li>
+                <li><span className="pr-check--gold">✓</span> Priority match visibility</li>
+                <li><span className="pr-check--gold">✓</span> Pro player status</li>
+                <li><span className="pr-check--gold">✓</span> Scorecards + 25% off equipment</li>
               </ul>
               <button
                 className="pr-btn pr-btn--gold"

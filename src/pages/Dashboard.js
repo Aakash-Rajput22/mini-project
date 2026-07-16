@@ -40,6 +40,19 @@ function Dashboard() {
     return icons[s] || "🎮";
   };
 
+  // Real action shots for the "Browse by Sport" tiles — falls back to the
+  // emoji chip for sports without a photo (Volleyball, Other).
+  const sportPhoto = (s) => {
+    const photos = {
+      Cricket: "https://images.pexels.com/photos/28759001/pexels-photo-28759001.jpeg?auto=compress&cs=tinysrgb&w=300&q=80",
+      Football: "https://images.pexels.com/photos/5648177/pexels-photo-5648177.jpeg?auto=compress&cs=tinysrgb&w=300&q=80",
+      Badminton: "https://images.pexels.com/photos/8796050/pexels-photo-8796050.jpeg?auto=compress&cs=tinysrgb&w=300&q=80",
+      Basketball: "https://images.pexels.com/photos/5384609/pexels-photo-5384609.jpeg?auto=compress&cs=tinysrgb&w=300&q=80",
+      Tennis: "https://images.pexels.com/photos/33436529/pexels-photo-33436529.jpeg?auto=compress&cs=tinysrgb&w=300&q=80",
+    };
+    return photos[s] || null;
+  };
+
   // Fetches match stats. Works for both logged-in (personal stats) and
   // guest (uid = null, only general/upcoming stats) views.
   const fetchMatchStats = async (uid) => {
@@ -221,6 +234,20 @@ function Dashboard() {
   const plan = userData?.plan || "Free";
   const isGuest = authChecked && !currentUser;
 
+  // Plan tiers rank low → high. A user can only move UP: their current
+  // tier and everything below it is blocked in "Available plans", only
+  // strictly higher tiers stay selectable as upgrades.
+  const PLAN_RANK = { Free: 0, Silver: 1, Gold: 2 };
+  const currentPlanRank = PLAN_RANK[plan] ?? 0;
+
+  const planTileState = (tileName) => {
+    if (isGuest) return { disabled: false, label: "Select" };
+    const tileRank = PLAN_RANK[tileName];
+    if (tileRank === currentPlanRank) return { disabled: true, label: "Current plan" };
+    if (tileRank < currentPlanRank) return { disabled: true, label: "Included" };
+    return { disabled: false, label: "Select" };
+  };
+
   const formatMatchDate = (timestamp) => {
     if (!timestamp) return "";
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -367,7 +394,7 @@ function Dashboard() {
                       <img src={m.venuePhotoURL} alt="" className="db-action-photo" />
                     ) : (
                       <div className="db-action-ico db-ico--blue">
-                        <i className="ti ti-ball-basketball" aria-hidden="true"></i>
+                        {sportIcon(m.sport)}
                       </div>
                     )}
                     <div className="db-action-body">
@@ -389,7 +416,7 @@ function Dashboard() {
               className="db-plan-hero db-plan-hero--photo"
               style={{
                 backgroundImage:
-                  "linear-gradient(120deg, rgba(15,23,42,0.88) 0%, rgba(30,41,59,0.82) 100%), url('https://images.pexels.com/photos/29175974/pexels-photo-29175974.jpeg?auto=compress&cs=tinysrgb&w=1600&q=80')",
+                  "linear-gradient(120deg, rgba(6,20,16,0.90) 0%, rgba(11,58,38,0.80) 100%), url('https://images.pexels.com/photos/7551306/pexels-photo-7551306.jpeg?auto=compress&cs=tinysrgb&w=1600&q=80')",
               }}
             >
               <div className="db-plan-hero-left">
@@ -415,7 +442,7 @@ function Dashboard() {
               className="db-plan-hero db-plan-hero--photo"
               style={{
                 backgroundImage:
-                  "linear-gradient(120deg, rgba(15,23,42,0.88) 0%, rgba(30,41,59,0.82) 100%), url('https://images.pexels.com/photos/29175974/pexels-photo-29175974.jpeg?auto=compress&cs=tinysrgb&w=1600&q=80')",
+                  "linear-gradient(120deg, rgba(6,20,16,0.90) 0%, rgba(11,58,38,0.80) 100%), url('https://images.pexels.com/photos/7551306/pexels-photo-7551306.jpeg?auto=compress&cs=tinysrgb&w=1600&q=80')",
               }}
             >
               <div className="db-plan-hero-left">
@@ -563,16 +590,23 @@ function Dashboard() {
                       className="db-action-row"
                       key={m.id}
                     >
-                      <div
-                        className={
-                          "db-action-ico " +
-                          ["db-ico--blue", "db-ico--green", "db-ico--amber", "db-ico--purple", "db-ico--gray"][idx % 5]
-                        }
-                      >
-                        <i className="ti ti-ball-basketball" aria-hidden="true"></i>
-                      </div>
+                      {sportPhoto(m.sport) ? (
+                        <div className="db-sport-thumb">
+                          <img src={sportPhoto(m.sport)} alt={m.sport} />
+                          <span className="db-sport-thumb-emoji">{sportIcon(m.sport)}</span>
+                        </div>
+                      ) : (
+                        <div
+                          className={
+                            "db-action-ico " +
+                            ["db-ico--blue", "db-ico--green", "db-ico--amber", "db-ico--purple", "db-ico--gray"][idx % 5]
+                          }
+                        >
+                          {sportIcon(m.sport)}
+                        </div>
+                      )}
                       <div className="db-action-body">
-                        <div className="db-action-name">{sportIcon(m.sport)} {m.title}</div>
+                        <div className="db-action-name">{m.title}</div>
                         <div className="db-action-desc">
                           {m.venue} · {formatMatchDate(m.date)} · {m.joinedPlayers?.length || 0}/{m.maxPlayers} players
                         </div>
@@ -596,14 +630,21 @@ function Dashboard() {
                     onClick={() => navigate(`/matches?sport=${encodeURIComponent(s.sport)}`)}
                     style={{ cursor: "pointer" }}
                   >
-                    <div
-                      className={
-                        "db-action-ico " +
-                        ["db-ico--blue", "db-ico--green", "db-ico--amber", "db-ico--purple", "db-ico--gray"][idx % 5]
-                      }
-                    >
-                      {sportIcon(s.sport)}
-                    </div>
+                    {sportPhoto(s.sport) ? (
+                      <div className="db-sport-thumb">
+                        <img src={sportPhoto(s.sport)} alt={s.sport} />
+                        <span className="db-sport-thumb-emoji">{sportIcon(s.sport)}</span>
+                      </div>
+                    ) : (
+                      <div
+                        className={
+                          "db-action-ico " +
+                          ["db-ico--blue", "db-ico--green", "db-ico--amber", "db-ico--purple", "db-ico--gray"][idx % 5]
+                        }
+                      >
+                        {sportIcon(s.sport)}
+                      </div>
+                    )}
                     <div className="db-action-body">
                       <div className="db-action-name">{s.sport}</div>
                       <div className="db-action-desc">{s.count} upcoming matches</div>
@@ -750,8 +791,12 @@ function Dashboard() {
                   <li className="pr-feature-off"><span className="pr-cross">✗</span> Pro player status</li>
                   <li className="pr-feature-off"><span className="pr-cross">✗</span> Scorecards + 25% off equipment</li>
                 </ul>
-                <button className="db-plan-tile-btn" onClick={() => navigate(isGuest ? "/login" : "/pricing?plan=Free")}>
-                  Select
+                <button
+                  className="db-plan-tile-btn"
+                  disabled={planTileState("Free").disabled}
+                  onClick={() => navigate(isGuest ? "/login" : "/pricing?plan=Free")}
+                >
+                  {planTileState("Free").label}
                 </button>
               </div>
 
@@ -771,8 +816,12 @@ function Dashboard() {
                   <li className="pr-feature-off"><span className="pr-cross">✗</span> Pro player status</li>
                   <li className="pr-feature-off"><span className="pr-cross">✗</span> Scorecards + 25% off equipment</li>
                 </ul>
-                <button className="db-plan-tile-btn db-plan-tile-btn--primary" onClick={() => navigate(isGuest ? "/login" : "/pricing?plan=Silver")}>
-                  Select
+                <button
+                  className="db-plan-tile-btn db-plan-tile-btn--primary"
+                  disabled={planTileState("Silver").disabled}
+                  onClick={() => navigate(isGuest ? "/login" : "/pricing?plan=Silver")}
+                >
+                  {planTileState("Silver").label}
                 </button>
               </div>
 
@@ -791,8 +840,12 @@ function Dashboard() {
                   <li><span className="pr-check--gold">✓</span> Pro player status</li>
                   <li><span className="pr-check--gold">✓</span> Scorecards + 25% off equipment</li>
                 </ul>
-                <button className="db-plan-tile-btn db-plan-tile-btn--gold" onClick={() => navigate(isGuest ? "/login" : "/pricing?plan=Gold")}>
-                  Select
+                <button
+                  className="db-plan-tile-btn db-plan-tile-btn--gold"
+                  disabled={planTileState("Gold").disabled}
+                  onClick={() => navigate(isGuest ? "/login" : "/pricing?plan=Gold")}
+                >
+                  {planTileState("Gold").label}
                 </button>
               </div>
 
