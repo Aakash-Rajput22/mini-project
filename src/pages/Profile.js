@@ -120,15 +120,11 @@ function Profile() {
     return data.secure_url;
   };
 
-  // Photo now uploads AND saves to Firestore immediately on selection —
-  // it no longer waits for the "Save profile" button, which was the bug:
-  // selecting a photo only showed a local preview until Save was clicked,
-  // so an unsaved preview would revert on refresh.
   const handlePhotoChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      alert("File size 2MB se zyada hai. Chhoti file choose karo.");
+      alert("File size must be less than 2 MB. Choose a smaller file.");
       e.target.value = "";
       return;
     }
@@ -156,7 +152,7 @@ function Profile() {
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
       console.error("Error uploading photo:", error);
-      alert("Photo upload/save nahi hui: " + error.message);
+      alert("Photo upload/Not saved: " + error.message);
       setPhotoURL(previousPhotoURL);
       URL.revokeObjectURL(previewUrl);
     }
@@ -166,7 +162,7 @@ function Profile() {
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("Location detect nahi ho sakti is browser mein.");
+      alert("Location is not detected in this browser.");
       return;
     }
     setLocatingAddress(true);
@@ -183,18 +179,18 @@ function Profile() {
             setAddress(data.display_name);
             setAddressSuggestions([]);
           } else {
-            alert("Address nahi mil paya. Manually type karo.");
+            alert("Address not found. Please type it manually.");
           }
         } catch (err) {
           console.error("Reverse geocoding error:", err);
-          alert("Address fetch nahi ho paya. Manually type karo.");
+          alert("Failed to fetch address. Please type it manually.");
         }
         setLocatingAddress(false);
       },
       (err) => {
         console.error("Geolocation error:", err);
         setLocatingAddress(false);
-        alert("Location access allow nahi hui. Browser settings check karo.");
+        alert("Location access not allowed. Please check your browser settings.");
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -281,11 +277,11 @@ function Profile() {
     if (!currentUser) return;
     const code = referralInput.trim().toUpperCase();
     if (!code) {
-      setReferralMsg("Referral code daalo.");
+      setReferralMsg("Enter referral code.");
       return;
     }
     if (code === referralCode) {
-      setReferralMsg("Aap apna khud ka code use nahi kar sakte.");
+      setReferralMsg("You cannot use your own referral code.");
       return;
     }
 
@@ -296,7 +292,7 @@ function Profile() {
         query(collection(db, "users"), where("referralCode", "==", code))
       );
       if (snap.empty) {
-        setReferralMsg("Ye referral code kisi se match nahi karta.");
+        setReferralMsg("The referral code does not match any user.");
         setReferralBusy(false);
         return;
       }
@@ -313,10 +309,10 @@ function Profile() {
 
       setReferredBy(referrerDoc.id);
       setReferralInput("");
-      setReferralMsg(`Code applied! Aapko aur ${referrerDoc.data().name || "your friend"} dono ko ${REFERRAL_BONUS} points mile.`);
+      setReferralMsg(`Code applied! You and ${referrerDoc.data().name || "your friend"} each received ${REFERRAL_BONUS} points.`);
     } catch (err) {
       console.error("Error redeeming referral code:", err);
-      setReferralMsg("Code apply nahi hua. Dobara try karo.");
+      setReferralMsg("Failed to apply code. Please try again.");
     }
     setReferralBusy(false);
   };
@@ -470,7 +466,7 @@ function Profile() {
                     Copy
                   </button>
                 </div>
-                <p className="pf-upload-hint">Share this — you both get 20 points when a friend uses it.</p>
+                <p className="pf-upload-hint">Share this code with a friend and you both get 20 points when they use it.</p>
 
                 {!referredBy && (
                   <div className="pf-referral-redeem">
