@@ -384,13 +384,34 @@ function Matches() {
     return icons[s] || "🎮";
   };
 
+  // Real action-shot fallback for match cards that have no host-uploaded
+  // ground photo — keeps the list from feeling empty/generic.
+  const sportPhoto = (s) => {
+    const photos = {
+      Cricket: "https://images.pexels.com/photos/28759001/pexels-photo-28759001.jpeg?auto=compress&cs=tinysrgb&w=300&q=80",
+      Football: "https://images.pexels.com/photos/5648177/pexels-photo-5648177.jpeg?auto=compress&cs=tinysrgb&w=300&q=80",
+      Badminton: "https://images.pexels.com/photos/8796050/pexels-photo-8796050.jpeg?auto=compress&cs=tinysrgb&w=300&q=80",
+      Basketball: "https://images.pexels.com/photos/5384609/pexels-photo-5384609.jpeg?auto=compress&cs=tinysrgb&w=300&q=80",
+      Tennis: "https://images.pexels.com/photos/33436529/pexels-photo-33436529.jpeg?auto=compress&cs=tinysrgb&w=300&q=80",
+    };
+    return photos[s] || null;
+  };
+
   return (
     <div className="matches-page">
       <button className="back-btn" onClick={() => navigate(-1)}>
         <i className="ti ti-arrow-left" aria-hidden="true"></i> Back
       </button>
-      <div className="matches-header">
-        <h1>Knowora Matches</h1>
+
+      {/* HERO BANNER */}
+      <div className="matches-hero">
+        <div className="matches-hero-text">
+          <p className="matches-hero-eyebrow">Knowora</p>
+          <h1>Find your next match</h1>
+          <p className="matches-hero-sub">
+            {matches.length} {matches.length === 1 ? "match" : "matches"} live right now across Bengaluru
+          </p>
+        </div>
         <button className="create-btn" onClick={openCreateForm}>
           {showCreateForm ? "Cancel" : "+ Create Match"}
         </button>
@@ -566,14 +587,19 @@ function Matches() {
         <div className="matches-list">
           {filteredMatches.map((m) => {
             const spotsLeft = m.maxPlayers - (m.joinedPlayers?.length || 0);
+            const cardPhoto = m.venuePhotoURL || sportPhoto(m.sport);
             return (
               <div
                 key={m.id}
                 className="match-card"
                 onClick={() => navigate(`/matches/${m.id}`)}
               >
-                {m.venuePhotoURL && (
-                  <img src={m.venuePhotoURL} alt="Ground" className="match-card-photo" />
+                {cardPhoto ? (
+                  <img src={cardPhoto} alt={m.sport} className="match-card-photo" />
+                ) : (
+                  <div className="match-card-photo match-card-photo--fallback">
+                    {sportIcon(m.sport)}
+                  </div>
                 )}
                 <div className="match-card-main">
                   <h3>

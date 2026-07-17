@@ -1,51 +1,116 @@
-.equip-section { margin-top: 24px; }
+/* Equipment Store — sits inside a .db-section-card on the Pricing page.
+   Uses the same --kn-* tokens as dashboard.css / matches.css. */
 
-.equip-upsell { font-size: 12px; color: #9ca3af; }
+.equip-section { overflow: hidden; }
 
+/* Banner strip behind the "Equipment Store" header row */
+.equip-section .db-section-card-header {
+  position: relative;
+  background:
+    linear-gradient(120deg, rgba(6,20,16,0.86) 0%, rgba(11,58,38,0.72) 100%),
+    url('https://images.pexels.com/photos/18618012/pexels-photo-18618012.jpeg?auto=compress&cs=tinysrgb&w=1600&q=80');
+  background-size: cover;
+  background-position: center 35%;
+  border-bottom: none;
+  padding: 22px;
+}
+.equip-section .db-section-card-title { color: #fff; font-size: 15px; }
+
+.equip-upsell {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.25);
+  padding: 5px 12px;
+  border-radius: 100px;
+  backdrop-filter: blur(4px);
+}
+
+.equip-section .db-badge--gold {
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+/* Grid + cards */
 .equip-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
   gap: 16px;
-  margin-top: 16px;
+  padding: 20px;
 }
 
 .equip-card {
   background: #fff;
-  border: 1px solid #eef0f3;
+  border: 1px solid var(--kn-line, #E7EBE7);
   border-radius: 14px;
-  padding: 18px 16px;
+  padding: 20px 16px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 8px;
-  box-shadow: 0 1px 2px rgba(15,23,42,0.04);
-  transition: box-shadow 0.15s, transform 0.15s;
+  gap: 6px;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s, transform 0.2s;
 }
-.equip-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.06); transform: translateY(-2px); }
+.equip-card::before {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--kn-turf, #12805A), var(--kn-gold, #C4841D));
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+.equip-card:hover {
+  box-shadow: 0 10px 24px rgba(10,23,18,0.08);
+  transform: translateY(-3px);
+}
+.equip-card:hover::before { opacity: 1; }
 
-.equip-icon { font-size: 32px; }
+.equip-icon {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--kn-turf-light, #E5F4EC), #d7f0e1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px;
+  margin-bottom: 6px;
+}
 
 .equip-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: #1f2937;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--kn-text, #10201A);
   min-height: 34px;
   display: flex;
   align-items: center;
 }
 
-.equip-price { display: flex; align-items: baseline; gap: 8px; }
-.equip-price-old { font-size: 12px; color: #9ca3af; text-decoration: line-through; }
-.equip-price-final { font-size: 17px; font-weight: 800; color: #0f172a; }
+.equip-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.equip-price-old {
+  font-size: 12.5px;
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+.equip-price-final {
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--kn-text, #10201A);
+}
 
 .equip-buy-btn {
   width: 100%;
-  margin-top: 6px;
-  padding: 8px 14px !important;
-  font-size: 13px !important;
+  padding: 9px;
+  font-size: 13px;
 }
 
+/* ══ RESPONSIVE ══ */
 @media (max-width: 640px) {
-  .equip-grid { grid-template-columns: repeat(2, 1fr); }
+  .equip-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; padding: 14px; }
+  .equip-section .db-section-card-header { flex-direction: column; align-items: flex-start; gap: 10px; }
 }
