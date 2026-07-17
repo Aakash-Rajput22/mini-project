@@ -187,9 +187,14 @@
 
 .match-card-photo {
   width: 84px;
+  min-width: 84px;
+  max-width: 84px;
   height: 84px;
+  min-height: 84px;
+  max-height: 84px;
   border-radius: 12px;
   object-fit: cover;
+  display: block;
   flex-shrink: 0;
   border: 1px solid var(--kn-line);
 }
@@ -299,6 +304,8 @@
   transition: box-shadow 0.2s, transform 0.2s;
 }
 .match-card:hover { box-shadow: 0 8px 24px rgba(10,23,18,0.08); transform: translateY(-2px); }
+
+.match-card-main { flex: 1; min-width: 0; }
 
 .match-card-main h3 { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--kn-text); margin-bottom: 10px; }
 
