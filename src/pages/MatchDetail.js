@@ -78,6 +78,7 @@ function MatchDetail() {
   const [reportingUid, setReportingUid] = useState(null);
   const [reportReason, setReportReason] = useState("");
   const [ratingTargetUid, setRatingTargetUid] = useState(null);
+  const [inviteCopied, setInviteCopied] = useState(false);
 
   // Team-match join flow (captain sends one request covering their whole team)
   const [myCaptainTeams, setMyCaptainTeams] = useState([]);
@@ -182,6 +183,35 @@ function MatchDetail() {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  /* ─────────────── INVITE FRIENDS ─────────────── */
+
+  // Native share sheet on mobile; copies an invite message + link on desktop.
+  const handleInvite = async () => {
+    if (!match) return;
+    const url = window.location.href;
+    const spotsLeft = match.maxPlayers - (match.joinedPlayers?.length || 0);
+    const text = `Join "${match.title}" (${match.sport}) on Knowora — ${formatDate(match.date)} at ${match.venue}. ${
+      spotsLeft > 0 ? `${spotsLeft} spot${spotsLeft === 1 ? "" : "s"} left!` : ""
+    }`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: match.title, text, url });
+      } catch (err) {
+        // user cancelled the share sheet — nothing to do
+      }
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(`${text}\n${url}`);
+      setInviteCopied(true);
+      setTimeout(() => setInviteCopied(false), 2500);
+    } catch (err) {
+      console.error("Error copying invite link:", err);
+    }
   };
 
   /* ─────────────── JOIN REQUEST FLOW ─────────────── */
@@ -755,9 +785,20 @@ function MatchDetail() {
 
   return (
     <div className="match-detail-page">
-      <button className="back-btn" onClick={() => navigate("/matches")}>
-        <i className="ti ti-arrow-left" aria-hidden="true"></i> Back to Matches
-      </button>
+      <div className="match-detail-topbar">
+        <button className="back-btn" onClick={() => navigate("/matches")}>
+          <i className="ti ti-arrow-left" aria-hidden="true"></i> Back to Matches
+        </button>
+        <button className="invite-btn invite-btn--lg" onClick={handleInvite}>
+          {inviteCopied ? (
+            "✓ Link copied"
+          ) : (
+            <>
+              <i className="ti ti-share-2" aria-hidden="true"></i> Invite friends
+            </>
+          )}
+        </button>
+      </div>
 
       <div className="match-full">
         {match.venuePhotoURL && (

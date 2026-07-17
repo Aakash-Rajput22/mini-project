@@ -97,6 +97,7 @@ function Matches() {
   const [uploadingVenuePhoto, setUploadingVenuePhoto] = useState(false);
   const [error, setError] = useState("");
   const [blockedUsers, setBlockedUsers] = useState([]);
+  const [copiedId, setCopiedId] = useState("");
 
   useEffect(() => {
     fetchMatches();
@@ -320,6 +321,32 @@ function Matches() {
       setError("Match not created. Please try again.");
     }
     setPosting(false);
+  };
+
+  // Shares a direct link to the match — opens the device's native share
+  // sheet on mobile, falls back to copying an invite message on desktop.
+  const inviteToMatch = async (e, m) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const url = `${window.location.origin}/matches/${m.id}`;
+    const text = `Join my ${m.sport} match "${m.title}" on Knowora — ${formatDate(m.date)} at ${m.venue}.`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: m.title, text, url });
+      } catch (err) {
+        // user cancelled the share sheet — nothing to do
+      }
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(`${text}\n${url}`);
+      setCopiedId(m.id);
+      setTimeout(() => setCopiedId(""), 2000);
+    } catch (err) {
+      console.error("Error copying invite link:", err);
+    }
   };
 
   const filteredMatches = matches
@@ -636,6 +663,15 @@ function Matches() {
                   >
                     {spotsLeft <= 0 ? "Full" : `Need ${spotsLeft} more`}
                   </span>
+                  <button className="invite-btn" onClick={(e) => inviteToMatch(e, m)}>
+                    {copiedId === m.id ? (
+                      "✓ Link copied"
+                    ) : (
+                      <>
+                        <i className="ti ti-share-2" aria-hidden="true"></i> Invite
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
             );
