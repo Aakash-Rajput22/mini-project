@@ -483,7 +483,7 @@ body {
 /* ══ PLANS ROW ══ */
 .db-plans-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 0;
   border-top: 1px solid #f1f4f1;
 }
@@ -534,13 +534,12 @@ body {
 .db-plan-tile-btn:disabled,
 .db-plan-tile-btn--primary:disabled,
 .db-plan-tile-btn--gold:disabled {
-  background: #eef1ee;
-  color: #9aa6a0;
-  border-color: #e5e9e6;
-  box-shadow: none;
+  background: #dbe2dd !important;
+  color: #3f4a45 !important;
+  border: 1px solid #c9d1cb !important;
+  box-shadow: none !important;
   cursor: not-allowed;
-  transform: none;
-  opacity: 0.85;
+  transform: none !important;
 }
 
 /* ══ ADMIN PANEL ══ */
@@ -620,7 +619,7 @@ body {
 .db-stat-icon--amber { background: var(--kn-gold-light); }
 
 /* ══ PRICING ══ */
-.pr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.pr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
 .pr-card {
   background: #fff; border: 1px solid var(--kn-line); border-radius: 16px;
   padding: 28px 24px; display: flex; flex-direction: column; position: relative;
@@ -655,9 +654,16 @@ body {
   border: 1px solid #e5e9e6; background: #f8faf8; color: #475569; transition: all 0.15s;
 }
 .pr-btn:hover { background: #eef2ef; }
-.pr-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-.pr-btn--primary { background: var(--kn-turf); color: #fff; border-color: var(--kn-turf); }
+.pr-btn:disabled,
+.pr-btn--primary:disabled,
+.pr-btn--gold:disabled {
+  background: #dbe2dd !important;
+  color: #3f4a45 !important;
+  border-color: #c9d1cb !important;
+  cursor: not-allowed;
+}
 .pr-btn--primary:hover { background: var(--kn-turf-dark); }
+.pr-btn--primary { background: var(--kn-turf); color: #fff; border-color: var(--kn-turf); }
 .pr-btn--gold { background: var(--kn-gold); color: #fff; border-color: var(--kn-gold); }
 .pr-btn--gold:hover { background: #a86913; }
 .pr-note { text-align: center; font-size: 13px; color: var(--kn-faint); margin-top: 18px; }
