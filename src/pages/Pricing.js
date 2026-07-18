@@ -208,6 +208,9 @@ function Pricing() {
             <Link to="/pricing" className="db-nav-item db-nav-item--active">
               <i className="ti ti-credit-card db-nav-ico" aria-hidden="true"></i> Pricing plans
             </Link>
+            <Link to="/settings" className="db-nav-item">
+              <i className="ti ti-settings db-nav-ico" aria-hidden="true"></i> Settings
+            </Link>
           </nav>
         </div>
         <div className="db-sidebar-foot">

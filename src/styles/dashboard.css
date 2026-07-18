@@ -396,6 +396,82 @@ body {
 }
 .db-section-card-link:hover { color: var(--kn-turf); }
 
+.db-section-card-sub {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--kn-faint);
+}
+
+/* ══ ACHIEVEMENT BADGES ══ */
+.db-badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 12px;
+  padding: 18px 20px 20px;
+}
+
+.db-badge-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  padding: 16px 10px;
+  border-radius: 14px;
+  border: 1px solid var(--kn-line);
+  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: default;
+}
+
+.db-badge-tile--earned {
+  background: linear-gradient(160deg, var(--kn-turf-light) 0%, #fff 100%);
+  border-color: #cfe8db;
+}
+.db-badge-tile--earned:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(18,128,90,0.12);
+}
+
+.db-badge-tile--locked {
+  background: #f8faf8;
+  opacity: 0.6;
+}
+
+.db-badge-icon { font-size: 26px; line-height: 1; }
+.db-badge-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--kn-text);
+}
+.db-badge-tile--locked .db-badge-label { color: var(--kn-faint); }
+
+/* Photo banner headers — used on "Upcoming Matches" / "Browse by Sport"
+   to match the same treatment as the Equipment Store header. */
+.kn-header-photo {
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  border-bottom: none;
+  padding: 22px;
+}
+.kn-header-photo::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(120deg, rgba(6,20,16,0.86) 0%, rgba(11,58,38,0.72) 100%);
+}
+.kn-header-photo > * { position: relative; z-index: 1; }
+.kn-header-photo .db-section-card-title { color: #fff; }
+.kn-header-photo .db-section-card-link { color: #bdf0d3; }
+.kn-header-photo .db-section-card-link:hover { color: #fff; }
+
+.kn-header-photo--matches {
+  background-image: url('https://images.pexels.com/photos/7551306/pexels-photo-7551306.jpeg?auto=compress&cs=tinysrgb&w=1200&q=80');
+}
+.kn-header-photo--sport {
+  background-image: url('https://images.pexels.com/photos/18618012/pexels-photo-18618012.jpeg?auto=compress&cs=tinysrgb&w=1200&q=80');
+  background-position: center 35%;
+}
+
 /* Wraps stat grids / other content nested inside a db-section-card so
    they align flush with the header's own padding, instead of touching
    the card edges. */
@@ -744,3 +820,50 @@ body {
   .pf-grid        { grid-template-columns: 1fr; }
   .pf-form-grid   { grid-template-columns: 1fr; }
 }
+
+/* ══ DARK MODE (toggled from Settings → Appearance) ══
+   Applied via a "kn-dark" class on <body>. Covers the main shell,
+   cards and text; the sidebar is already dark-themed by default. */
+body.kn-dark {
+  background: #0E1712;
+  color: #E7F0EA;
+}
+body.kn-dark .db-topbar {
+  background: rgba(14,23,18,0.9);
+  border-bottom-color: #1E2E27;
+}
+body.kn-dark .db-page-title,
+body.kn-dark .kn-settings-row-title,
+body.kn-dark .db-stat-value,
+body.kn-dark .db-action-name,
+body.kn-dark .db-plan-hero-name,
+body.kn-dark .db-plan-tile-name,
+body.kn-dark .db-plan-tile-price,
+body.kn-dark .pr-plan-price,
+body.kn-dark .db-section-card-title { color: #F1F8F4; }
+
+body.kn-dark .db-page-sub,
+body.kn-dark .db-stat-label,
+body.kn-dark .db-action-desc,
+body.kn-dark .kn-settings-row-desc,
+body.kn-dark .db-pd-label,
+body.kn-dark .pr-plan-dur { color: #93A69B; }
+
+body.kn-dark .db-section-card,
+body.kn-dark .db-stat-card,
+body.kn-dark .db-plan-hero,
+body.kn-dark .create-form,
+body.kn-dark .match-card,
+body.kn-dark .equip-card,
+body.kn-dark .pr-card {
+  background: #131F19;
+  border-color: #223228;
+}
+body.kn-dark .db-section-card-header { background: #131F19; border-bottom-color: #223228; }
+body.kn-dark .db-back-btn { background: #182620; border-color: #223228; color: #93A69B; }
+body.kn-dark .db-plan-tile-btn,
+body.kn-dark .search-box,
+body.kn-dark .sport-chip,
+body.kn-dark .create-form input,
+body.kn-dark .create-form select { background: #182620; border-color: #223228; color: #E7F0EA; }
+body.kn-dark .db-action-row:hover { background: #182620; }

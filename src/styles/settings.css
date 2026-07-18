@@ -1,0 +1,216 @@
+/* Settings page — toggle switches, setting rows, danger zone.
+   Sits alongside dashboard.css and reuses its --kn-* tokens. */
+
+.kn-settings-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.kn-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 22px;
+  border-top: 1px solid #f1f4f1;
+}
+.kn-settings-row:first-child { border-top: none; }
+
+.kn-settings-row-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--kn-text, #10201A);
+}
+
+.kn-settings-row-desc {
+  font-size: 12.5px;
+  color: var(--kn-muted, #6E7B75);
+  margin-top: 3px;
+  max-width: 460px;
+  line-height: 1.5;
+}
+
+.kn-settings-empty {
+  padding: 22px;
+  font-size: 13.5px;
+  color: var(--kn-faint, #9CA9A2);
+}
+
+/* Toggle switch */
+.kn-toggle {
+  position: relative;
+  width: 44px;
+  height: 25px;
+  border-radius: 100px;
+  background: #d9dfda;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s;
+  padding: 0;
+}
+.kn-toggle-knob {
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 19px; height: 19px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(10,23,18,0.25);
+  transition: transform 0.2s;
+}
+.kn-toggle--on { background: var(--kn-turf, #12805A); }
+.kn-toggle--on .kn-toggle-knob { transform: translateX(19px); }
+
+/* Blocked players */
+.kn-unblock-btn {
+  padding: 7px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--kn-line, #E7EBE7);
+  background: #f8faf8;
+  color: var(--kn-text, #10201A);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.kn-unblock-btn:hover:not(:disabled) { background: #eef2ef; }
+.kn-unblock-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+/* Danger zone */
+.kn-danger-card { border-color: #fecaca; }
+.kn-danger-card .db-section-card-header { background: #fef2f2; border-bottom: 1px solid #fecaca; }
+.kn-danger-card .db-section-card-title { color: #b91c1c; }
+
+.kn-delete-btn {
+  padding: 9px 18px;
+  border-radius: 9px;
+  border: 1px solid #fca5a5;
+  background: #fff;
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.kn-delete-btn:hover:not(:disabled) { background: #fef2f2; }
+.kn-delete-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.kn-saving-note {
+  font-size: 12px;
+  color: var(--kn-faint, #9CA9A2);
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .kn-settings-row { flex-direction: row; align-items: flex-start; padding: 14px 16px; }
+}
+
+/* ══ WALLET ══ */
+.kn-wallet-box {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px 22px 22px;
+  flex-wrap: wrap;
+}
+.kn-wallet-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--kn-faint, #9CA9A2);
+}
+.kn-wallet-balance {
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--kn-text, #10201A);
+  margin: 2px 0 8px;
+}
+
+.kn-wallet-amounts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 220px;
+}
+.kn-amount-btn {
+  padding: 9px 14px;
+  border-radius: 9px;
+  border: 1px solid var(--kn-line, #E7EBE7);
+  background: var(--kn-turf-light, #E5F4EC);
+  color: var(--kn-turf-dark, #0B6647);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.kn-amount-btn:hover:not(:disabled) { background: #d7f0e1; }
+.kn-amount-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.kn-amount-btn--primary {
+  background: linear-gradient(135deg, var(--kn-turf, #12805A), var(--kn-turf-dark, #0B6647));
+  color: #fff;
+  border-color: transparent;
+}
+.kn-amount-btn--primary:hover:not(:disabled) { filter: brightness(1.08); }
+
+.kn-custom-amount-row { display: flex; gap: 8px; }
+.kn-custom-amount-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  border: 1px solid var(--kn-line, #E7EBE7);
+  border-radius: 9px;
+  font-size: 13px;
+  color: var(--kn-text, #10201A);
+}
+.kn-custom-amount-row input:focus { outline: none; border-color: var(--kn-turf, #12805A); }
+
+/* ══ REFERRALS ══ */
+.kn-referral-code-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.kn-referral-code {
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--kn-turf-dark, #0B6647);
+  background: var(--kn-turf-light, #E5F4EC);
+  border: 1px dashed #9fd4b6;
+  padding: 7px 14px;
+  border-radius: 8px;
+}
+
+.kn-redeem-box { display: flex; gap: 8px; flex-shrink: 0; }
+.kn-redeem-box input {
+  width: 130px;
+  padding: 9px 12px;
+  border: 1px solid var(--kn-line, #E7EBE7);
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--kn-text, #10201A);
+}
+.kn-redeem-box input:focus { outline: none; border-color: var(--kn-turf, #12805A); }
+
+.kn-redeem-msg {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--kn-turf-dark, #0B6647);
+  margin-top: 6px;
+  max-width: 320px;
+}
+
+@media (max-width: 640px) {
+  .kn-wallet-box { flex-direction: column; }
+  .kn-wallet-amounts { width: 100%; }
+}

@@ -440,6 +440,15 @@
 .join-btn:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
 .join-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
+.kn-wallet-pay-btn {
+  background: #fff;
+  color: var(--kn-turf-dark);
+  border: 1px solid var(--kn-turf);
+  box-shadow: none;
+}
+.kn-wallet-pay-btn:hover:not(:disabled) { background: var(--kn-turf-light); filter: none; transform: none; }
+.kn-wallet-pay-btn:disabled { opacity: 0.5; cursor: not-allowed; background: #f8faf8; border-color: var(--kn-line); color: var(--kn-faint); }
+
 .leave-btn {
   background: #fff;
   color: #dc2626;
@@ -585,6 +594,8 @@
 .safety-link-btn:hover { color: #4b5563; }
 .safety-link-btn--warn { color: #b45309; }
 .safety-link-btn--warn:hover { color: #92400e; }
+.safety-link-btn--following { color: var(--kn-turf-dark); font-weight: 700; text-decoration: none; }
+.safety-link-btn--following:hover { color: var(--kn-turf); }
 
 .noshow-badge {
   background: #fef2f2; color: #b91c1c;

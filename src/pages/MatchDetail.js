@@ -18,6 +18,7 @@ import {
   orderBy,
   getDocs,
   limit,
+  runTransaction,
 } from "firebase/firestore";
 import { db, auth } from "../firebase/firebase";
 import { checkAndDowngradeIfExpired } from "../utils/planExpiry";
@@ -79,6 +80,10 @@ function MatchDetail() {
   const [reportReason, setReportReason] = useState("");
   const [ratingTargetUid, setRatingTargetUid] = useState(null);
   const [inviteCopied, setInviteCopied] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [payingWithWallet, setPayingWithWallet] = useState(false);
+  const [followingList, setFollowingList] = useState([]);
+  const [followBusyUid, setFollowBusyUid] = useState("");
 
   // Team-match join flow (captain sends one request covering their whole team)
   const [myCaptainTeams, setMyCaptainTeams] = useState([]);
@@ -123,6 +128,8 @@ function MatchDetail() {
         if (snap.exists()) {
           if (snap.data().plan) setCurrentUserPlan(snap.data().plan);
           if (Array.isArray(snap.data().blockedUsers)) setBlockedUsers(snap.data().blockedUsers);
+          setWalletBalance(snap.data().walletBalance || 0);
+          if (Array.isArray(snap.data().following)) setFollowingList(snap.data().following);
         }
       } catch (e) {
         // fallback stays Free
@@ -238,6 +245,72 @@ function MatchDetail() {
         organizesThisMonth,
       },
     }, { merge: true });
+  };
+
+  // Pays the join fee straight from the in-app wallet instead of opening
+  // Razorpay. Uses a transaction so the balance check + deduction are
+  // atomic (no double-spend if the user double-clicks).
+  const handleRequestJoinWithWallet = async () => {
+    if (!currentUid) {
+      navigate("/login");
+      return;
+    }
+    if (!selectedRole) {
+      setError("please select a role.");
+      return;
+    }
+    if (!match || (match.joinedPlayers?.length || 0) >= match.maxPlayers) {
+      setError("This match is already full.");
+      return;
+    }
+
+    setPayingWithWallet(true);
+    setError("");
+    try {
+      let userName = auth.currentUser.displayName || "Anonymous";
+      let userPlan = "Free";
+      let usage = null;
+      const userSnap = await getDoc(doc(db, "users", currentUid));
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        if (data.name) userName = data.name;
+        if (data.plan) userPlan = data.plan;
+        usage = data.usage || null;
+      }
+
+      const monthKey = getCurrentMonthKey();
+      const joinsThisMonth = usage?.month === monthKey ? (usage.joinsThisMonth || 0) : 0;
+      const joinLimit = JOIN_LIMITS[userPlan] ?? JOIN_LIMITS.Free;
+      if (joinsThisMonth >= joinLimit) {
+        setError(`Join limit reached for this month (${joinLimit}). Upgrade your plan or try again next month.`);
+        setPayingWithWallet(false);
+        return;
+      }
+
+      const cost = match.costPerPlayer || 0;
+      await runTransaction(db, async (transaction) => {
+        const userRef = doc(db, "users", currentUid);
+        const snap = await transaction.get(userRef);
+        const balance = snap.data()?.walletBalance || 0;
+        if (balance < cost) {
+          throw new Error("insufficient-balance");
+        }
+        transaction.update(userRef, { walletBalance: increment(-cost) });
+      });
+
+      await finalizeJoinRequest(userName, userPlan, usage);
+      setWalletBalance((prev) => prev - cost);
+      setShowRoleSelect(false);
+      setSelectedRole("");
+    } catch (err) {
+      if (err.message === "insufficient-balance") {
+        setError("Not enough wallet balance. Add money from Settings, or pay via Razorpay instead.");
+      } else {
+        console.error("Error paying with wallet:", err);
+        setError("Wallet payment failed. Please try again.");
+      }
+    }
+    setPayingWithWallet(false);
   };
 
   const handleRequestJoin = async () => {
@@ -593,6 +666,25 @@ function MatchDetail() {
     setBusy(false);
   };
 
+  /* ─────────────── FOLLOW / UNFOLLOW ─────────────── */
+
+  const handleToggleFollow = async (uid) => {
+    if (!currentUid || uid === currentUid) return;
+    const isFollowing = followingList.includes(uid);
+    setFollowBusyUid(uid);
+    try {
+      await updateDoc(doc(db, "users", currentUid), {
+        following: isFollowing ? arrayRemove(uid) : arrayUnion(uid),
+      });
+      setFollowingList((prev) =>
+        isFollowing ? prev.filter((id) => id !== uid) : [...prev, uid]
+      );
+    } catch (err) {
+      console.error("Error toggling follow:", err);
+    }
+    setFollowBusyUid("");
+  };
+
   /* ─────────────── SAFETY: REPORT & BLOCK ─────────────── */
 
   const handleBlockPlayer = async (uid, name) => {
@@ -886,10 +978,24 @@ function MatchDetail() {
               <button
                 className="join-btn"
                 onClick={handleRequestJoin}
-                disabled={busy || !selectedRole}
+                disabled={busy || payingWithWallet || !selectedRole}
               >
-                {busy ? "Processing..." : match.costPerPlayer > 0 ? `Pay ₹${match.costPerPlayer} & Request` : "Send Request"}
+                {busy ? "Processing..." : match.costPerPlayer > 0 ? `Pay ₹${match.costPerPlayer} via Razorpay` : "Send Request"}
               </button>
+              {match.costPerPlayer > 0 && (
+                <button
+                  className="join-btn kn-wallet-pay-btn"
+                  onClick={handleRequestJoinWithWallet}
+                  disabled={busy || payingWithWallet || !selectedRole || walletBalance < match.costPerPlayer}
+                  title={
+                    walletBalance < match.costPerPlayer
+                      ? `Wallet balance ₹${walletBalance} — add money from Settings`
+                      : ""
+                  }
+                >
+                  {payingWithWallet ? "Processing..." : `Pay ₹${match.costPerPlayer} from Wallet (₹${walletBalance})`}
+                </button>
+              )}
               <button className="link-btn" onClick={() => setShowRoleSelect(false)}>
                 Cancel
               </button>
@@ -985,6 +1091,13 @@ function MatchDetail() {
 
               {!isSelf && currentUid && (
                 <div className="player-safety-actions">
+                  <button
+                    className={"safety-link-btn " + (followingList.includes(uid) ? "safety-link-btn--following" : "")}
+                    onClick={() => handleToggleFollow(uid)}
+                    disabled={followBusyUid === uid}
+                  >
+                    {followBusyUid === uid ? "..." : followingList.includes(uid) ? "✓ Following" : "+ Follow"}
+                  </button>
                   <button className="safety-link-btn" onClick={() => handleBlockPlayer(uid, name)}>
                     Block
                   </button>

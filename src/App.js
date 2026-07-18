@@ -16,6 +16,7 @@ import Leaderboard from "./pages/Leaderboard";
 import PlayerProfile from "./pages/PlayerProfile";
 import Teams from "./pages/Teams";
 import TeamDetail from "./pages/TeamDetail";
+import Settings from "./pages/Settings";
 
 // Root route: logged-in visitors go straight to the Dashboard.
 // Logged-out visitors see the Landing page (not a forced login screen).
@@ -51,6 +52,7 @@ function App() {
       <Route path="/profile" element={<Profile />} />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/admin" element={<Admin />} />
+      <Route path="/settings" element={<Settings />} />
 
       {/* PlayXchange Pages */}
       <Route path="/matches" element={<Matches />} />

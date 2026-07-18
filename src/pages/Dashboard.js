@@ -21,6 +21,7 @@ function Dashboard() {
   });
   const [reminderMatches, setReminderMatches] = useState([]);
   const [newMatches, setNewMatches] = useState([]);
+  const [followingMatches, setFollowingMatches] = useState([]);
   const [upcomingMatches, setUpcomingMatches] = useState([]);
   const [sportStats, setSportStats] = useState([]);
   const [statsLoading, setStatsLoading] = useState(true);
@@ -55,7 +56,7 @@ function Dashboard() {
 
   // Fetches match stats. Works for both logged-in (personal stats) and
   // guest (uid = null, only general/upcoming stats) views.
-  const fetchMatchStats = async (uid) => {
+  const fetchMatchStats = async (uid, following = []) => {
     setStatsLoading(true);
     try {
       const allSnap = await getDocs(collection(db, "matches"));
@@ -134,10 +135,28 @@ function Dashboard() {
           })
           .slice(0, 5);
         setNewMatches(freshMatches);
+
+        // Matches hosted by players this user follows — surfaced as a
+        // dedicated feed so following someone actually does something.
+        const fromFollowing = allMatches
+          .filter((m) => {
+            if (!following.includes(m.createdBy)) return false;
+            if (m.joinedPlayers?.includes(uid)) return false;
+            const d = m.date?.toDate ? m.date.toDate() : new Date(m.date);
+            return d >= now;
+          })
+          .sort((a, b) => {
+            const da = a.date?.toDate ? a.date.toDate() : new Date(a.date);
+            const dbb = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+            return da - dbb;
+          })
+          .slice(0, 5);
+        setFollowingMatches(fromFollowing);
       } else {
         setMyMatchStats({ joinedCount: 0, createdCount: 0, upcomingCount: 0 });
         setReminderMatches([]);
         setNewMatches([]);
+        setFollowingMatches([]);
       }
     } catch (err) {
       console.error("Error fetching match stats:", err);
@@ -164,7 +183,7 @@ function Dashboard() {
         setUserData(data);
         if (data.role === "admin") setIsAdmin(true);
       }
-      fetchMatchStats(user.uid);
+      fetchMatchStats(user.uid, snap.exists() && Array.isArray(snap.data().following) ? snap.data().following : []);
     });
     return () => unsub();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -234,6 +253,81 @@ function Dashboard() {
   const plan = userData?.plan || "Free";
   const isGuest = authChecked && !currentUser;
 
+  // Achievement badges — derived entirely from data already on the user
+  // doc + match stats, so no new backend fields are needed.
+  const totalMatches = myMatchStats.joinedCount + myMatchStats.createdCount;
+  const points = userData?.points || 0;
+  const ratingCount = userData?.ratingCount || 0;
+  const avgRating = ratingCount > 0 ? (userData?.ratingSum || 0) / ratingCount : 0;
+  const noShowCount = userData?.noShowCount || 0;
+
+  const BADGES = [
+    {
+      id: "first-timer",
+      icon: "🎯",
+      label: "First Timer",
+      desc: "Play or host your first match",
+      achieved: totalMatches >= 1,
+    },
+    {
+      id: "regular",
+      icon: "🔥",
+      label: "Regular",
+      desc: "5 matches played or hosted",
+      achieved: totalMatches >= 5,
+    },
+    {
+      id: "veteran",
+      icon: "🏆",
+      label: "Veteran",
+      desc: "25 matches played or hosted",
+      achieved: totalMatches >= 25,
+    },
+    {
+      id: "organizer",
+      icon: "🎖️",
+      label: "Organizer",
+      desc: "Host 3 matches",
+      achieved: myMatchStats.createdCount >= 3,
+    },
+    {
+      id: "century-club",
+      icon: "💯",
+      label: "Century Club",
+      desc: "Earn 100 points",
+      achieved: points >= 100,
+    },
+    {
+      id: "high-scorer",
+      icon: "🚀",
+      label: "High Scorer",
+      desc: "Earn 500 points",
+      achieved: points >= 500,
+    },
+    {
+      id: "top-rated",
+      icon: "⭐",
+      label: "Top Rated",
+      desc: "4.5★ average from 3+ ratings",
+      achieved: ratingCount >= 3 && avgRating >= 4.5,
+    },
+    {
+      id: "reliable",
+      icon: "🛡️",
+      label: "Reliable",
+      desc: "3+ matches, zero no-shows",
+      achieved: totalMatches >= 3 && noShowCount === 0,
+    },
+    {
+      id: "gold-member",
+      icon: "👑",
+      label: "Gold Member",
+      desc: "Be on the Gold plan",
+      achieved: plan === "Gold",
+    },
+  ];
+  const earnedBadgeCount = BADGES.filter((b) => b.achieved).length;
+
   // Plan tiers rank low → high. A user can only move UP: their current
   // tier and everything below it is blocked in "Available plans", only
   // strictly higher tiers stay selectable as upgrades.
@@ -298,6 +392,9 @@ function Dashboard() {
             )}
             <Link to="/pricing" className="db-nav-item">
               <i className="ti ti-credit-card db-nav-ico" aria-hidden="true"></i> Pricing plans
+            </Link>
+            <Link to="/settings" className="db-nav-item">
+              <i className="ti ti-settings db-nav-ico" aria-hidden="true"></i> Settings
             </Link>
             {isAdmin && (
               <>
@@ -394,6 +491,35 @@ function Dashboard() {
                       <img src={m.venuePhotoURL} alt="" className="db-action-photo" />
                     ) : (
                       <div className="db-action-ico db-ico--blue">
+                        {sportIcon(m.sport)}
+                      </div>
+                    )}
+                    <div className="db-action-body">
+                      <div className="db-action-name">{sportIcon(m.sport)} {m.title}</div>
+                      <div className="db-action-desc">
+                        {m.venue} · {formatMatchDate(m.date)} · by {m.createdByName}
+                      </div>
+                    </div>
+                    <i className="ti ti-chevron-right db-action-arrow" aria-hidden="true"></i>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* FROM PLAYERS YOU FOLLOW */}
+          {!isGuest && followingMatches.length > 0 && (
+            <div className="db-section-card" style={{ borderColor: "#d9d0fb", background: "#f7f4ff" }}>
+              <div className="db-section-card-header" style={{ borderBottom: "1px solid #d9d0fb" }}>
+                <span className="db-section-card-title">👥 From players you follow</span>
+              </div>
+              <div className="db-actions-list">
+                {followingMatches.map((m) => (
+                  <Link to={`/matches/${m.id}`} className="db-action-row" key={m.id}>
+                    {m.venuePhotoURL ? (
+                      <img src={m.venuePhotoURL} alt="" className="db-action-photo" />
+                    ) : (
+                      <div className="db-action-ico db-ico--purple">
                         {sportIcon(m.sport)}
                       </div>
                     )}
@@ -571,10 +697,32 @@ function Dashboard() {
             </div>
           )}
 
+          {/* ACHIEVEMENTS */}
+          {!isGuest && (
+            <div className="db-section-card">
+              <div className="db-section-card-header">
+                <span className="db-section-card-title">🏅 Achievements</span>
+                <span className="db-section-card-sub">{earnedBadgeCount}/{BADGES.length} unlocked</span>
+              </div>
+              <div className="db-badges-grid">
+                {BADGES.map((b) => (
+                  <div
+                    key={b.id}
+                    className={"db-badge-tile " + (b.achieved ? "db-badge-tile--earned" : "db-badge-tile--locked")}
+                    title={b.desc}
+                  >
+                    <span className="db-badge-icon">{b.achieved ? b.icon : "🔒"}</span>
+                    <span className="db-badge-label">{b.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* UPCOMING MATCHES + BROWSE BY SPORT (visible to guests too) */}
           <div className="db-two-col">
             <div className="db-section-card">
-              <div className="db-section-card-header">
+              <div className="db-section-card-header kn-header-photo kn-header-photo--matches">
                 <span className="db-section-card-title">Upcoming Matches</span>
                 <Link to="/matches" className="db-section-card-link">View all</Link>
               </div>
@@ -619,7 +767,7 @@ function Dashboard() {
             </div>
 
             <div className="db-section-card">
-              <div className="db-section-card-header">
+              <div className="db-section-card-header kn-header-photo kn-header-photo--sport">
                 <span className="db-section-card-title">Browse by Sport</span>
               </div>
               <div className="db-actions-list">
