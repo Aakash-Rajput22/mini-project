@@ -810,6 +810,23 @@ function MatchDetail() {
     setBusy(false);
   };
 
+  /* ─────────────── MVP VOTING ─────────────── */
+
+  const handleVoteMVP = async (targetUid) => {
+    if (!currentUid || targetUid === currentUid || !match) return;
+    setBusy(true);
+    setError("");
+    try {
+      await updateDoc(doc(db, "matches", id), {
+        [`mvpVotes.${currentUid}`]: targetUid || deleteField(),
+      });
+    } catch (err) {
+      console.error("Error voting for MVP:", err);
+      setError("Vote could not be recorded. Please try again.");
+    }
+    setBusy(false);
+  };
+
   /* ─────────────── SCORECARD (Gold feature, live) ─────────────── */
 
   const openScorecardForm = () => {
@@ -874,6 +891,19 @@ function MatchDetail() {
   const roleOptions = ROLES_BY_SPORT[match.sport] || ROLES_BY_SPORT.Other;
   const statLabel = STAT_LABEL_BY_SPORT[match.sport] || "Score";
   const spotsLeft = match.maxPlayers - (match.joinedPlayers?.length || 0);
+  const matchHasPassed = match.date && (match.date.toDate ? match.date.toDate() : new Date(match.date)) < new Date();
+
+  // MVP tally — count each joined player's votes and find the leader(s).
+  const mvpVotes = match.mvpVotes || {};
+  const mvpTally = {};
+  Object.values(mvpVotes).forEach((votedUid) => {
+    mvpTally[votedUid] = (mvpTally[votedUid] || 0) + 1;
+  });
+  const mvpMaxVotes = Math.max(0, ...Object.values(mvpTally));
+  const mvpLeaders = mvpMaxVotes > 0
+    ? Object.entries(mvpTally).filter(([, count]) => count === mvpMaxVotes).map(([uid]) => uid)
+    : [];
+  const myMvpVote = mvpVotes[currentUid];
 
   return (
     <div className="match-detail-page">
@@ -1064,13 +1094,30 @@ function MatchDetail() {
       )}
 
       {/* PLAYERS JOINED */}
+      {/* MVP OF THE MATCH */}
+      {matchHasPassed && mvpLeaders.length > 0 && (
+        <div className="mvp-banner">
+          <span className="mvp-banner-trophy">🏅</span>
+          <div>
+            <div className="mvp-banner-title">
+              {mvpLeaders.length === 1 ? "Player of the Match" : "Tied for Player of the Match"}
+            </div>
+            <div className="mvp-banner-names">
+              {mvpLeaders
+                .map((uid) => match.joinedPlayerNames?.[uid] || "Player")
+                .join(", ")}{" "}
+              — {mvpMaxVotes} vote{mvpMaxVotes === 1 ? "" : "s"}
+            </div>
+          </div>
+        </div>
+      )}
+
       <h2>Players Joined ({match.joinedPlayers?.length || 0})</h2>
       <div className="players-list">
         {match.joinedPlayers?.map((uid) => {
           const name = match.joinedPlayerNames?.[uid] || "Player";
           const isSelf = uid === currentUid;
           const isNoShow = match.noShows?.includes(uid);
-          const matchHasPassed = match.date && (match.date.toDate ? match.date.toDate() : new Date(match.date)) < new Date();
           return (
             <div key={uid} className="player-chip-wrap">
               <div className="player-chip">
@@ -1086,6 +1133,9 @@ function MatchDetail() {
                 )}
                 {isNoShow && (
                   <span className="noshow-badge">No-show</span>
+                )}
+                {matchHasPassed && mvpLeaders.includes(uid) && (
+                  <span className="mvp-chip-badge">🏅 MVP</span>
                 )}
               </div>
 
@@ -1136,6 +1186,21 @@ function MatchDetail() {
                 ) : (
                   <button className="safety-link-btn" onClick={() => setRatingTargetUid(uid)}>
                     Rate this player
+                  </button>
+                )
+              )}
+
+              {!isSelf && currentUid && hasJoined && matchHasPassed && (
+                myMvpVote === uid ? (
+                  <span className="mvp-voted-tag">
+                    ✓ Your MVP vote
+                    <button className="link-btn mvp-change-link" onClick={() => handleVoteMVP("")}>
+                      Change
+                    </button>
+                  </span>
+                ) : (
+                  <button className="safety-link-btn" onClick={() => handleVoteMVP(uid)} disabled={busy}>
+                    🏅 Vote MVP
                   </button>
                 )
               )}

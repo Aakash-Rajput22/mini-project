@@ -356,6 +356,9 @@ function Profile() {
             <Link to="/pricing" className="db-nav-item">
               <i className="ti ti-credit-card db-nav-ico" aria-hidden="true"></i> Pricing plans
             </Link>
+            <Link to="/settings" className="db-nav-item">
+              <i className="ti ti-settings db-nav-ico" aria-hidden="true"></i> Settings
+            </Link>
             {isAdmin && (
               <>
                 <span className="db-nav-label" style={{marginTop:"16px"}}>Admin</span>

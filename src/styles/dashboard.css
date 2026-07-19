@@ -692,6 +692,71 @@ body {
 }
 .adm-page-num:hover { background: #eef2ef; }
 .adm-page-num--active { background: var(--kn-turf); color: #fff; border-color: var(--kn-turf); }
+
+/* ══ ADMIN ANALYTICS ══ */
+.adm-chart-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--kn-faint);
+  margin-bottom: 12px;
+}
+
+.adm-chart-note {
+  font-size: 12px;
+  color: var(--kn-faint);
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #f1f4f1;
+}
+
+.adm-bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.adm-bar-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 56px;
+  align-items: center;
+  gap: 10px;
+}
+
+.adm-bar-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--kn-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.adm-bar-track {
+  height: 10px;
+  background: #f1f4f1;
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.adm-bar-fill {
+  height: 100%;
+  border-radius: 100px;
+  transition: width 0.4s ease;
+  min-width: 3px;
+}
+.adm-bar-fill--blue   { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.adm-bar-fill--gray   { background: linear-gradient(90deg, #94a3b8, #cbd5e1); }
+.adm-bar-fill--silver { background: linear-gradient(90deg, #64748b, #94a3b8); }
+.adm-bar-fill--gold   { background: linear-gradient(90deg, var(--kn-gold), #e0a83f); }
+
+.adm-bar-value {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--kn-text);
+  text-align: right;
+}
 .db-stat-icon--amber { background: var(--kn-gold-light); }
 
 /* ══ PRICING ══ */

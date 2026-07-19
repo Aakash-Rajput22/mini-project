@@ -25,6 +25,11 @@ const EQUIPMENT_PRICES = {
   kit: 600,
 };
 
+// Wallet top-ups are user-chosen amounts, so just sanity-check the range
+// server-side instead of trusting it blindly.
+const WALLET_MIN_TOPUP = 10;
+const WALLET_MAX_TOPUP = 50000;
+
 app.post("/create-order", async (req, res) => {
   const { plan, type, amount, itemId, discounted } = req.body;
 
@@ -33,6 +38,11 @@ app.post("/create-order", async (req, res) => {
   if (type === "match_join") {
     if (!amount || amount <= 0) {
       return res.status(400).json({ error: "Invalid amount" });
+    }
+    orderAmount = Math.round(amount * 100);
+  } else if (type === "wallet_topup") {
+    if (!amount || amount < WALLET_MIN_TOPUP || amount > WALLET_MAX_TOPUP) {
+      return res.status(400).json({ error: `Enter an amount between ₹${WALLET_MIN_TOPUP} and ₹${WALLET_MAX_TOPUP}` });
     }
     orderAmount = Math.round(amount * 100);
   } else if (type === "equipment") {

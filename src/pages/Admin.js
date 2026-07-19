@@ -5,6 +5,12 @@ import { auth, db } from "../firebase/firebase";
 import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
 import "../styles/dashboard.css";
 
+const PLAN_PRICE = { Silver: 199, Gold: 499 };
+const SPORT_ICON = {
+  Cricket: "🏏", Football: "⚽", Badminton: "🏸", Basketball: "🏀",
+  Volleyball: "🏐", Tennis: "🎾", Other: "🎮",
+};
+
 function Admin() {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
@@ -20,6 +26,9 @@ function Admin() {
   const [reportsLoading, setReportsLoading] = useState(true);
   const [reportStatusFilter, setReportStatusFilter] = useState("All");
   const [reportSearch, setReportSearch] = useState("");
+
+  const [matches, setMatches] = useState([]);
+  const [matchesLoading, setMatchesLoading] = useState(true);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (currentUser) => {
@@ -37,6 +46,7 @@ function Admin() {
         if (adminFound) {
           setUsers(allUsers);
           await fetchReports();
+          await fetchMatches();
         }
       } catch (error) {
         console.log("Error:", error.message);
@@ -62,6 +72,17 @@ function Admin() {
       console.error("Error fetching reports:", error);
     }
     setReportsLoading(false);
+  };
+
+  const fetchMatches = async () => {
+    setMatchesLoading(true);
+    try {
+      const snap = await getDocs(collection(db, "matches"));
+      setMatches(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    } catch (error) {
+      console.error("Error fetching matches:", error);
+    }
+    setMatchesLoading(false);
   };
 
   const handleUpdateReportStatus = async (reportId, status) => {
@@ -143,6 +164,62 @@ function Admin() {
     return <span className="db-badge db-badge--gold">⚠ Open</span>;
   };
 
+  /* ─────────────── ANALYTICS ─────────────── */
+
+  const freeCount = users.filter((u) => !u.plan || u.plan === "Free").length;
+  const silverCount = users.filter((u) => u.plan === "Silver").length;
+  const goldCount = users.filter((u) => u.plan === "Gold").length;
+
+  const now = new Date();
+  const totalMatches = matches.length;
+  const upcomingMatchesCount = matches.filter((m) => {
+    const d = m.date?.toDate ? m.date.toDate() : new Date(m.date);
+    return d >= now;
+  }).length;
+  const completedMatchesCount = totalMatches - upcomingMatchesCount;
+  const avgMatchesPerUser = users.length > 0 ? (totalMatches / users.length).toFixed(1) : "0";
+
+  const silverRevenue = silverCount * PLAN_PRICE.Silver;
+  const goldRevenue = goldCount * PLAN_PRICE.Gold;
+  const estRevenue = silverRevenue + goldRevenue;
+
+  const sportCounts = {};
+  matches.forEach((m) => {
+    const s = m.sport || "Other";
+    sportCounts[s] = (sportCounts[s] || 0) + 1;
+  });
+  const sportBars = Object.entries(sportCounts).sort((a, b) => b[1] - a[1]);
+
+  const planBars = [
+    { label: "🆓 Free", value: freeCount, color: "gray" },
+    { label: "🥈 Silver", value: silverCount, color: "silver" },
+    { label: "🥇 Gold", value: goldCount, color: "gold" },
+  ];
+  const revenueBars = [
+    { label: "🥈 Silver", value: silverRevenue, color: "silver" },
+    { label: "🥇 Gold", value: goldRevenue, color: "gold" },
+  ];
+
+  const BarChart = ({ rows, prefix = "", suffix = "" }) => {
+    const max = Math.max(1, ...rows.map((r) => r.value));
+    return (
+      <div className="adm-bar-chart">
+        {rows.map((r) => (
+          <div className="adm-bar-row" key={r.label}>
+            <span className="adm-bar-label">{r.label}</span>
+            <div className="adm-bar-track">
+              <div
+                className={"adm-bar-fill adm-bar-fill--" + r.color}
+                style={{ width: `${(r.value / max) * 100}%` }}
+              />
+            </div>
+            <span className="adm-bar-value">{prefix}{r.value}{suffix}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="db-shell">
 
@@ -161,6 +238,7 @@ function Admin() {
             <Link to="/leaderboard" className="db-nav-item"><span className="db-nav-ico">🏆</span> Leaderboard</Link>
             <Link to="/profile"   className="db-nav-item"><span className="db-nav-ico">👤</span> Profile</Link>
             <Link to="/pricing"   className="db-nav-item"><span className="db-nav-ico">💳</span> Pricing plans</Link>
+            <Link to="/settings"  className="db-nav-item"><span className="db-nav-ico">⚙️</span> Settings</Link>
             <span className="db-nav-label" style={{marginTop:"16px"}}>Admin</span>
             <Link to="/admin" className="db-nav-item db-nav-item--active"><span className="db-nav-ico">🛡️</span> Admin panel</Link>
           </nav>
@@ -200,22 +278,96 @@ function Admin() {
               <div className="db-stat-icon db-stat-icon--green">🆓</div>
               <div>
                 <p className="db-stat-label">Free plan</p>
-                <p className="db-stat-value">{users.filter(u => !u.plan || u.plan === "Free").length}</p>
+                <p className="db-stat-value">{freeCount}</p>
               </div>
             </div>
             <div className="db-stat-card">
               <div className="db-stat-icon" style={{background:"#f0f9ff",fontSize:"20px",width:"44px",height:"44px",borderRadius:"10px",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>🥈</div>
               <div>
                 <p className="db-stat-label">Silver plan</p>
-                <p className="db-stat-value">{users.filter(u => u.plan === "Silver").length}</p>
+                <p className="db-stat-value">{silverCount}</p>
               </div>
             </div>
             <div className="db-stat-card">
               <div className="db-stat-icon db-stat-icon--amber">🥇</div>
               <div>
                 <p className="db-stat-label">Gold plan</p>
-                <p className="db-stat-value">{users.filter(u => u.plan === "Gold").length}</p>
+                <p className="db-stat-value">{goldCount}</p>
               </div>
+            </div>
+          </div>
+
+          {/* ANALYTICS */}
+          <div className="db-section-card">
+            <div className="db-section-card-header">
+              <span className="db-section-card-title">📊 Analytics</span>
+              <span className="db-section-card-sub">
+                {matchesLoading ? "Loading matches..." : `${totalMatches} matches total`}
+              </span>
+            </div>
+
+            <div className="db-section-card-body">
+              <div className="db-stats-grid">
+                <div className="db-stat-card">
+                  <div className="db-stat-top">
+                    <span className="db-stat-label">Total matches</span>
+                    <div className="db-stat-ico db-ico--blue"><i className="ti ti-ball-basketball" aria-hidden="true"></i></div>
+                  </div>
+                  <p className="db-stat-value">{matchesLoading ? "—" : totalMatches}</p>
+                </div>
+                <div className="db-stat-card">
+                  <div className="db-stat-top">
+                    <span className="db-stat-label">Upcoming</span>
+                    <div className="db-stat-ico db-ico--green"><i className="ti ti-calendar-event" aria-hidden="true"></i></div>
+                  </div>
+                  <p className="db-stat-value">{matchesLoading ? "—" : upcomingMatchesCount}</p>
+                </div>
+                <div className="db-stat-card">
+                  <div className="db-stat-top">
+                    <span className="db-stat-label">Completed</span>
+                    <div className="db-stat-ico db-ico--gray"><i className="ti ti-flag" aria-hidden="true"></i></div>
+                  </div>
+                  <p className="db-stat-value">{matchesLoading ? "—" : completedMatchesCount}</p>
+                </div>
+                <div className="db-stat-card">
+                  <div className="db-stat-top">
+                    <span className="db-stat-label">Est. revenue</span>
+                    <div className="db-stat-ico db-ico--amber"><i className="ti ti-currency-rupee" aria-hidden="true"></i></div>
+                  </div>
+                  <p className="db-stat-value">₹{estRevenue}</p>
+                </div>
+              </div>
+
+              <div className="db-two-col" style={{ marginTop: "18px" }}>
+                <div>
+                  <p className="adm-chart-title">Users by plan</p>
+                  <BarChart rows={planBars} />
+                </div>
+                <div>
+                  <p className="adm-chart-title">Est. revenue by plan (₹{PLAN_PRICE.Silver}/{PLAN_PRICE.Gold})</p>
+                  <BarChart rows={revenueBars} prefix="₹" />
+                </div>
+              </div>
+
+              <div style={{ marginTop: "18px" }}>
+                <p className="adm-chart-title">Matches by sport</p>
+                {sportBars.length === 0 ? (
+                  <p className="adm-empty" style={{ padding: "12px 0" }}>No matches yet.</p>
+                ) : (
+                  <BarChart
+                    rows={sportBars.map(([sport, count]) => ({
+                      label: `${SPORT_ICON[sport] || "🎮"} ${sport}`,
+                      value: count,
+                      color: "blue",
+                    }))}
+                  />
+                )}
+              </div>
+
+              <p className="adm-chart-note">
+                Avg. {avgMatchesPerUser} matches per user · Revenue is estimated from current plan
+                holders at list price, not actual transaction history.
+              </p>
             </div>
           </div>
 
