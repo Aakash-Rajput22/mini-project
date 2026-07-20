@@ -542,3 +542,9 @@
   .lp-section       { padding: 56px 0; }
   .lp-cta-section   { padding: 56px 0; }
 }
+.lp-brand-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  border-radius: 10px;
+}

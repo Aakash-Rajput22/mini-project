@@ -76,7 +76,12 @@ body {
   border-bottom: 1px solid rgba(255,255,255,0.08);
   margin-bottom: 16px;
 }
-
+.db-brand-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  border-radius: 12px;
+}
 .db-brand-mark {
   width: 32px; height: 32px;
   border-radius: 9px;

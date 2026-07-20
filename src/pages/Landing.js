@@ -1,3 +1,4 @@
+import logo from "../assets/knowora-logo.png";
 import { Link } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import "../styles/landing.css";
@@ -99,14 +100,10 @@ function Landing() {
         }}
       >
         <div className="lp-nav-inner">
-          <Link
-            to="/"
-            className="lp-brand"
-            style={isScrolled ? { color: "#ffffff" } : undefined}
-          >
-            <span className="lp-brand-mark">K</span>
-            Knowora
-          </Link>
+          <Link to="/" className="lp-brand">
+  <img src={logo} alt="Knowora" className="lp-brand-logo" />
+  <span>Knowora</span>
+</Link>
 
           <nav className="lp-nav-links">
             {navLinks.map((link) => (

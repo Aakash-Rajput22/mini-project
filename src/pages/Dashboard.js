@@ -1,3 +1,4 @@
+import logo from "../assets/knowora-logo.png";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
@@ -361,9 +362,10 @@ function Dashboard() {
       <aside className="db-sidebar">
         <div className="db-sidebar-top">
           <div className="db-brand">
-            <span className="db-brand-mark">K</span>
-            <span className="db-brand-name">Knowora</span>
-          </div>
+  <img src={logo} alt="Knowora" className="db-brand-logo" />
+  <span className="db-brand-name">Knowora</span>
+</div>
+
           <nav className="db-nav">
             <span className="db-nav-label">Main</span>
             <Link to="/dashboard" className="db-nav-item db-nav-item--active">
