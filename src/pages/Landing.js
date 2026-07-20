@@ -488,11 +488,11 @@ function Landing() {
 
       {/* FOOTER */}
       <footer className="lp-footer">
-        <div className="lp-wrap lp-footer-inner">
-          <div className="lp-footer-brand">
-            <span className="lp-brand-mark">K</span>
-            Knowora
-          </div>
+  <div className="lp-wrap lp-footer-inner">
+    <div className="lp-footer-brand">
+      <img src={logo} alt="Knowora" className="lp-brand-logo" />
+      <span>Knowora</span>
+    </div>
           <div className="lp-footer-cols">
             <div className="lp-footer-col">
               <div className="lp-footer-col-title">Product</div>
