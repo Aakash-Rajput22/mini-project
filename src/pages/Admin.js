@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
 import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
+import { useToast } from "../components/Toast";
 import "../styles/dashboard.css";
 
 const PLAN_PRICE = { Silver: 199, Gold: 499 };
@@ -13,6 +14,7 @@ const SPORT_ICON = {
 
 function Admin() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -91,7 +93,7 @@ function Admin() {
       setReports((prev) => prev.map((r) => (r.id === reportId ? { ...r, status } : r)));
     } catch (error) {
       console.error("Error updating report status:", error);
-      alert("Status update failed. Please try again.");
+      toast.error("Status update failed. Please try again.");
     }
   };
 

@@ -15,6 +15,8 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { auth, db } from "../firebase/firebase";
+import { useToast } from "../components/Toast";
+import { useConfirm } from "../components/ConfirmDialog";
 import "../styles/dashboard.css";
 import "../styles/settings.css";
 
@@ -37,6 +39,8 @@ const DEFAULT_SETTINGS = {
 
 function Settings() {
   const navigate = useNavigate();
+  const toast = useToast();
+  const confirmDialog = useConfirm();
   const [currentUser, setCurrentUser] = useState(null);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [blockedUsers, setBlockedUsers] = useState([]);
@@ -171,7 +175,7 @@ function Settings() {
       });
       const data = await res.json();
       if (data.error) {
-        alert(data.error);
+        toast.error(data.error);
         setAddingMoney(false);
         return;
       }
@@ -201,7 +205,7 @@ function Settings() {
               setWalletBalance((prev) => prev + amount);
               setCustomAmount("");
             } else {
-              alert("Payment verification failed. Wallet not credited.");
+              toast.error("Payment verification failed. Wallet not credited.");
             }
           } catch (e) {
             console.error("Error crediting wallet:", e);
@@ -216,7 +220,7 @@ function Settings() {
       rzp.open();
     } catch (e) {
       console.error("Error starting wallet top-up:", e);
-      alert("Could not start payment. Please try again.");
+      toast.error("Could not start payment. Please try again.");
       setAddingMoney(false);
     }
   };
@@ -325,9 +329,12 @@ function Settings() {
 
   const handleDeleteAccount = async () => {
     if (!currentUser) return;
-    const confirmed = window.confirm(
-      "This will permanently delete your Knowora account and profile data. This cannot be undone. Continue?"
-    );
+    const confirmed = await confirmDialog({
+      title: "Delete your account?",
+      message: "This permanently removes your Knowora account and profile data. This cannot be undone.",
+      confirmLabel: "Delete account",
+      danger: true,
+    });
     if (!confirmed) return;
 
     setDeleting(true);
@@ -337,7 +344,7 @@ function Settings() {
       navigate("/login");
     } catch (e) {
       console.error("Error deleting account:", e);
-      alert(
+      toast.error(
         e.code === "auth/requires-recent-login"
           ? "For security, please sign out and log in again before deleting your account."
           : "Could not delete account. Please try again."

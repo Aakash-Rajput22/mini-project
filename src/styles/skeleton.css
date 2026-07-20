@@ -1,0 +1,38 @@
+/* ══ SKELETON LOADING ══ */
+.kn-skeleton {
+  background: linear-gradient(90deg, #eef1ee 25%, #f7f9f7 37%, #eef1ee 63%);
+  background-size: 400% 100%;
+  animation: kn-shimmer 1.4s ease infinite;
+  flex-shrink: 0;
+}
+
+@keyframes kn-shimmer {
+  0%   { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+.kn-skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+}
+
+.kn-skeleton-row-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.kn-skeleton-table-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 13px 16px;
+  border-bottom: 1px solid #f1f4f1;
+}
+
+body.kn-dark .kn-skeleton {
+  background: linear-gradient(90deg, #182620 25%, #1f2f27 37%, #182620 63%);
+  background-size: 400% 100%;
+}

@@ -3,6 +3,7 @@ import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
 import { useState, useEffect } from "react";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
+import { SkeletonTableRow, Skeleton } from "../components/Skeleton";
 import "../styles/dashboard.css";
 import "../styles/leaderboard.css";
 
@@ -169,7 +170,7 @@ function Leaderboard() {
                   <i className="ti ti-users" aria-hidden="true"></i>
                 </div>
               </div>
-              <p className="db-stat-value">{loading ? "—" : leaders.length}</p>
+              <p className="db-stat-value">{loading ? <Skeleton width="34px" height="22px" /> : leaders.length}</p>
             </div>
 
             <div className="db-stat-card">
@@ -179,7 +180,7 @@ function Leaderboard() {
                   <i className="ti ti-ball-basketball" aria-hidden="true"></i>
                 </div>
               </div>
-              <p className="db-stat-value">{loading ? "—" : totalMatches}</p>
+              <p className="db-stat-value">{loading ? <Skeleton width="34px" height="22px" /> : totalMatches}</p>
             </div>
 
             <div className="db-stat-card">
@@ -189,7 +190,7 @@ function Leaderboard() {
                   <i className="ti ti-trophy" aria-hidden="true"></i>
                 </div>
               </div>
-              <p className="db-stat-value">{loading ? "—" : topScore}</p>
+              <p className="db-stat-value">{loading ? <Skeleton width="34px" height="22px" /> : topScore}</p>
             </div>
           </div>
 
@@ -221,7 +222,11 @@ function Leaderboard() {
             </div>
 
             {loading ? (
-              <p className="lb-empty">Loading leaderboard...</p>
+              <div className="lb-list">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <SkeletonTableRow key={i} columns={4} />
+                ))}
+              </div>
             ) : leaders.length === 0 ? (
               <p className="lb-empty">No ranked players yet. Join or host a match to appear on the leaderboard!</p>
             ) : (

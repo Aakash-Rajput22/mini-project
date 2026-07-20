@@ -5,6 +5,7 @@ import { auth, db } from "../firebase/firebase";
 import { doc, setDoc, getDoc, updateDoc, increment, collection, query, where, getDocs } from "firebase/firestore";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useToast } from "../components/Toast";
 import "../styles/dashboard.css";
 import "../styles/profile.css";
 
@@ -13,6 +14,7 @@ const CLOUDINARY_UPLOAD_PRESET = "knowora_profiles";
 
 function Profile() {
   const navigate = useNavigate();
+  const toast = useToast();
   const debounceRef = useRef(null);
 
   const [currentUser, setCurrentUser] = useState(null);
@@ -124,12 +126,12 @@ function Profile() {
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      alert("File size must be less than 2 MB. Choose a smaller file.");
+      toast.error("File size must be less than 2 MB. Choose a smaller file.");
       e.target.value = "";
       return;
     }
     if (!currentUser) {
-      alert("Please login first.");
+      toast.error("Please login first.");
       return;
     }
 
@@ -152,7 +154,7 @@ function Profile() {
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
       console.error("Error uploading photo:", error);
-      alert("Photo upload/Not saved: " + error.message);
+      toast.error("Photo upload failed: " + error.message);
       setPhotoURL(previousPhotoURL);
       URL.revokeObjectURL(previewUrl);
     }
@@ -162,7 +164,7 @@ function Profile() {
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("Location is not detected in this browser.");
+      toast.error("Location is not detected in this browser.");
       return;
     }
     setLocatingAddress(true);
@@ -179,18 +181,18 @@ function Profile() {
             setAddress(data.display_name);
             setAddressSuggestions([]);
           } else {
-            alert("Address not found. Please type it manually.");
+            toast.error("Address not found. Please type it manually.");
           }
         } catch (err) {
           console.error("Reverse geocoding error:", err);
-          alert("Failed to fetch address. Please type it manually.");
+          toast.error("Failed to fetch address. Please type it manually.");
         }
         setLocatingAddress(false);
       },
       (err) => {
         console.error("Geolocation error:", err);
         setLocatingAddress(false);
-        alert("Location access not allowed. Please check your browser settings.");
+        toast.error("Location access not allowed. Please check your browser settings.");
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -253,7 +255,7 @@ function Profile() {
   };
 
   const saveProfile = async () => {
-    if (!currentUser) { alert("Please login first"); return; }
+    if (!currentUser) { toast.error("Please login first"); return; }
     setLoading(true);
     try {
       await setDoc(doc(db, "users", currentUser.uid), {
@@ -268,7 +270,7 @@ function Profile() {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
-      alert(error.message);
+      toast.error(error.message);
     }
     setLoading(false);
   };

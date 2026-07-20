@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
 import { doc, setDoc, getDoc, Timestamp, collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useToast } from "../components/Toast";
 import { checkAndDowngradeIfExpired } from "../utils/planExpiry";
 import "../styles/dashboard.css";
 import "../styles/equipment.css";
@@ -25,6 +26,7 @@ const EQUIPMENT = [
 
 function Pricing() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [loading, setLoading] = useState(null);
   const [equipLoading, setEquipLoading] = useState(null);
   const [currentPlan, setCurrentPlan] = useState("Free");
@@ -56,7 +58,7 @@ function Pricing() {
     }, { merge: true });
     setCurrentPlan(plan);
     const durLabel = plan === "Gold" ? "2 months" : plan === "Silver" ? "1 month" : "1 hour";
-    alert(plan + " plan activated! Expires in " + durLabel + ".");
+    toast.success(plan + " plan activated! Expires in " + durLabel + ".");
     navigate("/dashboard");
   };
 
@@ -72,7 +74,7 @@ function Pricing() {
         body: JSON.stringify({ plan }),
       });
       const data = await res.json();
-      if (data.error) { alert(data.error); setLoading(null); return; }
+      if (data.error) { toast.error(data.error); setLoading(null); return; }
       const options = {
         key: data.keyId,
         amount: data.amount,
@@ -92,7 +94,7 @@ function Pricing() {
           });
           const vData = await vRes.json();
           if (vData.verified) await activatePlan(plan);
-          else alert("Payment verification failed");
+          else toast.error("Payment verification failed");
           setLoading(null);
         },
         modal: { ondismiss: () => setLoading(null) },
@@ -102,7 +104,7 @@ function Pricing() {
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (error) {
-      alert(error.message);
+      toast.error(error.message);
       setLoading(null);
     }
   };
@@ -121,7 +123,7 @@ function Pricing() {
         body: JSON.stringify({ type: "equipment", itemId: item.id, discounted: isGold }),
       });
       const data = await res.json();
-      if (data.error) { alert(data.error); setEquipLoading(null); return; }
+      if (data.error) { toast.error(data.error); setEquipLoading(null); return; }
 
       const options = {
         key: data.keyId,
@@ -153,9 +155,9 @@ function Pricing() {
             } catch (e) {
               console.error("Error logging purchase:", e);
             }
-            alert(item.name + " purchased successfully!");
+            toast.success(item.name + " purchased successfully!");
           } else {
-            alert("Payment verification failed");
+            toast.error("Payment verification failed");
           }
           setEquipLoading(null);
         },
@@ -166,7 +168,7 @@ function Pricing() {
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (error) {
-      alert(error.message);
+      toast.error(error.message);
       setEquipLoading(null);
     }
   };

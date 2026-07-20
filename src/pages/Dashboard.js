@@ -3,6 +3,7 @@ import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
 import { useState, useEffect } from "react";
 import { doc, getDoc, updateDoc, deleteField, collection, query, where, getDocs } from "firebase/firestore";
+import { Skeleton, SkeletonList } from "../components/Skeleton";
 import "../styles/dashboard.css";
 
 function Dashboard() {
@@ -670,7 +671,7 @@ function Dashboard() {
                         <i className="ti ti-users" aria-hidden="true"></i>
                       </div>
                     </div>
-                    <p className="db-stat-value">{statsLoading ? "—" : myMatchStats.joinedCount}</p>
+                    <p className="db-stat-value">{statsLoading ? <Skeleton width="34px" height="22px" /> : myMatchStats.joinedCount}</p>
                   </div>
 
                   <div className="db-stat-card">
@@ -680,7 +681,7 @@ function Dashboard() {
                         <i className="ti ti-flag" aria-hidden="true"></i>
                       </div>
                     </div>
-                    <p className="db-stat-value">{statsLoading ? "—" : myMatchStats.createdCount}</p>
+                    <p className="db-stat-value">{statsLoading ? <Skeleton width="34px" height="22px" /> : myMatchStats.createdCount}</p>
                   </div>
 
                   <div className="db-stat-card">
@@ -690,7 +691,7 @@ function Dashboard() {
                         <i className="ti ti-calendar-event" aria-hidden="true"></i>
                       </div>
                     </div>
-                    <p className="db-stat-value">{statsLoading ? "—" : myMatchStats.upcomingCount}</p>
+                    <p className="db-stat-value">{statsLoading ? <Skeleton width="34px" height="22px" /> : myMatchStats.upcomingCount}</p>
                   </div>
                 </div>
               </div>
@@ -728,7 +729,7 @@ function Dashboard() {
               </div>
               <div className="db-actions-list">
                 {statsLoading ? (
-                  <p className="db-plan-tile-dur">Loading...</p>
+                  <SkeletonList count={4} />
                 ) : upcomingMatches.length === 0 ? (
                   <p className="db-plan-tile-dur">No upcoming matches found. Create one!</p>
                 ) : (
@@ -771,7 +772,10 @@ function Dashboard() {
                 <span className="db-section-card-title">Browse by Sport</span>
               </div>
               <div className="db-actions-list">
-                {sportStats.map((s, idx) => (
+                {statsLoading ? (
+                  <SkeletonList count={5} />
+                ) : (
+                  sportStats.map((s, idx) => (
                   <div
                     className="db-action-row"
                     key={s.sport}
@@ -799,7 +803,8 @@ function Dashboard() {
                     </div>
                     <i className="ti ti-chevron-right db-action-arrow" aria-hidden="true"></i>
                   </div>
-                ))}
+                ))
+                )}
               </div>
             </div>
           </div>

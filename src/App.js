@@ -2,6 +2,10 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase/firebase";
+import { ToastProvider } from "./components/Toast";
+import { ConfirmProvider } from "./components/ConfirmDialog";
+import "./styles/toast.css";
+import "./styles/skeleton.css";
 
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -38,6 +42,8 @@ function RootRoute() {
 
 function App() {
   return (
+    <ToastProvider>
+    <ConfirmProvider>
     <Routes>
 
       {/* Root: dashboard if logged in, landing otherwise */}
@@ -66,6 +72,8 @@ function App() {
       <Route path="*" element={<Navigate to="/" />} />
 
     </Routes>
+    </ConfirmProvider>
+    </ToastProvider>
   );
 }
 

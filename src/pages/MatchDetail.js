@@ -22,6 +22,9 @@ import {
 } from "firebase/firestore";
 import { db, auth } from "../firebase/firebase";
 import { checkAndDowngradeIfExpired } from "../utils/planExpiry";
+import { useToast } from "../components/Toast";
+import { useConfirm } from "../components/ConfirmDialog";
+import { Skeleton } from "../components/Skeleton";
 import "../styles/matches.css";
 
 const BACKEND_URL = "https://mini-project-backend-4kid.onrender.com";
@@ -96,6 +99,8 @@ function MatchDetail() {
   const [chatSending, setChatSending] = useState(false);
 
   const currentUid = auth.currentUser?.uid;
+  const toast = useToast();
+  const confirmDialog = useConfirm();
 
   // Live listener — the match page (players, requests, scoreboard) updates
   // for everyone in real time without needing a manual refresh.
@@ -689,7 +694,13 @@ function MatchDetail() {
 
   const handleBlockPlayer = async (uid, name) => {
     if (!currentUid || uid === currentUid) return;
-    if (!window.confirm(`Block ${name}? You won't see matches they host anymore, and their join requests to your matches will be hidden.`)) {
+    const ok = await confirmDialog({
+      title: `Block ${name}?`,
+      message: "You won't see matches they host anymore, and their join requests to your matches will be hidden.",
+      confirmLabel: "Block",
+      danger: true,
+    });
+    if (!ok) {
       return;
     }
     try {
@@ -722,7 +733,7 @@ function MatchDetail() {
       });
       setReportingUid(null);
       setReportReason("");
-      alert("Report submitted. Our team will review it.");
+      toast.success("Report submitted. Our team will review it.");
     } catch (err) {
       console.error("Error submitting report:", err);
       setError("Report submission failed. Please try again.");
@@ -734,7 +745,13 @@ function MatchDetail() {
 
   const handleMarkNoShow = async (uid) => {
     if (!isCreatorCheck() || !match) return;
-    if (!window.confirm("Mark this player as a no-show for this match?")) return;
+    const ok = await confirmDialog({
+      title: "Mark as no-show?",
+      message: "This flags the player as a no-show for this match.",
+      confirmLabel: "Mark no-show",
+      danger: true,
+    });
+    if (!ok) return;
 
     setBusy(true);
     try {
@@ -867,7 +884,20 @@ function MatchDetail() {
     setBusy(false);
   };
 
-  if (loading) return <div className="loading-text">Loading...</div>;
+  if (loading) return (
+    <div className="match-detail-page">
+      <Skeleton width="120px" height="32px" radius="8px" style={{ marginBottom: "18px" }} />
+      <div className="match-full">
+        <Skeleton width="90px" height="22px" radius="100px" style={{ marginBottom: "14px" }} />
+        <Skeleton width="65%" height="26px" style={{ marginBottom: "18px" }} />
+        <div className="match-info-grid">
+          <Skeleton height="40px" />
+          <Skeleton height="40px" />
+          <Skeleton height="40px" />
+        </div>
+      </div>
+    </div>
+  );
   if (!match)
     return (
       <div className="empty-text">

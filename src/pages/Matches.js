@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 import { db, auth } from "../firebase/firebase";
 import { checkAndDowngradeIfExpired } from "../utils/planExpiry";
+import { SkeletonList } from "../components/Skeleton";
 import "../styles/matches.css";
 
 const SPORTS = [
@@ -602,7 +603,9 @@ function Matches() {
       </div>
 
       {loading ? (
-        <div className="loading-text">Loading matches...</div>
+        <div className="matches-list">
+          <SkeletonList count={4} />
+        </div>
       ) : filteredMatches.length === 0 ? (
         <div className="empty-text">
           <p>No matches found.</p>
